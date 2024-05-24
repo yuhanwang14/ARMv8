@@ -1,5 +1,6 @@
 #include "inttypes.h"
 #include "utils.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -16,7 +17,7 @@ FILE *safe_open(char *path) {
     return result;
 }
 
-#define flag_conv(ident, str) reg->PSTATE.ident ? str : '-'
+#define flag_conv(ident, str) reg->PSTATE->ident ? str : '-'
 
 void log_state(Register *reg, FILE *fd) {
     // log register state
