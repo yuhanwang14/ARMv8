@@ -149,14 +149,14 @@ typedef struct {
     BranchType type;
     union {
         struct {
-            uint32_t simm26;
+            uint32_t simm26; // 1/4 of the offset to be applied to PC
         } unconditional;
         struct {
-            uint32_t xn;
+            uint32_t xn; // the register containing the address to jump to
         } reg;
         struct {
-            uint32_t simm19;
-            CondType cond;
+            uint32_t simm19; // 1/4 of the offset to be applied to PC
+            CondType cond;   // conditions that PSTATE must meet to apply the jump
         } conditional;
     };
 } Branch;
