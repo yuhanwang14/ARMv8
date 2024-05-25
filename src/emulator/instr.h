@@ -100,7 +100,7 @@ typedef struct {
 // 		- Pre/Post-indexed offset
 // 		- Unsigned offset
 
-typedef enum { REGISTER, PRE_POST_INDEX, UNSIGN } SDTransType;
+typedef enum { SD_REGISTER_T, PRE_POST_INDEX_T, UNSIGN_T } SDTransType;
 typedef enum { POST_INDEX = 0, PRE_INDEXED = 1 } IndexType;
 
 typedef struct {
@@ -139,6 +139,28 @@ typedef struct {
     uint64_t rt;
 } LoadLiteral;
 
+// A Branch is one of:
+//      - Unconditional
+//      - Register
+//      - Conditional
+typedef enum { UNCONDITIONAL_T, BR_REGISTER_T, CONDITIONAL_T } BranchType;
+typedef enum { EQ = 0, NE = 1, GE = 10, LT = 11, GT = 12, LE = 13, AL = 14 } CondType;
+typedef struct {
+    BranchType type;
+    union {
+        struct {
+            uint32_t simm26;
+        } unconditional;
+        struct {
+            uint32_t xn;
+        } reg;
+        struct {
+            uint32_t simm19;
+            CondType cond;
+        } conditional;
+    };
+} Branch;
+
 // A GADT Instr(uction) that is one of:
 //      - DP Immediate
 //      - DP Register
@@ -154,10 +176,7 @@ typedef struct {
         DpRegister dp_reg;
         SdTrans sing_data_transfer;
         LoadLiteral load_literal;
-        struct {
-            // TODO
-            int foo;
-        } branch;
+        Branch branch;
     };
 } Instr;
 
