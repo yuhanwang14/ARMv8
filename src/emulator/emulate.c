@@ -1,4 +1,5 @@
 #include "decode.h"
+#include "execute.h"
 #include "fetch.h"
 #include "instr.h"
 #include "utils.h"
@@ -9,6 +10,7 @@
 FILE *out, *source;
 Register *reg;
 Instr *instr;
+const uint32_t HALT = 0x8a000000;
 
 int main(int argc, char **argv) {
     if (argc == 2) {
@@ -26,13 +28,16 @@ int main(int argc, char **argv) {
 
     while (true) {
         uint32_t code = fetch(reg);
+        if (code == HALT) {
+            break;
+        }
         instr = decode(code);
         execute(reg, instr);
 
-        // some housekeeping and reporting the register state
-        instr_free(instr);
+        free(instr);
         log_state(reg, out);
     }
+    log_state(reg, out);
 
     fclose(out);
     fclose(source);
