@@ -22,19 +22,19 @@ typedef struct {
     DpImmedType type;
     union {
         struct {
-            bool sf;
-            bool sh;
-            DpArithmeticType opc;
-            uint32_t imm12;
-            uint32_t rn;
-            uint32_t rd;
+            bool sf;                // 32/64 mode flag
+            bool sh;                // whether imm12 should be moved left by 12 bits
+            DpArithmeticType atype; // operation type
+            uint32_t imm12;         // Op2
+            uint32_t rn;            // source register index
+            uint32_t rd;            // destination register index
         } arithmetic;
         struct {
-            bool sf;
-            uint32_t hw;
-            uint32_t opc;
-            uint32_t imm16;
-            uint32_t rd;
+            bool sf;              // 32/64 mode flag
+            uint32_t hw;          // imm16 should be left shifted by hw * 16 bits
+            DpWideMoveType mtype; // operation type
+            uint32_t imm16;       // operand
+            uint32_t rd;          // destination register index
         } wide_move;
     };
 } DpImmed;
@@ -45,12 +45,8 @@ typedef struct {
 //      - multiply
 typedef enum { DPR_ARITHMETIC_T, BIT_LOGIC_T, MULTIPLY_T } DpRegisterType;
 typedef enum { A_LSL_T = 0, A_LSR_T = 1, A_ASR_T = 2 } AritShiftType;
-typedef enum {
-    L_LSL_T = 0,
-    L_LSR_T = 1,
-    L_ASR_T = 2,
-    L_ROR_T = 3
-} LogcShiftType;
+typedef enum { L_LSL_T = 0, L_LSR_T = 1, L_ASR_T = 2, L_ROR_T = 3 } LogcShiftType;
+typedef enum { MADD = 0, MSUB = 1 } MultType;
 typedef enum {
     AND = 0,
     OR = 1,
@@ -63,31 +59,31 @@ typedef struct {
     DpRegisterType type;
     union {
         struct {
-            AritShiftType stype;
-            DrArithmeticType atype;
-            uint32_t rd;
-            uint32_t rn;
-            uint32_t rm;
-            bool sf;
-            uint32_t shift;
+            AritShiftType stype;    // right operand preprocessing: how should it be shifted
+            DrArithmeticType atype; // operation type
+            uint32_t rd;            // destination register index
+            uint32_t rn;            // left operand
+            uint32_t rm;            // right operand
+            bool sf;                // 32/64 mode flag
+            uint32_t shift;         // right operand preprocessing: how many bits should it be shifted
         } arithmetic;
         struct {
-            LogcShiftType stype;
-            BitInstrType btype;
-            uint32_t rd;
-            uint32_t rn;
-            uint32_t rm;
-            bool sf;
-            uint32_t shift;
-            bool N;
+            LogcShiftType stype; // preprocessing operation type
+            BitInstrType btype;  // operation type
+            uint32_t rd;         // destination register index
+            uint32_t rn;         // left operand
+            uint32_t rm;         // right operand
+            bool sf;             // 32/64 mode flag
+            uint32_t shift;      // right operand preprocessing: how many bits should it be shifted
+            bool N;              // right operand preprocessing: bit negated after shift?
         } logical;
         struct {
-            uint32_t rd;
-            uint32_t rn;
-            uint32_t rm;
-            bool sf;
-            bool x;
-            uint32_t ra;
+            uint32_t rd; // destination register index
+            uint32_t rn; // Rn
+            uint32_t rm; // Rm
+            bool sf;     // 32/64 mode flag
+            MultType x;  // operation type
+            uint32_t ra; // Ra
         } multiply;
     };
 } DpRegister;
@@ -105,6 +101,7 @@ typedef struct {
 // 		- Unsigned offset
 
 typedef enum { REGISTER, PRE_POST_INDEX, UNSIGN } SDTransType;
+typedef enum { POST_INDEX = 0, PRE_INDEXED = 1 } IndexType;
 
 typedef struct {
     SDTransType type;
@@ -117,16 +114,16 @@ typedef struct {
             uint64_t rt; // The target register
         } reg;
         struct {
-            bool I; // 1 is pre-indexed, 0 is post-indexed.
+            IndexType itype; // pre-indexed / post-indexed.
             uint32_t simm9;
-            bool sf;
+            bool sf; // 32/64 mode flag
             bool L;
             uint64_t xn;
             uint64_t rt;
         } pre_post_index;
         struct {
             uint32_t imm12;
-            bool sf;
+            bool sf; // 32/64 mode flag
             bool L;
             uint64_t xn;
             uint64_t rt;
@@ -148,13 +145,7 @@ typedef struct {
 //      - Single Data Transfer
 //      - Load Literal
 //      - Branch
-typedef enum {
-    DP_IMMEDIATE_T,
-    DP_REGISTER_T,
-    SINGLE_DATA_TRANSFER_T,
-    LOAD_LITERAL_T,
-    BRANCH_T
-} InstrType;
+typedef enum { DP_IMMEDIATE_T, DP_REGISTER_T, SINGLE_DATA_TRANSFER_T, LOAD_LITERAL_T, BRANCH_T } InstrType;
 
 typedef struct {
     InstrType type;
