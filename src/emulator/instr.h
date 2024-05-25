@@ -15,20 +15,26 @@
 //      - arithmetic
 //      - wide move
 typedef enum { ARITHMETIC, WIDE_MOVE } DpInstrType;
+typedef enum { ADD = 0, ADDS = 1, SUB = 2, SUBS = 3 } DpArithmeticType;
+typedef enum { MOVN = 0, MOVZ = 2, MOVK = 3 } DpWideMoveType;
 
 typedef struct {
     DpInstrType type;
-    bool sf;
-    uint32_t rd;
     union {
         struct {
+            bool sf;
             bool sh;
+            DpArithmeticType opc;
             uint32_t imm12;
             uint32_t rn;
+            uint32_t rd;
         } arithmetic;
         struct {
+            bool sf;
             uint32_t hw;
+            uint32_t opc;
             uint32_t imm16;
+            uint32_t rd;
         } wide_move;
     };
 } DpImmed;
@@ -50,7 +56,7 @@ typedef enum {
 typedef struct {
     InstrType type;
     union {
-        DpImmed *dp_immed;
+        DpImmed dp_immed;
         struct {
             // TODO
         } dp_reg;
