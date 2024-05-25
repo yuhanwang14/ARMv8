@@ -32,15 +32,14 @@ Instr *decode(uint32_t code) {
                nth_bit_set(code, OP0_OFFSET + 2)) {
         // DP (Register)
         result->type = DP_REGISTER;
-        // TODO
-        uint32_t rd;
-        uint32_t rn;
-        uint32_t operand;
-        uint32_t rm;
-        uint32_t opr;
-        uint32_t m;
-        uint32_t opc;
-        uint32_t sf;
+        uint32_t rd = bit_slice(code, RD_START, RD_SIZE);
+        uint32_t rn = bit_slice(code, DPR_RN_START, DPR_RN_SIZE);
+        uint32_t operand = bit_slice(code, DPR_OPERAND_START, DPR_OPERAND_SIZE);
+        uint32_t rm = bit_slice(code, RM_START, RM_SIZE);
+        uint32_t opr = bit_slice(code, OPR_START, OPR_SIZE);
+        uint32_t m = bit_slice(code, M_START, M_SIZE);
+        uint32_t opc = bit_slice(code, OPC_START, OPC_SIZE);
+        uint32_t sf = bit_slice(code, SF_START, SF_SIZE);
         decode_dpr(rd, rn, operand, rm, opr, m, opc, sf, result);
     }
     return result;
@@ -56,7 +55,8 @@ void decode_dpi(uint32_t rd, uint32_t operand, uint32_t opi, uint32_t opc,
         instr->dp_immed.arithmetic.opc = (DpArithmeticType)opc;
         instr->dp_immed.arithmetic.imm12 =
             bit_slice(operand, IMM12_START, IMM12_SIZE);
-        instr->dp_immed.arithmetic.rn = bit_slice(operand, RN_START, RN_SIZE);
+        instr->dp_immed.arithmetic.rn =
+            bit_slice(operand, DPI_ARIT_RN_START, DPI_ARIT_RN_SIZE);
         instr->dp_immed.arithmetic.rd = rd;
     } else if (opi == WIDE_MOVE_OPI) {
         // is wide move operation
