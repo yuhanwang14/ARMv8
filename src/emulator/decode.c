@@ -16,6 +16,9 @@ extern void decode_dpi(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t,
 extern void decode_dpr(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t,
                        uint32_t, uint32_t, uint32_t, Instr *);
 
+extern void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l,
+                       uint32_t u, uint32_t sf, Instr *);
+
 Instr *decode(uint32_t code) {
     Instr *result = malloc(sizeof(Instr));
     if (!nth_bit_set(code, OP0_OFFSET + 1) &&
@@ -26,7 +29,7 @@ Instr *decode(uint32_t code) {
         uint32_t operand = bit_slice(code, DPI_OPERAND_START, DPI_OPERAND_SIZE);
         uint32_t opi = bit_slice(code, OPI_START, OPI_SIZE);
         uint32_t opc = bit_slice(code, OPC_START, OPC_SIZE);
-        uint32_t sf = nth_bit_set(code, SF_OFFSET);
+        uint32_t sf = nth_bit_set(code, DP_SF_OFFSET);
         decode_dpi(rd, operand, opi, opc, sf, result);
     } else if (nth_bit_set(code, OP0_OFFSET) &&
                nth_bit_set(code, OP0_OFFSET + 2)) {
@@ -39,8 +42,30 @@ Instr *decode(uint32_t code) {
         uint32_t opr = bit_slice(code, OPR_START, OPR_SIZE);
         uint32_t m = nth_bit_set(code, M_OFFSET);
         uint32_t opc = bit_slice(code, OPC_START, OPC_SIZE);
-        uint32_t sf = nth_bit_set(code, SF_OFFSET);
+        uint32_t sf = nth_bit_set(code, DP_SF_OFFSET);
         decode_dpr(rd, rn, operand, rm, opr, m, opc, sf, result);
+    } else if (!nth_bit_set(code, OP0_OFFSET) &&
+               nth_bit_set(code, OP0_OFFSET + 3) &&
+               nth_bit_set(code, OP0_OFFSET + 4) &&
+               nth_bit_set(code, OP0_OFFSET + 5)) {
+        // Single Data Transfer
+        result->type = SINGLE_DATA_TRANSFER_T;
+        uint32_t rt = bit_slice(code, RT_START, RT_SIZE);
+        uint64_t xn = bit_slice(code, XN_START, XN_SIZE);
+        uint32_t offset = bit_slice(code, OFFSET_START, OFFSET_SIZE);
+        uint32_t l = nth_bit_set(code, L_OFFSET);
+        uint32_t u = nth_bit_set(code, U_OFFSET);
+        uint32_t sf = nth_bit_set(code, LS_SF_OFFSET);
+        decode_sdt(rt, xn, offset, l, u, sf, result);
+    } else if (!nth_bit_set(code, OP0_OFFSET) &&
+               nth_bit_set(code, OP0_OFFSET + 3) &&
+               nth_bit_set(code, OP0_OFFSET + 4)) {
+        // Load From Literal
+        result->type = LOAD_LITERAL_T;
+        result->load_literal.rt = bit_slice(code, RT_START, RT_SIZE);
+        result->load_literal.sf = nth_bit_set(code, LS_SF_OFFSET);
+        result->load_literal.simm19 =
+            bit_slice(code, SIMM19_START, SIMM19_SIZE);
     }
     return result;
 }
@@ -117,6 +142,45 @@ void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm,
                 "Failed to decode a DP (Register) instruction: Unknown "
                 "combination of m = %01b and opr %04b\n",
                 m, opr);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l,
+                uint32_t u, uint32_t sf, Instr *result) {
+    if (u) {
+        // is unsigned type
+        result->sing_data_transfer.type = UNSIGN;
+        result->sing_data_transfer.unsign.imm12 = offset;
+        result->sing_data_transfer.unsign.xn = xn;
+        result->sing_data_transfer.unsign.rt = rt;
+        result->sing_data_transfer.unsign.sf = (bool)sf;
+        result->sing_data_transfer.unsign.L = l;
+    } else if (nth_bit_set(offset, FLAG_OFFSET)) {
+        // is pre/post-index type
+        result->sing_data_transfer.type = PRE_POST_INDEX;
+        result->sing_data_transfer.pre_post_index.I =
+            nth_bit_set(offset, I_OFFSET);
+        result->sing_data_transfer.pre_post_index.L = l;
+        result->sing_data_transfer.pre_post_index.rt = rt;
+        result->sing_data_transfer.pre_post_index.sf = sf;
+        result->sing_data_transfer.pre_post_index.simm9 =
+            bit_slice(offset, SIMM19_START, SIMM9_SIZE);
+        result->sing_data_transfer.pre_post_index.xn = xn;
+    } else if (!nth_bit_set(offset, FLAG_OFFSET)) {
+        // is register type
+        result->sing_data_transfer.type = REGISTER;
+        result->sing_data_transfer.reg.xm =
+            bit_slice(offset, XM_START, XM_SIZE);
+        result->sing_data_transfer.reg.L = l;
+        result->sing_data_transfer.reg.rt = rt;
+        result->sing_data_transfer.reg.sf = sf;
+        result->sing_data_transfer.reg.xn = xn;
+    } else {
+        fprintf(stderr,
+                "Failed to decode a single data transfer instruction: Unknown "
+                "combination of u = %01b and offset %012b\n",
+                u, offset);
         exit(EXIT_FAILURE);
     }
 }

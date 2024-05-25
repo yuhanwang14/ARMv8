@@ -92,6 +92,56 @@ typedef struct {
     };
 } DpRegister;
 
+// [yw8123]:
+
+// A Single Data Transfer consists of
+//      - Load
+//      - Store
+
+// The Transfer address is depended on the offset,
+// there are three kinds of offsets:
+//		- Register offset
+// 		- Pre/Post-indexed offset
+// 		- Unsigned offset
+
+typedef enum { REGISTER, PRE_POST_INDEX, UNSIGN } SDTransType;
+
+typedef struct {
+    SDTransType type;
+    union {
+        struct {
+            uint64_t xm; // Another X-register
+            bool sf;     // The size of the load, 0 is 32-bit, 1 is 64-bit
+            bool L;      // The type of data transfer, 0 is store, 1 is load.
+            uint64_t xn; // The base X-register
+            uint64_t rt; // The target register
+        } reg;
+        struct {
+            bool I; // 1 is pre-indexed, 0 is post-indexed.
+            uint32_t simm9;
+            bool sf;     
+            bool L;     
+            uint64_t xn; 
+            uint64_t rt; 
+        } pre_post_index;
+        struct {
+            uint32_t imm12;
+            bool sf;     
+            bool L;      
+            uint64_t xn; 
+            uint64_t rt; 
+        } unsign;
+    };
+} SdTrans;
+
+// Load Literal is similar to data transfer.
+
+typedef struct {
+    bool sf;
+    uint32_t simm19;
+    uint64_t rt;
+} LoadLiter;
+
 // A GADT Instr(uction) that is one of:
 //      - DP Immediate
 //      - DP Register
@@ -111,12 +161,8 @@ typedef struct {
     union {
         DpImmed dp_immed;
         DpRegister dp_reg;
-        struct {
-            // TODO
-        } sing_data_transfer;
-        struct {
-            // TODO
-        } load_literal;
+        SdTrans sing_data_transfer;
+        LoadLiter load_literal;
         struct {
             // TODO
         } branch;
