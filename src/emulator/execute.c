@@ -30,3 +30,10 @@ void execute(Register *reg, Instr *instr) {
         break;
     }
 }
+
+// TODO
+void execute_dpi(Register *reg, DpImmed dpi);
+void execute_dpr(Register *reg, DpRegister dpr);
+void execute_sdt(Register *reg, SdTrans dpr);
+void execute_ldl(Register *reg, LoadLiteral ldl);
+void execute_branch(Register *reg, Branch branch);
