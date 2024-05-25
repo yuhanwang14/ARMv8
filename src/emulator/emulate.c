@@ -26,6 +26,9 @@ int main(int argc, char **argv) {
 
     while (true) {
         uint32_t code = fetch(reg);
+        if (code == 0x8a000000) {
+            break;
+        }
         instr = decode(code);
         execute(reg, instr);
 
@@ -37,4 +40,4 @@ int main(int argc, char **argv) {
     fclose(out);
     fclose(source);
     return EXIT_SUCCESS;
-}
+} 
