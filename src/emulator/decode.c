@@ -148,7 +148,7 @@ void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm,
 
 void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l,
                 uint32_t u, uint32_t sf, Instr *result) {
-    if (u) {
+    if (u == 0x1) {
         // is unsigned type
         result->sing_data_transfer.type = UNSIGN;
         result->sing_data_transfer.unsign.imm12 = offset;

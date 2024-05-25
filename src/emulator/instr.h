@@ -119,17 +119,17 @@ typedef struct {
         struct {
             bool I; // 1 is pre-indexed, 0 is post-indexed.
             uint32_t simm9;
-            bool sf;     
-            bool L;     
-            uint64_t xn; 
-            uint64_t rt; 
+            bool sf;
+            bool L;
+            uint64_t xn;
+            uint64_t rt;
         } pre_post_index;
         struct {
             uint32_t imm12;
-            bool sf;     
-            bool L;      
-            uint64_t xn; 
-            uint64_t rt; 
+            bool sf;
+            bool L;
+            uint64_t xn;
+            uint64_t rt;
         } unsign;
     };
 } SdTrans;
@@ -140,7 +140,7 @@ typedef struct {
     bool sf;
     uint32_t simm19;
     uint64_t rt;
-} LoadLiter;
+} LoadLiteral;
 
 // A GADT Instr(uction) that is one of:
 //      - DP Immediate
@@ -162,7 +162,7 @@ typedef struct {
         DpImmed dp_immed;
         DpRegister dp_reg;
         SdTrans sing_data_transfer;
-        LoadLiter load_literal;
+        LoadLiteral load_literal;
         struct {
             // TODO
         } branch;
