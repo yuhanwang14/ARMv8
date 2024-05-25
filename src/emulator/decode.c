@@ -89,7 +89,7 @@ const uint32_t BR_SIMM19_SIZE = 19;
 
 // Decodes a DP (Immediate) instruction
 extern void decode_dpi(uint32_t rd, uint32_t operand, uint32_t opi, uint32_t opc, uint32_t sf, Instr *result);
-;
+
 // Decodes a DP (Register) instruction
 extern void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm, uint32_t opr, uint32_t m,
                        uint32_t opc, uint32_t sf, Instr *result);
