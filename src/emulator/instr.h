@@ -156,6 +156,7 @@ typedef struct {
         LoadLiteral load_literal;
         struct {
             // TODO
+            int foo;
         } branch;
     };
 } Instr;

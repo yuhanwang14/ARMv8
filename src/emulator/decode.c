@@ -84,7 +84,7 @@ void decode_dpi(uint32_t rd, uint32_t operand, uint32_t opi, uint32_t opc, uint3
     } else {
         fprintf(stderr,
                 "Failed to decode a DP (Immediate) instruction: Unknown opi "
-                "%03b from operand %018b\n",
+                "%x from operand %x\n",
                 opi, operand);
         exit(EXIT_FAILURE);
     }
@@ -125,7 +125,7 @@ void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm, uint32_
     } else {
         fprintf(stderr,
                 "Failed to decode a DP (Register) instruction: Unknown "
-                "combination of m = %01b and opr %04b\n",
+                "combination of m = %x and opr %x\n",
                 m, opr);
         exit(EXIT_FAILURE);
     }
@@ -144,7 +144,7 @@ void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, uint32_t 
     } else if (nth_bit_set(offset, FLAG_OFFSET)) {
         // is pre/post-index type
         result->sing_data_transfer.type = PRE_POST_INDEX;
-        result->sing_data_transfer.pre_post_index.I = nth_bit_set(offset, I_OFFSET);
+        result->sing_data_transfer.pre_post_index.itype = (IndexType)nth_bit_set(offset, I_OFFSET);
         result->sing_data_transfer.pre_post_index.L = l;
         result->sing_data_transfer.pre_post_index.rt = rt;
         result->sing_data_transfer.pre_post_index.sf = sf;
@@ -161,7 +161,7 @@ void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, uint32_t 
     } else {
         fprintf(stderr,
                 "Failed to decode a single data transfer instruction: Unknown "
-                "combination of u = %01b and offset %012b\n",
+                "combination of u = %x and offset %x\n",
                 u, offset);
         exit(EXIT_FAILURE);
     }
