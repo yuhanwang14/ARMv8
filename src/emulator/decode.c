@@ -5,6 +5,69 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+const int OP0_OFFSET = 25;
+
+// consts for DP (Immediate)
+const uint32_t RD_START = 0;
+const uint32_t RD_SIZE = 5;
+const uint32_t DPI_OPERAND_START = RD_START + RD_SIZE;
+const uint32_t DPI_OPERAND_SIZE = 18;
+const uint32_t OPI_START = DPI_OPERAND_START + DPI_OPERAND_SIZE;
+const uint32_t OPI_SIZE = 3;
+const uint32_t OPC_START = 29;
+const uint32_t OPC_SIZE = 2;
+const uint32_t DP_SF_OFFSET = 31;
+const uint32_t ARITHMETIC_OPI = 0x2;
+const uint32_t WIDE_MOVE_OPI = 0x5;
+const uint32_t SH_OFFSET = 22;
+const uint32_t DPI_ARIT_RN_START = 0;
+const uint32_t DPI_ARIT_RN_SIZE = 5;
+const uint32_t IMM12_START = DPI_ARIT_RN_START + DPI_ARIT_RN_SIZE;
+const uint32_t IMM12_SIZE = 12;
+const uint32_t IMM16_START = 0;
+const uint32_t IMM16_SIZE = 16;
+const uint32_t HW_START = IMM12_START + IMM16_SIZE;
+const uint32_t HW_SIZE = 2;
+
+// consts for DP (Register)
+const uint32_t DPR_RN_START = RD_START + RD_SIZE;
+const uint32_t DPR_RN_SIZE = 5;
+const uint32_t DPR_OPERAND_START = DPR_RN_START + DPR_RN_SIZE;
+const uint32_t DPR_OPERAND_SIZE = 6;
+const uint32_t RM_START = DPR_OPERAND_START + DPR_OPERAND_SIZE;
+const uint32_t RM_SIZE = 5;
+const uint32_t OPR_START = RM_START + RM_SIZE;
+const uint32_t OPR_SIZE = 4;
+const uint32_t M_OFFSET = 28;
+const uint32_t OPR_MULTIPLY = 8;
+const uint32_t RA_START = 0;
+const uint32_t RA_SIZE = 5;
+const uint32_t X_OFFSET = 5;
+const uint32_t ARIT_FLAG = 3;
+const uint32_t ARIT_NOT_FLAG = 0;
+const uint32_t SHIFT_START = 1;
+const uint32_t SHIFT_SIZE = 2;
+const uint32_t N_OFFSET = 0;
+
+// consts for Load and Store
+const uint32_t RT_START = 0;
+const uint32_t RT_SIZE = 5;
+const uint32_t XN_START = 5;
+const uint32_t XN_SIZE = 5;
+const uint32_t OFFSET_START = 10;
+const uint32_t OFFSET_SIZE = 12;
+const uint32_t L_OFFSET = 22;
+const uint32_t U_OFFSET = 24;
+const uint32_t LS_SF_OFFSET = 30;
+const uint32_t SIMM19_START = 5;
+const uint32_t SIMM19_SIZE = 19;
+const uint32_t FLAG_OFFSET = 0;
+const uint32_t I_OFFSET = 1;
+const uint32_t SIMM9_START = 2;
+const uint32_t SIMM9_SIZE = 9;
+const uint32_t XM_START = 6;
+const uint32_t XM_SIZE = 5;
+
 // the first >> removes all bits before and the & removes all bits after
 #define bit_slice(bits, start, size) ((bits >> start) & ((1 << (size + 1)) - 1))
 #define nth_bit_set(bits, n) (bits & (1 << (n)))
