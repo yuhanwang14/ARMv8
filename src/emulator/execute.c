@@ -167,7 +167,6 @@ void execute_dpi(Register *reg, DpImmed dpi) {
         }
         break;
     }
-
     default:
         fprintf(stderr, "Unknown data processing (Immediate) type: 0x%x\n", dpi.type);
         exit(EXIT_FAILURE);
@@ -183,5 +182,66 @@ void execute_ldl(Register *reg, LoadLiteral ldl) {
     // TODO: yw8123
 }
 void execute_branch(Register *reg, Branch branch) {
-    // TODO: ky723
+    switch (branch.type) {
+    case UNCONDITIONAL_T: {
+        Unconditional instr = branch.unconditional;
+        reg->PC += instr.simm26;
+        break;
+    }
+    case BR_REGISTER_T: {
+        BranchReg instr = branch.reg;
+        reg->PC = R64(instr.xn);
+        break;
+    }
+    case CONDITIONAL_T: {
+        Conditional instr = branch.conditional;
+        PState ps = *reg->PSTATE;
+        switch (instr.cond) {
+        case EQ:
+            if (ps.Z) {
+                reg->PC += instr.simm19;
+            }
+            break;
+        case NE:
+            if (!ps.Z) {
+                reg->PC += instr.simm19;
+            }
+            break;
+        case GE:
+            if (ps.N == ps.V) {
+                reg->PC += instr.simm19;
+            }
+            break;
+        case LT:
+            if (ps.N != ps.V) {
+                reg->PC += instr.simm19;
+            }
+            break;
+        case GT:
+            if (!ps.Z && ps.N == ps.V) {
+                reg->PC += instr.simm19;
+            }
+            break;
+        case LE:
+            if (!(!ps.Z && ps.N == ps.V)) {
+                reg->PC += instr.simm19;
+            }
+            break;
+        case AL:
+            if (true) {
+                reg->PC += instr.simm19;
+            }
+            break;
+        default:
+            fprintf(stderr, "Unknown branch conditional type: 0x%x\n", instr.cond);
+            exit(EXIT_FAILURE);
+            break;
+        }
+        break;
+    }
+    default:
+        fprintf(stderr, "Unknown branch type: 0x%x\n", branch.type);
+        exit(EXIT_FAILURE);
+        break;
+    }
 }
