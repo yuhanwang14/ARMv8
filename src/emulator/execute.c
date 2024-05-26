@@ -41,6 +41,8 @@ void execute(Register *reg, Instr *instr) {
 #define R64(n) reg->g_reg[n]
 #define sgn64(n) (bool)((n >> 63) & 1)
 #define sgn32(n) (bool)((n >> 31) & 1)
+#define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n) * 4 + shift]
+#define R32_16(n, shift) R64_16(n, shift)
 
 void execute_dpi(Register *reg, DpImmed dpi) {
     switch (dpi.type) {
@@ -121,8 +123,51 @@ void execute_dpi(Register *reg, DpImmed dpi) {
         }
         break;
     }
-    case WIDE_MOVE_T:
+    case WIDE_MOVE_T: {
+        WideMove instr = dpi.wide_move;
+        uint32_t op = instr.imm16 << (instr.hw * 16);
+        switch (instr.mtype) {
+        case MOVN: {
+            if (instr.sf) {
+                // 64 bit mode
+                R64(instr.rd) = ~((uint64_t)op);
+            } else {
+                // 32 bit mode
+                R32(instr.rd) = ~op;
+                R32_cls_upper(instr.rd);
+            }
+            break;
+        }
+        case MOVZ: {
+            if (instr.sf) {
+                // 64 bit mode
+                R64(instr.rd) = (uint64_t)op;
+            } else {
+                // 32 bit mode
+                R32(instr.rd) = op;
+                R32_cls_upper(instr.rd);
+            }
+            break;
+        }
+        case MOVK: {
+            if (instr.sf) {
+                // 64 bit mode
+                R64_16(instr.rd, instr.hw) = instr.imm16;
+            } else {
+                // 32 bit mode
+                R64_16(instr.rd, instr.hw) = instr.imm16;
+                R32_cls_upper(instr.rd);
+            }
+            break;
+        }
+        default:
+            fprintf(stderr, "Unknown wide move type: %x\n", instr.mtype);
+            exit(EXIT_FAILURE);
+            break;
+        }
         break;
+    }
+
     default:
         fprintf(stderr, "Unknown data processing (Immediate) type: %x\n", dpi.type);
         exit(EXIT_FAILURE);
