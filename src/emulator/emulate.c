@@ -18,13 +18,14 @@ int main(int argc, char **argv) {
         out = stdout;
     } else if (argc == 3) {
         // print to given file
-        out = safe_open(argv[2]);
+        out = safe_open(argv[2], "w+");
     } else {
         puts("usage: emulate <binary> <log file>");
         return EXIT_FAILURE;
     }
-    source = safe_open(argv[1]);
+    source = safe_open(argv[1], "r");
     reg = reg_init();
+    fread(reg->ram, sizeof(uint32_t), MEMORY_SIZE, source);
 
     while (true) {
         uint32_t code = fetch(reg);
@@ -42,4 +43,4 @@ int main(int argc, char **argv) {
     fclose(out);
     fclose(source);
     return EXIT_SUCCESS;
-} 
+}

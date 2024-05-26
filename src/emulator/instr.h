@@ -19,23 +19,28 @@ typedef enum { ADD = 0, ADDS = 1, SUB = 2, SUBS = 3 } DpArithmeticType;
 typedef enum { MOVN = 0, MOVZ = 2, MOVK = 3 } DpWideMoveType;
 
 typedef struct {
+    bool sf;                // 32/64 mode flag
+    bool sh;                // whether imm12 should be moved left by 12 bits
+    DpArithmeticType atype; // operation type
+    uint32_t imm12;         // Op2
+    uint32_t rn;            // source register index
+    uint32_t rd;            // destination register index
+} DPIArithmetic;
+
+typedef struct {
+    bool sf;              // 32/64 mode flag
+    uint32_t hw;          // imm16 should be left shifted by hw * 16 bits
+    DpWideMoveType mtype; // operation type
+    uint32_t imm16;       // operand
+    uint32_t rd;          // destination register index
+} WideMove;
+
+// Main def
+typedef struct {
     DpImmedType type;
     union {
-        struct {
-            bool sf;                // 32/64 mode flag
-            bool sh;                // whether imm12 should be moved left by 12 bits
-            DpArithmeticType atype; // operation type
-            uint32_t imm12;         // Op2
-            uint32_t rn;            // source register index
-            uint32_t rd;            // destination register index
-        } arithmetic;
-        struct {
-            bool sf;              // 32/64 mode flag
-            uint32_t hw;          // imm16 should be left shifted by hw * 16 bits
-            DpWideMoveType mtype; // operation type
-            uint32_t imm16;       // operand
-            uint32_t rd;          // destination register index
-        } wide_move;
+        DPIArithmetic arithmetic;
+        WideMove wide_move;
     };
 } DpImmed;
 
@@ -56,35 +61,42 @@ typedef enum {
 typedef DpArithmeticType DrArithmeticType;
 
 typedef struct {
+    AritShiftType stype;    // right operand preprocessing: how should it be shifted
+    DrArithmeticType atype; // operation type
+    uint32_t rd;            // destination register index
+    uint32_t rn;            // left operand
+    uint32_t rm;            // right operand
+    bool sf;                // 32/64 mode flag
+    uint32_t shift;         // right operand preprocessing: how many bits should it be shifted
+} DPRArithmetic;
+
+typedef struct {
+    LogcShiftType stype; // preprocessing operation type
+    BitInstrType btype;  // operation type
+    uint32_t rd;         // destination register index
+    uint32_t rn;         // left operand
+    uint32_t rm;         // right operand
+    bool sf;             // 32/64 mode flag
+    uint32_t shift;      // right operand preprocessing: how many bits should it be shifted
+    bool N;              // right operand preprocessing: bit negated after shift?
+} Logical;
+
+typedef struct {
+    uint32_t rd; // destination register index
+    uint32_t rn; // Rn
+    uint32_t rm; // Rm
+    bool sf;     // 32/64 mode flag
+    MultType x;  // operation type
+    uint32_t ra; // Ra
+} Multiply;
+
+// Main def
+typedef struct {
     DpRegisterType type;
     union {
-        struct {
-            AritShiftType stype;    // right operand preprocessing: how should it be shifted
-            DrArithmeticType atype; // operation type
-            uint32_t rd;            // destination register index
-            uint32_t rn;            // left operand
-            uint32_t rm;            // right operand
-            bool sf;                // 32/64 mode flag
-            uint32_t shift;         // right operand preprocessing: how many bits should it be shifted
-        } arithmetic;
-        struct {
-            LogcShiftType stype; // preprocessing operation type
-            BitInstrType btype;  // operation type
-            uint32_t rd;         // destination register index
-            uint32_t rn;         // left operand
-            uint32_t rm;         // right operand
-            bool sf;             // 32/64 mode flag
-            uint32_t shift;      // right operand preprocessing: how many bits should it be shifted
-            bool N;              // right operand preprocessing: bit negated after shift?
-        } logical;
-        struct {
-            uint32_t rd; // destination register index
-            uint32_t rn; // Rn
-            uint32_t rm; // Rm
-            bool sf;     // 32/64 mode flag
-            MultType x;  // operation type
-            uint32_t ra; // Ra
-        } multiply;
+        DPRArithmetic arithmetic;
+        Logical logical;
+        Multiply multiply;
     };
 } DpRegister;
 
@@ -104,30 +116,37 @@ typedef enum { SD_REGISTER_T, PRE_POST_INDEX_T, UNSIGN_T } SDTransType;
 typedef enum { POST_INDEX = 0, PRE_INDEXED = 1 } IndexType;
 
 typedef struct {
+    uint64_t xm; // Another X-register
+    bool sf;     // The size of the load, 0 is 32-bit, 1 is 64-bit
+    bool L;      // The type of data transfer, 0 is store, 1 is load.
+    uint64_t xn; // The base X-register
+    uint64_t rt; // The target register
+} SDRegister;
+
+typedef struct {
+    IndexType itype; // pre-indexed / post-indexed.
+    uint32_t simm9;
+    bool sf; // 32/64 mode flag
+    bool L;
+    uint64_t xn;
+    uint64_t rt;
+} PrePostIndex;
+
+typedef struct {
+    uint32_t imm12;
+    bool sf; // 32/64 mode flag
+    bool L;
+    uint64_t xn;
+    uint64_t rt;
+} Unsigned;
+
+// Main def
+typedef struct {
     SDTransType type;
     union {
-        struct {
-            uint64_t xm; // Another X-register
-            bool sf;     // The size of the load, 0 is 32-bit, 1 is 64-bit
-            bool L;      // The type of data transfer, 0 is store, 1 is load.
-            uint64_t xn; // The base X-register
-            uint64_t rt; // The target register
-        } reg;
-        struct {
-            IndexType itype; // pre-indexed / post-indexed.
-            uint32_t simm9;
-            bool sf; // 32/64 mode flag
-            bool L;
-            uint64_t xn;
-            uint64_t rt;
-        } pre_post_index;
-        struct {
-            uint32_t imm12;
-            bool sf; // 32/64 mode flag
-            bool L;
-            uint64_t xn;
-            uint64_t rt;
-        } unsign;
+        SDRegister reg;
+        PrePostIndex pre_post_index;
+        Unsigned usigned;
     };
 } SdTrans;
 
@@ -145,19 +164,27 @@ typedef struct {
 //      - Conditional
 typedef enum { UNCONDITIONAL_T, BR_REGISTER_T, CONDITIONAL_T } BranchType;
 typedef enum { EQ = 0, NE = 1, GE = 10, LT = 11, GT = 12, LE = 13, AL = 14 } CondType;
+
+typedef struct {
+    uint32_t simm26; // 1/4 of the offset to be applied to PC
+} Unconditional;
+
+typedef struct {
+    uint32_t xn; // the register containing the address to jump to
+} BranchReg;
+
+typedef struct {
+    uint32_t simm19; // 1/4 of the offset to be applied to PC
+    CondType cond;   // conditions that PSTATE must meet to apply the jump
+} Conditional;
+
+// Main def
 typedef struct {
     BranchType type;
     union {
-        struct {
-            uint32_t simm26; // 1/4 of the offset to be applied to PC
-        } unconditional;
-        struct {
-            uint32_t xn; // the register containing the address to jump to
-        } reg;
-        struct {
-            uint32_t simm19; // 1/4 of the offset to be applied to PC
-            CondType cond;   // conditions that PSTATE must meet to apply the jump
-        } conditional;
+        Unconditional unconditional;
+        BranchReg reg;
+        Conditional conditional;
     };
 } Branch;
 
