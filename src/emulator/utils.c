@@ -26,14 +26,14 @@ void log_state(Register *reg, FILE *fd) {
         // PRIu64 is the format string for uint64_t
         // we want to print the reg id as 2-long decimal
         // and the contents a 16-long hex
-        fprintf(fd, "X%02d    = %016" PRIu64 "\n", i, reg->g_reg[i]);
+        fprintf(fd, "X%02d    = %016lx\n", i, reg->g_reg[i]);
     }
-    fprintf(fd, "PSTATE: %c%c%c%c", flag_conv(N, 'N'), flag_conv(Z, 'N'), flag_conv(C, 'N'),
+    fprintf(fd, "PSTATE: %c%c%c%c\n", flag_conv(N, 'N'), flag_conv(Z, 'N'), flag_conv(C, 'N'),
             flag_conv(V, 'N'));
     fprintf(fd, "Non-zero memory:\n");
     for (int i = 0; i < MEMORY_SIZE; i++) {
         if (reg->ram[i] != 0) {
-            fprintf(fd, "0x%08d: 0x%08" PRIu32 "\n", i, reg->ram[i]);
+            fprintf(fd, "0x%08d: 0x%08x\n", i, reg->ram[i]);
         }
     }
 }
