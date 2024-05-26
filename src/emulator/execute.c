@@ -31,7 +31,7 @@ void execute(Register *reg, Instr *instr) {
         execute_branch(reg, instr->branch);
         break;
     default:
-        fprintf(stderr, "Unknown instruction type: %x\n", instr->type);
+        fprintf(stderr, "Unknown instruction type: 0x%x\n", instr->type);
         exit(EXIT_FAILURE);
     }
 }
@@ -161,7 +161,7 @@ void execute_dpi(Register *reg, DpImmed dpi) {
             break;
         }
         default:
-            fprintf(stderr, "Unknown wide move type: %x\n", instr.mtype);
+            fprintf(stderr, "Unknown wide move type: 0x%x\n", instr.mtype);
             exit(EXIT_FAILURE);
             break;
         }
@@ -169,7 +169,7 @@ void execute_dpi(Register *reg, DpImmed dpi) {
     }
 
     default:
-        fprintf(stderr, "Unknown data processing (Immediate) type: %x\n", dpi.type);
+        fprintf(stderr, "Unknown data processing (Immediate) type: 0x%x\n", dpi.type);
         exit(EXIT_FAILURE);
     }
 }

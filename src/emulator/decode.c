@@ -149,7 +149,7 @@ Instr *decode(uint32_t code) {
         uint32_t type = bit_slice(code, BRANCH_TYPE_START, BRANCH_TYPE_SIZE);
         decode_branch(operand, type, result);
     } else {
-        fprintf(stderr, "Failed to recognize %x as any instruction", code);
+        fprintf(stderr, "Failed to recognize 0x%x as any instruction", code);
         free(result);
         exit(EXIT_FAILURE);
     }
@@ -177,7 +177,7 @@ void decode_dpi(uint32_t rd, uint32_t operand, uint32_t opi, uint32_t opc, uint3
     } else {
         fprintf(stderr,
                 "Failed to decode a DP (Immediate) instruction: Unknown opi "
-                "%x from operand %x\n",
+                "0x%x from operand %x\n",
                 opi, operand);
         free(result);
         exit(EXIT_FAILURE);
@@ -219,7 +219,7 @@ void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm, uint32_
     } else {
         fprintf(stderr,
                 "Failed to decode a DP (Register) instruction: Unknown "
-                "combination of m = %x and opr %x\n",
+                "combination of m = 0x%x and opr 0x%x\n",
                 m, opr);
         free(result);
         exit(EXIT_FAILURE);
@@ -256,7 +256,7 @@ void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, uint32_t 
     } else {
         fprintf(stderr,
                 "Failed to decode a single data transfer instruction: Unknown "
-                "combination of u = %x and offset %x\n",
+                "combination of u = 0x%x and offset 0x%x\n",
                 u, offset);
         free(result);
         exit(EXIT_FAILURE);
@@ -279,7 +279,7 @@ void decode_branch(uint32_t operand, uint32_t type, Instr *result) {
         result->branch.conditional.simm19 = bit_slice(operand, BR_SIMM19_START, BR_SIMM19_SIZE);
     } else {
 
-        fprintf(stderr, "Failed to decode a branch instruction: Unknown combination of type = %x\n", type);
+        fprintf(stderr, "Failed to decode a branch instruction: Unknown combination of type = 0x%x\n", type);
         free(result);
         exit(EXIT_FAILURE);
     }
