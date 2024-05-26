@@ -1,4 +1,5 @@
 #include "execute.h"
+#include <stdio.h>
 
 extern void execute_dpi(Register *reg, DpImmed dpi);
 extern void execute_dpr(Register *reg, DpRegister dpr);
@@ -28,11 +29,26 @@ void execute(Register *reg, Instr *instr) {
         // Branch
         execute_branch(reg, instr->branch);
         break;
+    default:
+        fprintf(stderr, "Unknown instruction type: %x\n", instr->type);
+        exit(EXIT_FAILURE);
     }
 }
 
 // TODO
-void execute_dpi(Register *reg, DpImmed dpi);
+void execute_dpi(Register *reg, DpImmed dpi) {
+    switch (dpi.type) {
+    case DPI_ARITHMETIC_T: {
+        DPIArithmetic instr = dpi.arithmetic;
+        break;
+    }
+    case WIDE_MOVE_T:
+        break;
+    default:
+        fprintf(stderr, "Unknown data processing (Immediate) type: %x\n", dpi.type);
+        exit(EXIT_FAILURE);
+    }
+}
 void execute_dpr(Register *reg, DpRegister dpr);
 void execute_sdt(Register *reg, SdTrans dpr);
 void execute_ldl(Register *reg, LoadLiteral ldl);
