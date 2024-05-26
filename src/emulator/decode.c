@@ -231,11 +231,11 @@ void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, uint32_t 
     if (u == 0x1) {
         // is unsigned type
         result->sing_data_transfer.type = UNSIGN_T;
-        result->sing_data_transfer.unsign.imm12 = offset;
-        result->sing_data_transfer.unsign.xn = xn;
-        result->sing_data_transfer.unsign.rt = rt;
-        result->sing_data_transfer.unsign.sf = (bool)sf;
-        result->sing_data_transfer.unsign.L = l;
+        result->sing_data_transfer.usigned.imm12 = offset;
+        result->sing_data_transfer.usigned.xn = xn;
+        result->sing_data_transfer.usigned.rt = rt;
+        result->sing_data_transfer.usigned.sf = (bool)sf;
+        result->sing_data_transfer.usigned.L = l;
     } else if (nth_bit_set(offset, FLAG_OFFSET)) {
         // is pre/post-index type
         result->sing_data_transfer.type = PRE_POST_INDEX_T;
