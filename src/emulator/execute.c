@@ -174,8 +174,23 @@ void execute_dpi(Register *reg, DpImmed dpi) {
     }
 }
 void execute_dpr(Register *reg, DpRegister dpr) {
-    // TODO: ky723
+    switch (dpr.type) {
+    case DPR_ARITHMETIC_T: {
+        break;
+    }
+    case BIT_LOGIC_T: {
+        break;
+    }
+    case MULTIPLY_T: {
+        break;
+    }
+    default:
+        fprintf(stderr, "Unknown data processing (Register) type: 0x%x\n", dpr.type);
+        exit(EXIT_FAILURE);
+        break;
+    }
 }
+
 void execute_sdt(Register *reg, SdTrans dpr) {
     // TODO: yw8123
 }
