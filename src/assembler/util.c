@@ -26,6 +26,7 @@ uint8_t parse_register(char *registerName){
         fprintf(stderr,"failed to parse register name '%s'",registerName);
         exit(EXIT_FAILURE);
     }
+    if (strcmp(registerName+1,"zr") == 0) return 31;
     return atoi(registerName + 1);
 }
 
