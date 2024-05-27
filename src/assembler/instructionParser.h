@@ -4,16 +4,16 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-extern int instructionParser(char *instruction, int sizeIns);
+extern int instructionParser(char *instruction);
 // takes a single instruction and parse it into corresponding binary code
 
-int multParser(char *instruction, int sizeIns);
+int multParser(char *instruction);
 
-int twoOprParser(char *instruction, int sizeIns);
+int twoOprParser(char *instruction);
 
-int uniOprParser(char *instruction, int sizeIns);
+int uniOprParser(char *instruction);
 
-int twoOprNoDesParser(char *instruction, int sizeIns);
+int twoOprNoDesParser(char *instruction);
 
 int8_t registerParser(char *registerName);
 
