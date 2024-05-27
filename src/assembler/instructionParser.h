@@ -20,10 +20,10 @@ uint8_t parse_register(char *registerName);
 bool is_literal(char *target);
 //checks whether an argument is an instance of immediate
 
-int16_t parse_imm12(char *immediateValue, char *shift);
+uint16_t parse_imm12(char *immediateValue, char *shift);
 // Parse 12 bit immediate values with possible shift, returns a 13-bit int
 
-int8_t parse_imm6(char *immediateValue);
+uint8_t parse_imm6(char *immediateValue);
 // Parse 6-bit immediate value
 
 uint8_t *parse_shift(char *shiftArg);
