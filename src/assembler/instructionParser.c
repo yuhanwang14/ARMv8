@@ -132,3 +132,18 @@ uint8_t parse_register(char *registerName){
     }
     return atoi(registerName + 1);
 }
+
+bool is_literal(char *target){
+    return (*target == '#');
+}
+
+uint16_t parse_imm12(char *literal, char *shift){
+    if (shift == NULL){
+        return atoi((literal+1));
+    }else if (strcmp(shift,"lsl #12") == 0){
+        return (atoi((literal+1)) + (1<<12));
+    }else{
+        fprintf(stderr,"failed to parse a shift for imm12: '%s'",shift);
+        exit(EXIT_FAILURE);
+    }
+}
