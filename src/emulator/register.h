@@ -24,7 +24,7 @@ typedef struct {
 
 // Initialilze the registers according to the spec
 // Returns a register struct with Z flag set and PC at zero
-Register *reg_init();
+Register *reg_init(void);
 
 // frees a register struct
 void reg_free(Register *reg);

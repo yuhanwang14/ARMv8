@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-Register *reg_init() {
+Register *reg_init(void) {
     Register *result = malloc(sizeof(Register));
     result->PC = 0;
     PState *PSTATE = malloc(sizeof(PState));
