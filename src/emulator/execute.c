@@ -181,20 +181,19 @@ void execute_sdt(Register *reg, SdTrans sdt) {
     switch (sdt.type) {
     case SD_REGISTER_T: {
         SDRegister instr = sdt.reg;
-        addrs = R64(instr.xn) + R64(instr.xm);                   // transfer address
-        if (instr.L) {                                           // load operation
-            if (instr.sf) {                                      // 64 bits
-                R64(instr.rt) = *(uint64_t *)(reg->ram + addrs); // may have to fix this part. TODO...
-            } else {                                             // 32 bits
+        addrs = R64(instr.xn) + R64(instr.xm);                  
+        if (instr.L) {                                      
+            if (instr.sf) {                                      
+                R64(instr.rt) = *(uint64_t *)(reg->ram + addrs); 
+            } else {                                            
                 R32(instr.rt) = *(reg->ram + addrs);
                 R32_cls_upper(instr.rt);
             }
-        } else {                                                 // store operation
+        } else {                                               
             if (instr.sf) {
                 *(uint64_t *)(reg->ram + addrs) = R64(instr.rt);
             } else {
                 *(reg->ram + addrs) = R32(instr.rt);
-                R32_cls_upper(instr.rt);
             }
         }
     }
@@ -215,7 +214,6 @@ void execute_sdt(Register *reg, SdTrans sdt) {
                     *(uint64_t *)(reg->ram + addrs) = R64(instr.rt);
                 } else {
                     *(reg->ram + addrs) = R32(instr.rt);
-                    R32_cls_upper(instr.rt);
                 }
             }
             R64(instr.xn) = R64(instr.xn) + instr.simm9;
@@ -236,7 +234,6 @@ void execute_sdt(Register *reg, SdTrans sdt) {
                     *(uint64_t *)(reg->ram + addrs) = R64(instr.rt);
                 } else {
                     *(reg->ram + addrs) = R32(instr.rt);
-                    R32_cls_upper(instr.rt);
                 }
             }
             R64(instr.xn) = R64(instr.xn) + instr.simm9;
@@ -267,7 +264,6 @@ void execute_sdt(Register *reg, SdTrans sdt) {
             } else {
                 addrs = R64(instr.xn) + (instr.imm12 << 2);
                 *(reg->ram + addrs) = R32(instr.rt);
-                R32_cls_upper(instr.rt);
             }
         }
         break;
