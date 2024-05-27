@@ -147,3 +147,7 @@ uint16_t parse_imm12(char *literal, char *shift){
         exit(EXIT_FAILURE);
     }
 }
+
+uint8_t parse_imm6(char *literal){
+    return atoi(literal+1);
+}
