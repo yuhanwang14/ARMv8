@@ -181,18 +181,24 @@ void execute_sdt(Register *reg, SdTrans sdt) {
     switch (sdt.type) {
     case SD_REGISTER_T: {
         SDRegister instr = sdt.reg;
-        addrs = R64(instr.xn) + R64(instr.xm);                  
-        if (instr.L) {                                      
-            if (instr.sf) {                                      
-                R64(instr.rt) = *(uint64_t *)(reg->ram + addrs); 
-            } else {                                            
+        addrs = R64(instr.xn) + R64(instr.xm);
+        if (instr.L) {
+            // load operation
+            if (instr.sf) {
+                // 64 bits
+                R64(instr.rt) = *(uint64_t *)(reg->ram + addrs);
+            } else {
+                // 32 bits
                 R32(instr.rt) = *(reg->ram + addrs);
                 R32_cls_upper(instr.rt);
             }
-        } else {                                               
+        } else {
+            // store operation
             if (instr.sf) {
+                // 64 bits
                 *(uint64_t *)(reg->ram + addrs) = R64(instr.rt);
             } else {
+                // 32 bits
                 *(reg->ram + addrs) = R32(instr.rt);
             }
         }
@@ -201,18 +207,25 @@ void execute_sdt(Register *reg, SdTrans sdt) {
         PrePostIndex instr = sdt.pre_post_index;
         switch (instr.itype) {
         case PRE_INDEX: {
-            addrs = R64(instr.xn) + instr.simm9;                     // transfer address
-            if (instr.L) {                                           // load operation
-                if (instr.sf) {                                      // 64 bits
-                    R64(instr.rt) = *(uint64_t *)(reg->ram + addrs); // may have to fix this part. TODO...
-                } else {                                             // 32 bits
+            addrs = R64(instr.xn) + instr.simm9;
+            // transfer address
+            if (instr.L) {
+                // load operation
+                if (instr.sf) {
+                    // 64 bits
+                    R64(instr.rt) = *(uint64_t *)(reg->ram + addrs);
+                } else {
+                    // 32 bits
                     R32(instr.rt) = *(reg->ram + addrs);
                     R32_cls_upper(instr.rt);
                 }
-            } else {                                                 // store operation
+            } else {
+                // store operation
                 if (instr.sf) {
+                    // 64 bits
                     *(uint64_t *)(reg->ram + addrs) = R64(instr.rt);
                 } else {
+                    // 32 bits
                     *(reg->ram + addrs) = R32(instr.rt);
                 }
             }
@@ -222,17 +235,23 @@ void execute_sdt(Register *reg, SdTrans sdt) {
 
         case POST_INDEX: {
             addrs = R64(instr.xn);
-            if (instr.L) {                                           // load operation
-                if (instr.sf) {                                      // 64 bits
-                    R64(instr.rt) = *(uint64_t *)(reg->ram + addrs); // may have to fix this part. TODO...
-                } else {                                             // 32 bits
+            if (instr.L) {
+                // load operation
+                if (instr.sf) {
+                    // 64 bits
+                    R64(instr.rt) = *(uint64_t *)(reg->ram + addrs);
+                } else {
+                    // 32 bits
                     R32(instr.rt) = *(reg->ram + addrs);
                     R32_cls_upper(instr.rt);
                 }
-            } else {                                                 // store operation
+            } else {
+                // store operation
                 if (instr.sf) {
+                    // 64 bits
                     *(uint64_t *)(reg->ram + addrs) = R64(instr.rt);
                 } else {
+                    // 32 bits
                     *(reg->ram + addrs) = R32(instr.rt);
                 }
             }
@@ -247,21 +266,27 @@ void execute_sdt(Register *reg, SdTrans sdt) {
         break;
     }
     case UNSIGN_T: {
-        Unsigned instr = sdt.usigned;        
-        if (instr.L) {                                          
+        Unsigned instr = sdt.usigned;
+        if (instr.L) {
+            // load operation
             if (instr.sf) {
-                addrs = R64(instr.xn) + (instr.imm12 << 3);                                   
-                R64(instr.rt) = *(uint64_t *)(reg->ram + addrs); 
-            } else {                                 
-                addrs = R64(instr.xn) + (instr.imm12 << 2);           
+                // 64 bits
+                addrs = R64(instr.xn) + (instr.imm12 << 3);
+                R64(instr.rt) = *(uint64_t *)(reg->ram + addrs);
+            } else {
+                // 32 bits
+                addrs = R64(instr.xn) + (instr.imm12 << 2);
                 R32(instr.rt) = *(reg->ram + addrs);
                 R32_cls_upper(instr.rt);
             }
-        } else {                                           
+        } else {
+            // store operation
             if (instr.sf) {
+                // 64 bits
                 addrs = R64(instr.xn) + (instr.imm12 << 3);
                 *(uint64_t *)(reg->ram + addrs) = R64(instr.rt);
             } else {
+                // 32 bits
                 addrs = R64(instr.xn) + (instr.imm12 << 2);
                 *(reg->ram + addrs) = R32(instr.rt);
             }
@@ -274,14 +299,15 @@ void execute_sdt(Register *reg, SdTrans sdt) {
     }
 }
 void execute_ldl(Register *reg, LoadLiteral ldl) {
-    uint32_t addrs = reg->PC + (ldl.simm19 << 2);                              
-    if (ldl.sf) {                                
-        R64(ldl.rt) = *(uint64_t *)(reg->ram + addrs); 
-    } else {                                         
+    uint32_t addrs = reg->PC + (ldl.simm19 << 2);
+    if (ldl.sf) {
+        // 64 bits
+        R64(ldl.rt) = *(uint64_t *)(reg->ram + addrs);
+    } else {
+        // 32 bits
         R32(ldl.rt) = *(reg->ram + addrs);
         R32_cls_upper(ldl.rt);
     }
-
 }
 void execute_branch(Register *reg, Branch branch) {
     // TODO: ky723
