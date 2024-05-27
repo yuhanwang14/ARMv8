@@ -194,7 +194,7 @@ void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm, uint32_
         result->dp_reg.multiply.rn = rn;
         result->dp_reg.multiply.rm = rm;
         result->dp_reg.multiply.ra = bit_slice(operand, RA_START, RA_SIZE);
-        result->dp_reg.multiply.x = (MultType)nth_bit_set(operand, X_OFFSET);
+        result->dp_reg.multiply.x = (bool)nth_bit_set(operand, X_OFFSET);
     } else if (!m && !nth_bit_set(opr, ARIT_FLAG)) {
         // Bit-logic type
         result->dp_reg.type = DPR_ARITHMETIC_T;

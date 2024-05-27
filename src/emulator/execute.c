@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+const uint32_t MULT_ZERO_REG = 0x1F;
+
 extern void execute_dpi(Register *reg, DpImmed dpi);
 extern void execute_dpr(Register *reg, DpRegister dpr);
 extern void execute_sdt(Register *reg, SdTrans dpr);
@@ -233,9 +235,138 @@ void execute_dpr(Register *reg, DpRegister dpr) {
         break;
     }
     case BIT_LOGIC_T: {
+        Logical instr = dpr.logical;
+        uint32_t op2;
+        if (instr.sf) {
+            // 64 bit mode
+            uint64_t rm = R64(instr.rm);
+            uint64_t rn = R64(instr.rn);
+            switch (instr.stype) {
+            case L_LSL_T:
+                op2 = rm << instr.shift;
+            case L_LSR_T:
+                op2 = rm >> instr.shift;
+            case L_ASR_T:
+                // WONT-FIX: non portable code
+                op2 = (int64_t)rm >> instr.shift;
+            case L_ROR_T:
+                // https://stackoverflow.com/questions/28303232/rotate-right-using-bit-operation-in-c
+                op2 = (rm >> instr.shift) | (rm << (64 - instr.shift));
+            default:
+                fprintf(stderr,
+                        "Unknown shift type: 0x%x for data processing (Register) bit logic instruction\n",
+                        instr.stype);
+                exit(EXIT_FAILURE);
+            }
+            if (instr.N) {
+                op2 = ~op2;
+            }
+            switch (instr.btype) {
+            case AND:
+                R64(instr.rd) = rn & op2;
+                break;
+            case OR:
+                R64(instr.rd) = rn | op2;
+                break;
+            case EO:
+                R64(instr.rd) = rn ^ op2;
+                break;
+            case ANDC:
+                R64(instr.rd) = rn & op2;
+                reg->PSTATE->N = sgn64(R64(instr.rd));
+                reg->PSTATE->Z = R64(instr.rd) == 0;
+                reg->PSTATE->C = 0;
+                reg->PSTATE->V = 0;
+                break;
+            default:
+                fprintf(stderr,
+                        "Unknown bit logic type: 0x%x for data processing (Register) bit logic instruction\n",
+                        instr.btype);
+                exit(EXIT_FAILURE);
+            }
+        } else {
+            // 32 bit mode
+            uint32_t rm = R32(instr.rm);
+            uint32_t rn = R32(instr.rn);
+            switch (instr.stype) {
+            case L_LSL_T:
+                op2 = rm << instr.shift;
+            case L_LSR_T:
+                op2 = rm >> instr.shift;
+            case L_ASR_T:
+                // WONT-FIX: non portable code
+                op2 = (int32_t)rm >> instr.shift;
+            case L_ROR_T:
+                // https://stackoverflow.com/questions/28303232/rotate-right-using-bit-operation-in-c
+                op2 = (rm >> instr.shift) | (rm << (32 - instr.shift));
+            default:
+                fprintf(stderr,
+                        "Unknown shift type: 0x%x for data processing (Register) bit logic instruction\n",
+                        instr.stype);
+                exit(EXIT_FAILURE);
+            }
+            if (instr.N) {
+                op2 = ~op2;
+            }
+            switch (instr.btype) {
+            case AND:
+                R32(instr.rd) = rn & op2;
+                break;
+            case OR:
+                R32(instr.rd) = rn | op2;
+                break;
+            case EO:
+                R32(instr.rd) = rn ^ op2;
+                break;
+            case ANDC:
+                R32(instr.rd) = rn & op2;
+                reg->PSTATE->N = sgn32(R32(instr.rd));
+                reg->PSTATE->Z = R32(instr.rd) == 0;
+                reg->PSTATE->C = 0;
+                reg->PSTATE->V = 0;
+                break;
+            default:
+                fprintf(stderr,
+                        "Unknown bit logic type: 0x%x for data processing (Register) bit logic instruction\n",
+                        instr.btype);
+                exit(EXIT_FAILURE);
+            }
+        }
         break;
     }
     case MULTIPLY_T: {
+        Multiply instr = dpr.multiply;
+        if (instr.sf) {
+            // 64 bit mode
+            uint64_t ra;
+            if (instr.ra == MULT_ZERO_REG) {
+                ra = reg->ZR;
+            } else {
+                ra = R64(instr.ra);
+            }
+            if (instr.x) {
+                // negate result, aka msub
+                R64(instr.rd) = ra - (R64(instr.rn) * R64(instr.rm));
+            } else {
+                // don't negate result, aka madd
+                R64(instr.rd) = ra + (R64(instr.rn) * R64(instr.rm));
+            }
+        } else {
+            // 32 bit mode
+            uint32_t ra;
+            if (instr.ra == MULT_ZERO_REG) {
+                ra = reg->ZR;
+            } else {
+                ra = R32(instr.ra);
+            }
+            if (instr.x) {
+                // negate result, aka msub
+                R32(instr.rd) = ra - (R32(instr.rn) * R32(instr.rm));
+            } else {
+                // don't negate result, aka madd
+                R32(instr.rd) = ra + (R32(instr.rn) * R32(instr.rm));
+            }
+        }
         break;
     }
     default:

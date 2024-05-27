@@ -51,7 +51,6 @@ typedef struct {
 typedef enum { DPR_ARITHMETIC_T, BIT_LOGIC_T, MULTIPLY_T } DpRegisterType;
 typedef enum { A_LSL_T = 0, A_LSR_T = 1, A_ASR_T = 2 } AritShiftType;
 typedef enum { L_LSL_T = 0, L_LSR_T = 1, L_ASR_T = 2, L_ROR_T = 3 } LogcShiftType;
-typedef enum { MADD = 0, MSUB = 1 } MultType;
 typedef enum {
     AND = 0,
     OR = 1,
@@ -85,7 +84,7 @@ typedef struct {
     uint32_t rn; // Rn
     uint32_t rm; // Rm
     bool sf;     // 32/64 mode flag
-    MultType x;  // operation type
+    bool x;      // operation type
     uint32_t ra; // Ra
 } Multiply;
 
