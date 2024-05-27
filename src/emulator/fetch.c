@@ -2,7 +2,7 @@
 #include "utils.h"
 #include <stdint.h>
 
-void fail_PC_out_of_bound() {
+void fail_PC_out_of_bound(void) {
     fprintf(stderr, "PC out of bound");
     exit(EXIT_FAILURE);
 }
