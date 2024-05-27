@@ -1,10 +1,9 @@
 #include "two_pass.h"
-#include <stdbool.h>
-#include <stdio.h>
 #include <string.h>
 
 const size_t INITIAL_SIZE = 4;
-const int INITIAL_LINE_SIZE = 64;
+
+extern int find_label(char *line);
 
 // creating a table for mapping labels
 
@@ -44,7 +43,15 @@ int index_find(Index *index, const char *key) {
 
 // implement two-pass
 
-void *line_check_label(Index *index, char *line, int address) {
+char *sub_str(char *str, int start, int end) { // returns the substr of str from start index to end
+    char *sub = malloc((end - start + 2) * sizeof(char));
+    memcpy(sub, &str[start], end - start + 1);
+    sub[end - start + 1] = '\0';
+
+    return sub;
+}
+
+void line_check_label(Index *index, char *line, int address) {
     if (strchr(line, ':')) {
         size_t len = strlen(line);
         char *label = malloc(len * sizeof(char));
@@ -72,8 +79,8 @@ char **split_lines(FILE *file) {
     int end = 0;
     int line_number = 0;
     int total_lines = count_lines(file);
-    char line[INITIAL_LINE_SIZE]; // need to resize
-    char *lines[total_lines];
+    char *line; // need to resize
+    char **lines = malloc(total_lines * sizeof(char *));
 
     while (!feof(file)) {
         char c = fgetc(file);
@@ -95,17 +102,19 @@ char **split_lines(FILE *file) {
         line_number++;
     }
 
-    return lines; // bugs
+    return lines;
 }
 
 Index *first_pass(char **lines, int number_of_lines) {
     Index *table = index_new();
-    for (int i = 0; i < number_of_lines; i++) {
-        line_check_label(table, lines[i], i + 1);
+    for (int i = 0; i < number_of_lines; i++) { // i + 1 = line number
+        line_check_label(table, lines[i], (i + 1) * 4);
     }
 
     return table;
 }
+
+// values: integers
 
 char **two_pass(FILE *file) {
     // add # in front of label
@@ -114,17 +123,42 @@ char **two_pass(FILE *file) {
     Index *table = first_pass(lines, number_of_lines);
     int line_number = 0;
 
-    for (int i = 0; i < number_of_lines; i++) {
-// if lines[i][0:2] = br, [0:3] = ldr, [0] = b
-        // strlen = line size
+    for (int i = 0; i < number_of_lines; i++) { // i + 1 = line number
+        int start = find_label(lines[i]);
+        if (start != -1) { // if label not empty, replace string
+            char *label = sub_str(lines[i], start, strlen(lines[i] - 1));
+            int len = strlen(label); 
+        
+            char *offset;
+            sprintf(offset, "%d", i + 1 - index_find(table, label)); 
+            char *new_str;
+            new_str = sub_str(lines[i], 0, start - 1);
+            strcat(new_str, offset);
+            strncpy(new_str, lines[i], strlen(offset) + start);
+            lines[i] = new_str;
+        }
+
+        
     }
 
+    return lines;
 }
 
-bool find_label(char *line) {
-    char substr[strlen(line)];
+int find_label(char *line) {
+    int res = -1;
+    if (!strncmp("br ", line, 3)) {
+        res = 3;
+    } else if (!strncmp("b.", line, 2)) {
+        res = 2;
+    } else if (!strncmp("b ", line, 2)) {
+        res = 2;
+    } else if (!strncmp("ldr ", line, 4)) {
+        res = 4;
+        strtok(line, " ");
+        char *new_str = strtok(NULL, " ");
+        res += strlen(new_str) + 1;
+    }
     
-    return 1; // not yet completed
+    return res; // returns the starting index of the label
 }
-
 
