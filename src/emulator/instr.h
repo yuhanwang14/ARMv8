@@ -123,8 +123,8 @@ typedef struct {
 
 typedef struct {
     IndexType itype; // pre-indexed / post-indexed.
-    int32_t simm9; // signed 
-    bool sf; // 32/64 mode flag
+    int32_t simm9;   // signed
+    bool sf;         // 32/64 mode flag
     bool L;
     uint64_t xn;
     uint64_t rt;
@@ -160,7 +160,7 @@ typedef struct {
 //      - Unconditional
 //      - Register
 //      - Conditional
-typedef enum { UNCONDITIONAL_T, BR_REGISTER_T, CONDITIONAL_T } BranchType;
+typedef enum { UNCONDITIONAL_T = 0x5, BR_REGISTER_T = 0x35, CONDITIONAL_T = 0x15 } BranchType;
 typedef enum { EQ = 0, NE = 1, GE = 10, LT = 11, GT = 12, LE = 13, AL = 14 } CondType;
 
 typedef struct {

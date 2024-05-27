@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-const int OP0_OFFSET = 25;
+const uint32_t OP0_OFFSET = 25;
 
 // consts for DP (Immediate)
 const uint32_t RD_START = 0;
@@ -73,8 +73,8 @@ const uint32_t LL_SIMM19_SIZE = 19;
 // consts for branch
 const uint32_t BRANCH_OP_START = 0;
 const uint32_t BRANCH_OP_SIZE = 26;
-const uint32_t BRANCH_TYPE_START = 0;
-const uint32_t BRANCH_TYPE_SIZE = 26;
+const uint32_t BRANCH_TYPE_START = 26;
+const uint32_t BRANCH_TYPE_SIZE = 6;
 const uint32_t BR_XN_START = 5;
 const uint32_t BR_XN_SIZE = 5;
 const uint32_t COND_START = 0;
