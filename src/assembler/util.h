@@ -16,6 +16,9 @@ bool is_literal(char *target);
 uint16_t parse_imm12(char *immediateValue, char *shift);
 // Parse 12 bit immediate values with possible shift, returns a 13-bit int
 
+uint32_t parse_imm16(char *immediateValue, char *shift);
+// Parse 16 bit immediate values with possible shift, returns an 18-bit int
+
 uint8_t parse_imm6(char *immediateValue);
 // Parse 6-bit immediate value
 

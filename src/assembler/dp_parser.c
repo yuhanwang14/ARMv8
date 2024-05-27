@@ -12,7 +12,12 @@ const uint8_t OPC_ORR = 1;
 const uint8_t OPC_ORN = 1;
 const uint8_t OPC_SUB = 2;
 const uint8_t OPC_SUBS = 3;
-const uint8_t DPI_IMM_ARITHMETIC_23_28 = 33;
+const uint8_t OPC_MOVN = 0;
+const uint8_t OPC_MOVZ = 2;
+const uint8_t OPC_MOVK = 3;
+const uint8_t DPI_WIDE_MOVE_OPI = 5;
+const uint8_t DPI_ARITH_OPI = 2;
+const uint8_t DPI_IMM_26_28 = 4;
 const uint8_t DPI_REG_ARITH_LOGIC_25_28 = 5;
 const uint16_t DPI_MUL_21_30 = 216;
 
@@ -75,7 +80,8 @@ uint32_t parse_two_operands_with_des(char *instruction) {
     }
     appendBits(&result,opc,2);
     if (is_literal(arguments[2])) {
-        appendBits(&result,DPI_IMM_ARITHMETIC_23_28,6); //23
+        appendBits(&result,DPI_IMM_26_28,3);
+        appendBits(&result,DPI_ARITH_OPI,3);
         appendBits(&result, parse_imm12(arguments[2],arguments[3]),13);
         appendBits(&result, parse_register(arguments[1]),REGISTER_ADR_SIZE);
         appendBits(&result, parse_register(arguments[0]),REGISTER_ADR_SIZE);
@@ -119,6 +125,33 @@ uint32_t parse_multiply(char *instruction){
     }
     appendBits(&result, parse_register(arguments[3]),REGISTER_ADR_SIZE);
     appendBits(&result, parse_register(arguments[1]),REGISTER_ADR_SIZE);
+    appendBits(&result, parse_register(arguments[0]),REGISTER_ADR_SIZE);
+    return result;
+}
+
+uint32_t parse_wide_move(char *instruction){
+    uint32_t result = 0;
+    char *opcode = strtok(instruction," ,");
+    char *arguments[4];
+    for (int i = 0;(i < 3); i++){
+        arguments[i] = strtok(NULL," ,");
+    }
+    if (arguments[0][0] == 'x'){
+        appendBits(&result,1,1);
+    }
+    if (strcmp(opcode,"movn") == 0){
+        appendBits(&result,OPC_MOVN,2);
+    }else if (strcmp(opcode,"movz") == 0){
+        appendBits(&result,OPC_MOVZ,2);
+    }else if (strcmp(opcode,"movk") == 0){
+        appendBits(&result,OPC_MOVK,2);
+    }else{
+        fprintf(stderr,"failed to parse opcode for\n'%s'\nas wide move\n",instruction);
+        exit(EXIT_FAILURE);
+    }
+    appendBits(&result,DPI_IMM_26_28,3);
+    appendBits(&result,DPI_WIDE_MOVE_OPI,3);
+    appendBits(&result, parse_imm16(arguments[1],arguments[2]),18);
     appendBits(&result, parse_register(arguments[0]),REGISTER_ADR_SIZE);
     return result;
 }
