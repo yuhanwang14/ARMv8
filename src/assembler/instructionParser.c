@@ -23,11 +23,11 @@ void appendBits(uint32_t *target,uint32_t appended,uint32_t length){
     return;
 }
 
-int instructionParser(char *instruction) {
+uint32_t parse_instruction(char *instruction) {
 
 }
 
-int twoOprParser(char *instruction) {
+uint32_t parse_two_operands_with_des(char *instruction) {
     char **buffer = NULL;
     char opcode[5];
     strcpy(opcode, strtok_r(instruction, " ", buffer));
@@ -81,11 +81,11 @@ int twoOprParser(char *instruction) {
     }
     appendBits(&result,(arguments[0][0] == 'x'),1);
     appendBits(&result,opc,2);
-    if (isImmediate(arguments[2])) {
+    if (is_literal(arguments[2])) {
         appendBits(&result,DPI_IMM_ARITHMETIC_23_28,6); //23
-        appendBits(&result, immediate12Parser(arguments[2],arguments[3]),13);//10,next index 22
-        appendBits(&result, registerParser(arguments[1]),REGISTER_ADR_SIZE);
-        appendBits(&result, registerParser(arguments[0]),REGISTER_ADR_SIZE);
+        appendBits(&result, parse_imm12(arguments[2],arguments[3]),13);
+        appendBits(&result, parse_register(arguments[1]),REGISTER_ADR_SIZE);
+        appendBits(&result, parse_register(arguments[0]),REGISTER_ADR_SIZE);
     } else {
         appendBits(&result,DPI_REG_ARITH_LOGIC_25_28,4);
         if (logicOp) {
@@ -93,18 +93,18 @@ int twoOprParser(char *instruction) {
         } else {
             appendBits(&result,1,1);
         }
-        uint8_t *parsedShift = shiftParser(arguments[3]);
+        uint8_t *parsedShift = parse_shift(arguments[3]);
         appendBits(&result,parsedShift[0],2);
         appendBits(&result,negate,1);
-        appendBits(&result, registerParser(arguments[2]),REGISTER_ADR_SIZE);
+        appendBits(&result, parse_register(arguments[2]),REGISTER_ADR_SIZE);
         appendBits(&result,parsedShift[1],6);
-        appendBits(&result, registerParser(arguments[1]),REGISTER_ADR_SIZE);
-        appendBits(&result, registerParser(arguments[0]),REGISTER_ADR_SIZE);
+        appendBits(&result, parse_register(arguments[1]),REGISTER_ADR_SIZE);
+        appendBits(&result, parse_register(arguments[0]),REGISTER_ADR_SIZE);
         }
     return result;
     }
 
-uint8_t *shiftParser(char *shiftArg){
+uint8_t *parse_shift(char *shiftArg){
     uint8_t *result = malloc(2 * sizeof(uint8_t));
     result[0] = 0;
     result[1] = 0;
@@ -121,7 +121,14 @@ uint8_t *shiftParser(char *shiftArg){
     }else{
         fprintf(stderr,"failed to parse shift for '%s'",shiftArg);
     }
-    result[1] = immediate6Parser(value);
+    result[1] = parse_imm6(value);
     return result;
 }
 
+uint8_t parse_register(char *registerName){
+    if (registerName[0] != 'w'&& registerName[0] != 'x'){
+        fprintf(stderr,"failed to parse register name '%s'",registerName);
+        exit(EXIT_FAILURE);
+    }
+    return atoi(registerName + 1);
+}
