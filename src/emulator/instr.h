@@ -125,7 +125,7 @@ typedef struct {
 
 typedef struct {
     IndexType itype; // pre-indexed / post-indexed.
-    int32_t simm9;
+    int32_t simm9; // signed 
     bool sf; // 32/64 mode flag
     bool L;
     uint64_t xn;
@@ -154,7 +154,7 @@ typedef struct {
 
 typedef struct {
     bool sf;
-    uint32_t simm19;
+    int32_t simm19;
     uint64_t rt;
 } LoadLiteral;
 
