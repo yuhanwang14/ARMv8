@@ -1,13 +1,13 @@
 #include "parser.h"
 
-extern int8_t resolveAlias(char **opcode, char **arguments,int8_t numArg) {
+int8_t resolveAlias(char **opcode, char **arguments,int8_t numArg) {
 // this checks if any alias occur and change the opcode and arguments if so
-char defaultZero[4];
-if (arguments[0][0] == 'x'){
-    strcpy(defaultZero,"xzr");
-    }else{
-    strcpy(defaultZero,"wzr");
-}
+    char defaultZero[4];
+    if (arguments[0][0] == 'x'){
+        strcpy(defaultZero,"xzr");
+        }else{
+        strcpy(defaultZero,"wzr");
+    }
     if (strcmp(*opcode,"cmp")){
         *opcode = "subs";
         insertChar(arguments,numArg,defaultZero,0);

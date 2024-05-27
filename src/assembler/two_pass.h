@@ -19,3 +19,10 @@ Index *index_new(void);
 void index_add(Index *index, const char *key, int value);
 
 int index_find(Index *index, const char *key);
+
+typedef struct {
+    char **lines;
+    int length;
+} FileLines;
+
+FileLines *two_pass(FILE *file);

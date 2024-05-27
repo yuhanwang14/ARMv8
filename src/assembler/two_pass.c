@@ -1,5 +1,5 @@
 #include "two_pass.h"
-#include <string.h>
+#include "parser.c"
 
 const size_t INITIAL_SIZE = 4;
 
@@ -116,7 +116,7 @@ Index *first_pass(char **lines, int number_of_lines) {
 
 // values: integers
 
-char **two_pass(FILE *file) {
+FileLines *two_pass(FILE *file) {
     // add # in front of label
     int number_of_lines = count_lines(file);
     char **lines = split_lines(file);
@@ -137,11 +137,13 @@ char **two_pass(FILE *file) {
             strncpy(new_str, lines[i], strlen(offset) + start);
             lines[i] = new_str;
         }
-
-        
     }
 
-    return lines;
+    FileLines *two_passed = malloc(sizeof(FileLines));
+    two_passed->lines = lines;
+    two_passed->length = number_of_lines;
+
+    return two_passed;
 }
 
 int find_label(char *line) {
@@ -161,4 +163,3 @@ int find_label(char *line) {
     
     return res; // returns the starting index of the label
 }
-
