@@ -176,11 +176,138 @@ void execute_dpi(Register *reg, DpImmed dpi) {
 void execute_dpr(Register *reg, DpRegister dpr) {
     // TODO: ky723
 }
-void execute_sdt(Register *reg, SdTrans dpr) {
-    // TODO: yw8123
+void execute_sdt(Register *reg, SdTrans sdt) {
+    uint64_t addrs;
+    switch (sdt.type) {
+    case SD_REGISTER_T: {
+        SDRegister instr = sdt.reg;
+        addrs = R64(instr.xn) + R64(instr.xm);
+        if (instr.L) {
+            // load operation
+            if (instr.sf) {
+                // 64 bits
+                R64(instr.rt) = * (reg->ram + addrs);
+            } else {
+                // 32 bits
+                R32(instr.rt) = * (uint32_t *) (reg->ram + addrs);
+                R32_cls_upper(instr.rt);
+            }
+        } else {
+            // store operation
+            if (instr.sf) {
+                // 64 bits
+                * (reg->ram + addrs) = R64(instr.rt);
+            } else {
+                // 32 bits
+                * (uint32_t *) (reg->ram + addrs) = R32(instr.rt);
+            }
+        }
+    }
+    case PRE_POST_INDEX_T: {
+        PrePostIndex instr = sdt.pre_post_index;
+        switch (instr.itype) {
+        case PRE_INDEX: {
+            addrs = R64(instr.xn) + (uint64_t) instr.simm9;
+            // transfer address
+            if (instr.L) {
+                // load operation
+                if (instr.sf) {
+                    // 64 bits
+                    R64(instr.rt) = * (reg->ram + addrs);
+                } else {
+                    // 32 bits
+                    R32(instr.rt) = * (uint32_t *) (reg->ram + addrs);
+                    R32_cls_upper(instr.rt);
+                }
+            } else {
+                // store operation
+                if (instr.sf) {
+                    // 64 bits
+                    * (reg->ram + addrs) = R64(instr.rt);
+                } else {
+                    // 32 bits
+                    * (uint32_t *) (reg->ram + addrs) = R32(instr.rt);
+                }
+            }
+            R64(instr.xn) = R64(instr.xn) + (uint64_t) instr.simm9;
+            break;
+        }
+
+        case POST_INDEX: {
+            addrs = R64(instr.xn);
+            if (instr.L) {
+                // load operation
+                if (instr.sf) {
+                    // 64 bits
+                    R64(instr.rt) = * (reg->ram + addrs);
+                } else {
+                    // 32 bits
+                    R32(instr.rt) = * (uint32_t *) (reg->ram + addrs);
+                    R32_cls_upper(instr.rt);
+                }
+            } else {
+                // store operation
+                if (instr.sf) {
+                    // 64 bits
+                    * (reg->ram + addrs) = R64(instr.rt);
+                } else {
+                    // 32 bits
+                    * (uint32_t *) (reg->ram + addrs) = R32(instr.rt);
+                }
+            }
+            R64(instr.xn) = R64(instr.xn) + (uint64_t) instr.simm9;
+            break;
+        }
+
+        default:
+            fprintf(stderr, "Unknown Index type: 0x%x\n", instr.itype);
+            exit(EXIT_FAILURE);
+        }
+        break;
+    }
+    case UNSIGN_T: {
+        Unsigned instr = sdt.usigned;
+        if (instr.L) {
+            // load operation
+            if (instr.sf) {
+                // 64 bits
+                addrs = R64(instr.xn) + (uint64_t) (instr.imm12 << 3);
+                R64(instr.rt) = * (reg->ram + addrs);
+            } else {
+                // 32 bits
+                addrs = R64(instr.xn) + (uint64_t) (instr.imm12 << 2);
+                R32(instr.rt) = * (uint32_t *) (reg->ram + addrs);
+                R32_cls_upper(instr.rt);
+            }
+        } else {
+            // store operation
+            if (instr.sf) {
+                // 64 bits
+                addrs = R64(instr.xn) + (uint64_t) (instr.imm12 << 3);
+                * (reg->ram + addrs) = R64(instr.rt);
+            } else {
+                // 32 bits
+                addrs = R64(instr.xn) + (uint64_t) (instr.imm12 << 2);
+                * (uint32_t *) (reg->ram + addrs) = R32(instr.rt);
+            }
+        }
+        break;
+    }
+    default:
+        fprintf(stderr, "Unknown Single Data Transfer type: 0x%x\n", sdt.type);
+        exit(EXIT_FAILURE);
+    }
 }
 void execute_ldl(Register *reg, LoadLiteral ldl) {
-    // TODO: yw8123
+    uint64_t addrs = reg->PC + (uint64_t) (ldl.simm19 * 4);
+    if (ldl.sf) {
+        // 64 bits
+        R64(ldl.rt) = * (reg->ram + addrs);
+    } else {
+        // 32 bits
+        R32(ldl.rt) = * (uint32_t *) (reg->ram + addrs);
+        R32_cls_upper(ldl.rt);
+    }
 }
 void execute_branch(Register *reg, Branch branch) {
     // TODO: ky723
