@@ -15,16 +15,16 @@
 //      - arithmetic
 //      - wide move
 typedef enum { DPI_ARITHMETIC_T, WIDE_MOVE_T } DpImmedType;
-typedef enum { ADD = 0, ADDS = 1, SUB = 2, SUBS = 3 } DpArithmeticType;
+typedef enum { ADD = 0, ADDS = 1, SUB = 2, SUBS = 3 } ArithmeticType;
 typedef enum { MOVN = 0, MOVZ = 2, MOVK = 3 } DpWideMoveType;
 
 typedef struct {
-    bool sf;                // 32/64 mode flag
-    bool sh;                // whether imm12 should be moved left by 12 bits
-    DpArithmeticType atype; // operation type
-    uint32_t imm12;         // Op2
-    uint32_t rn;            // source register index
-    uint32_t rd;            // destination register index
+    bool sf;              // 32/64 mode flag
+    bool sh;              // whether imm12 should be moved left by 12 bits
+    ArithmeticType atype; // operation type
+    uint32_t imm12;       // Op2
+    uint32_t rn;          // source register index
+    uint32_t rd;          // destination register index
 } DPIArithmetic;
 
 typedef struct {
@@ -58,16 +58,15 @@ typedef enum {
     EO = 2,
     ANDC = 3,
 } BitInstrType;
-typedef DpArithmeticType DrArithmeticType;
 
 typedef struct {
-    AritShiftType stype;    // right operand preprocessing: how should it be shifted
-    DrArithmeticType atype; // operation type
-    uint32_t rd;            // destination register index
-    uint32_t rn;            // left operand
-    uint32_t rm;            // right operand
-    bool sf;                // 32/64 mode flag
-    uint32_t shift;         // right operand preprocessing: how many bits should it be shifted
+    AritShiftType stype;  // right operand preprocessing: how should it be shifted
+    ArithmeticType atype; // operation type
+    uint32_t rd;          // destination register index
+    uint32_t rn;          // left operand
+    uint32_t rm;          // right operand
+    bool sf;              // 32/64 mode flag
+    uint32_t shift;       // right operand preprocessing: how many bits should it be shifted
 } DPRArithmetic;
 
 typedef struct {

@@ -162,7 +162,7 @@ void decode_dpi(uint32_t rd, uint32_t operand, uint32_t opi, uint32_t opc, uint3
         result->dp_immed.type = DPI_ARITHMETIC_T;
         result->dp_immed.arithmetic.sf = (bool)sf;
         result->dp_immed.arithmetic.sh = (bool)nth_bit_set(operand, SH_OFFSET);
-        result->dp_immed.arithmetic.atype = (DpArithmeticType)opc;
+        result->dp_immed.arithmetic.atype = (ArithmeticType)opc;
         result->dp_immed.arithmetic.imm12 = bit_slice(operand, IMM12_START, IMM12_SIZE);
         result->dp_immed.arithmetic.rn = bit_slice(operand, DPI_ARIT_RN_START, DPI_ARIT_RN_SIZE);
         result->dp_immed.arithmetic.rd = rd;
@@ -210,7 +210,7 @@ void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm, uint32_
         // Arithmetic type
         result->dp_reg.type = DPR_ARITHMETIC_T;
         result->dp_reg.arithmetic.stype = (AritShiftType)bit_slice(opr, SHIFT_START, SHIFT_SIZE);
-        result->dp_reg.arithmetic.atype = (DrArithmeticType)opc;
+        result->dp_reg.arithmetic.atype = (ArithmeticType)opc;
         result->dp_reg.logical.rd = rd;
         result->dp_reg.logical.rn = rn;
         result->dp_reg.logical.rm = rm;
