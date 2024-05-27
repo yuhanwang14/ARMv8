@@ -230,7 +230,7 @@ void execute_dpr(Register *reg, DpRegister dpr) {
                 exit(EXIT_FAILURE);
                 break;
             }
-            execute_arit_instr(reg, instr.atype, instr.sf, instr.rd, instr.rn, (uint32_t)op2);
+            execute_arit_instr(reg, instr.atype, instr.sf, instr.rd, instr.rn, (uint64_t)op2);
         }
         break;
     }
