@@ -14,6 +14,8 @@ const uint8_t OPC_SUB = 2;
 const uint8_t OPC_SUBS = 3;
 const uint8_t DPI_IMM_ARITHMETIC_23_28 = 33;
 const uint8_t DPI_REG_ARITH_LOGIC_25_28 = 5;
+const uint16_t DPI_MUL_21_30 = 216;
+
 
 
 uint32_t parse_two_operands_with_des(char *instruction) {
@@ -65,10 +67,12 @@ uint32_t parse_two_operands_with_des(char *instruction) {
         logicOp = true;
         negate = 1;
     }else{
-        fprintf(stderr,"failed to parse opcode for\n '%s'",instruction);
+        fprintf(stderr,"failed to parse opcode for\n '%s'\nas 2 operand with des\n",instruction);
         exit(EXIT_FAILURE);
     }
-    appendBits(&result,(arguments[0][0] == 'x'),1);
+    if (arguments[0][0] == 'x'){
+        appendBits(&result,1,1);
+    }
     appendBits(&result,opc,2);
     if (is_literal(arguments[2])) {
         appendBits(&result,DPI_IMM_ARITHMETIC_23_28,6); //23
@@ -93,4 +97,28 @@ uint32_t parse_two_operands_with_des(char *instruction) {
     return result;
 }
 
-
+uint32_t parse_multiply(char *instruction){
+    uint32_t result = 0;
+    char *opcode = strtok(instruction," ,");
+    char *arguments[4];
+    for (int i = 0;(i < 4); i++){
+        arguments[i] = strtok(NULL," ,");
+    }
+    if (arguments[0][0] == 'x'){
+        appendBits(&result,1,1);
+    }
+    appendBits(&result,DPI_MUL_21_30,10);
+    appendBits(&result, parse_register(arguments[2]),REGISTER_ADR_SIZE);
+    if (strcmp(opcode,"madd") == 0){
+        appendBits(&result,0,1);
+    }else if (strcmp(opcode,"msub") == 0){
+        appendBits(&result,1,1);
+    }else{
+        fprintf(stderr,"failed to parse opcode for\n'%s'\nas multiply\n",instruction);
+        exit(EXIT_FAILURE);
+    }
+    appendBits(&result, parse_register(arguments[3]),REGISTER_ADR_SIZE);
+    appendBits(&result, parse_register(arguments[1]),REGISTER_ADR_SIZE);
+    appendBits(&result, parse_register(arguments[0]),REGISTER_ADR_SIZE);
+    return result;
+}

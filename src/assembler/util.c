@@ -15,7 +15,7 @@ uint8_t *parse_shift(char *shiftArg){
     }else if (strcmp(command,"ror") == 0){
         result[0] = 3;
     }else{
-        fprintf(stderr,"failed to parse shift for '%s'",shiftArg);
+        fprintf(stderr,"failed to parse shift for '%s'\n",shiftArg);
     }
     result[1] = parse_imm6(value);
     return result;
@@ -23,7 +23,7 @@ uint8_t *parse_shift(char *shiftArg){
 
 uint8_t parse_register(char *registerName){
     if (registerName[0] != 'w'&& registerName[0] != 'x'){
-        fprintf(stderr,"failed to parse register name '%s'",registerName);
+        fprintf(stderr,"failed to parse register name '%s'\n",registerName);
         exit(EXIT_FAILURE);
     }
     if (strcmp(registerName+1,"zr") == 0) return 31;
@@ -40,7 +40,7 @@ uint16_t parse_imm12(char *literal, char *shift){
     }else if (strcmp(shift,"lsl #12") == 0){
         return (atoi((literal+1)) + (1<<12));
     }else{
-        fprintf(stderr,"failed to parse a shift for imm12: '%s'",shift);
+        fprintf(stderr,"failed to parse a shift for imm12: '%s'\n",shift);
         exit(EXIT_FAILURE);
     }
 }
