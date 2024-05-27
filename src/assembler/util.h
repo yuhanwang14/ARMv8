@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#ifndef _UTIL_H
+#define _UTIL_H
 const uint8_t REGISTER_ADR_SIZE = 5;
 
 uint8_t parse_register(char *registerName);
@@ -23,3 +25,5 @@ uint8_t *parse_shift(char *shiftArg);
 // returns {0,0} if passed in NULL
 
 void appendBits(uint32_t *target,uint32_t appended,uint32_t length);
+
+#endif
