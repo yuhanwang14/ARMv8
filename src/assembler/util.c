@@ -53,3 +53,10 @@ void appendBits(uint32_t *target,uint32_t appended,uint32_t length){
     *target = ((*target) << length) + appended;
     return;
 }
+
+bool is_shift(char *argument){
+    if (argument == NULL) return false;
+    char *shiftCode = strtok(argument," ");
+    return (strcmp(shiftCode,"lsl") == 0 || strcmp(shiftCode,"lsr") == 0
+    || strcmp(shiftCode,"asr") == 0 || strcmp(shiftCode, "ror") != 0);
+}

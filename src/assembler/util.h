@@ -29,4 +29,7 @@ uint8_t *parse_shift(char *shiftArg);
 
 void appendBits(uint32_t *target,uint32_t appended,uint32_t length);
 
+bool is_shift(char *argument);
+
+void insertChar(char **targetArray,int32_t arraySize,char *element, int8_t index);
 #endif
