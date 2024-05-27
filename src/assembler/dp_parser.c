@@ -23,18 +23,11 @@ const uint16_t DPI_MUL_21_30 = 216;
 
 
 
-uint32_t parse_two_operands_with_des(char *instruction) {
-    char **buffer = NULL;
-    char opcode[5];
-    strcpy(opcode, strtok_r(instruction, " ", buffer));
-    char *arguments[4];
+uint32_t parse_two_operands_with_des(char * opcode, char **arguments) {
     int8_t opc;
     int8_t negate = 0; // holds the value for N
     bool logicOp = false;
     uint32_t result = 0;
-    for (int i = 0; i < 4; i++) {
-        arguments[i] = strtok_r(NULL, " ", buffer);
-    }
     if (strcmp(opcode,"add") == 0){
         opc = OPC_ADD;
     }else if (strcmp(opcode,"adds") == 0){
@@ -72,7 +65,7 @@ uint32_t parse_two_operands_with_des(char *instruction) {
         logicOp = true;
         negate = 1;
     }else{
-        fprintf(stderr,"failed to parse opcode for\n '%s'\nas 2 operand with des\n",instruction);
+        fprintf(stderr,"failed to parse opcode for\n '%s'\nas 2 operand with des\n",opcode);
         exit(EXIT_FAILURE);
     }
     if (arguments[0][0] == 'x'){
@@ -103,13 +96,8 @@ uint32_t parse_two_operands_with_des(char *instruction) {
     return result;
 }
 
-uint32_t parse_multiply(char *instruction){
+uint32_t parse_multiply(char * opcode, char **arguments){
     uint32_t result = 0;
-    char *opcode = strtok(instruction," ,");
-    char *arguments[4];
-    for (int i = 0;(i < 4); i++){
-        arguments[i] = strtok(NULL," ,");
-    }
     if (arguments[0][0] == 'x'){
         appendBits(&result,1,1);
     }
@@ -120,7 +108,7 @@ uint32_t parse_multiply(char *instruction){
     }else if (strcmp(opcode,"msub") == 0){
         appendBits(&result,1,1);
     }else{
-        fprintf(stderr,"failed to parse opcode for\n'%s'\nas multiply\n",instruction);
+        fprintf(stderr,"failed to parse opcode for\n'%s'\nas multiply\n",opcode);
         exit(EXIT_FAILURE);
     }
     appendBits(&result, parse_register(arguments[3]),REGISTER_ADR_SIZE);
@@ -129,13 +117,8 @@ uint32_t parse_multiply(char *instruction){
     return result;
 }
 
-uint32_t parse_wide_move(char *instruction){
+uint32_t parse_wide_move(char * opcode, char **arguments){
     uint32_t result = 0;
-    char *opcode = strtok(instruction," ,");
-    char *arguments[4];
-    for (int i = 0;(i < 3); i++){
-        arguments[i] = strtok(NULL," ,");
-    }
     if (arguments[0][0] == 'x'){
         appendBits(&result,1,1);
     }
@@ -146,7 +129,7 @@ uint32_t parse_wide_move(char *instruction){
     }else if (strcmp(opcode,"movk") == 0){
         appendBits(&result,OPC_MOVK,2);
     }else{
-        fprintf(stderr,"failed to parse opcode for\n'%s'\nas wide move\n",instruction);
+        fprintf(stderr,"failed to parse opcode for\n'%s'\nas wide move\n",opcode);
         exit(EXIT_FAILURE);
     }
     appendBits(&result,DPI_IMM_26_28,3);
@@ -155,3 +138,4 @@ uint32_t parse_wide_move(char *instruction){
     appendBits(&result, parse_register(arguments[0]),REGISTER_ADR_SIZE);
     return result;
 }
+
