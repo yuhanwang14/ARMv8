@@ -113,7 +113,7 @@ typedef struct {
 // 		- Unsigned offset
 
 typedef enum { SD_REGISTER_T, PRE_POST_INDEX_T, UNSIGN_T } SDTransType;
-typedef enum { POST_INDEX = 0, PRE_INDEXED = 1 } IndexType;
+typedef enum { POST_INDEX = 0, PRE_INDEX = 1 } IndexType;
 
 typedef struct {
     uint64_t xm; // Another X-register
@@ -125,7 +125,7 @@ typedef struct {
 
 typedef struct {
     IndexType itype; // pre-indexed / post-indexed.
-    uint32_t simm9;
+    int32_t simm9;
     bool sf; // 32/64 mode flag
     bool L;
     uint64_t xn;
