@@ -5,7 +5,7 @@
 #ifndef _REGISTER_H
 #define _REGISTER_H
 
-#define MEMORY_SIZE 1 << 20 // how many bytes are 2MB
+#define MEMORY_SIZE (size_t)(1 << 14) // how many bytes are 2MB
 
 typedef struct {
     bool N; // Negative condition flag
@@ -24,7 +24,7 @@ typedef struct {
 
 // Initialilze the registers according to the spec
 // Returns a register struct with Z flag set and PC at zero
-Register *reg_init();
+Register *reg_init(void);
 
 // frees a register struct
 void reg_free(Register *reg);
