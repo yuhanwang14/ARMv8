@@ -111,12 +111,6 @@ Instr *decode(uint32_t code) {
         uint32_t opi = bit_slice(code, OPI_START, OPI_SIZE);
         uint32_t opc = bit_slice(code, OPC_START, OPC_SIZE);
         uint32_t sf = nth_bit_set(code, DP_SF_OFFSET);
-        printf("Type: DP (Immediate)\n");
-        printf("    rd: %032b\n", rd);
-        printf("    operand: %032b\n", operand);
-        printf("    opi: %032b\n", opi);
-        printf("    opc: %032b\n", opc);
-        printf("    sf: %032b\n", sf);
         decode_dpi(rd, operand, opi, opc, sf, result);
     } else if (nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 2)) {
         // DP (Register)
@@ -129,15 +123,6 @@ Instr *decode(uint32_t code) {
         uint32_t m = nth_bit_set(code, M_OFFSET);
         uint32_t opc = bit_slice(code, OPC_START, OPC_SIZE);
         uint32_t sf = nth_bit_set(code, DP_SF_OFFSET);
-        printf("Type: DP (Register)\n");
-        printf("    rd: %032b\n", rd);
-        printf("    rn: %032b\n", rn);
-        printf("    operand: %032b\n", operand);
-        printf("    rm: %032b\n", rm);
-        printf("    opr: %032b\n", opr);
-        printf("    m: %032b\n", m);
-        printf("    opc: %032b\n", opc);
-        printf("    sf: %032b\n", sf);
         decode_dpr(rd, rn, operand, rm, opr, m, opc, sf, result);
     } else if (!nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 2) &&
                nth_bit_set(code, OP0_OFFSET + 3) && nth_bit_set(code, OP0_OFFSET + 4)) {
