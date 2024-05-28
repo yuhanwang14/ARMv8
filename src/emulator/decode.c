@@ -26,7 +26,7 @@ const uint32_t IMM12_START = DPI_ARIT_RN_START + DPI_ARIT_RN_SIZE;
 const uint32_t IMM12_SIZE = 12;
 const uint32_t IMM16_START = 0;
 const uint32_t IMM16_SIZE = 16;
-const uint32_t HW_START = IMM12_START + IMM16_SIZE;
+const uint32_t HW_START = IMM16_START + IMM16_SIZE;
 const uint32_t HW_SIZE = 2;
 
 // consts for DP (Register)
