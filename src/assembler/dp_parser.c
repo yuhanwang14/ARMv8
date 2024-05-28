@@ -69,10 +69,11 @@ uint32_t parse_two_operands_with_des(char * opcode, char **arguments) {
         exit(EXIT_FAILURE);
     }
     if (arguments[0][0] == 'x'){
-        appendBits(&result,1,1);
+        appendBits(&result,1,1); // sf, pos 31
     }
-    appendBits(&result,opc,2);
+    appendBits(&result,opc,2); // opc,pos 30-29
     if (is_literal(arguments[2])) {
+        printf("pos2\n%s\n",arguments[2]);
         appendBits(&result,DPI_IMM_26_28,3);
         appendBits(&result,DPI_ARITH_OPI,3);
         appendBits(&result, parse_imm12(arguments[2],arguments[3]),13);
@@ -85,7 +86,7 @@ uint32_t parse_two_operands_with_des(char * opcode, char **arguments) {
         } else {
             appendBits(&result,1,1);
         }
-        uint8_t *parsedShift = parse_shift(arguments[3]);
+        uint8_t *parsedShift = parse_shift(arguments[3],arguments[4]);
         appendBits(&result,parsedShift[0],2);
         appendBits(&result,negate,1);
         appendBits(&result, parse_register(arguments[2]),REGISTER_ADR_SIZE);
@@ -134,7 +135,7 @@ uint32_t parse_wide_move(char * opcode, char **arguments){
     }
     appendBits(&result,DPI_IMM_26_28,3);
     appendBits(&result,DPI_WIDE_MOVE_OPI,3);
-    appendBits(&result, parse_imm16(arguments[1],arguments[2]),18);
+    appendBits(&result, parse_imm16(arguments[1],arguments[2],arguments[3]),18);
     appendBits(&result, parse_register(arguments[0]),REGISTER_ADR_SIZE);
     return result;
 }
