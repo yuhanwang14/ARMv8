@@ -105,14 +105,18 @@ Instr *decode(uint32_t code) {
     Instr *result = malloc(sizeof(Instr));
     if (!nth_bit_set(code, OP0_OFFSET + 1) && !nth_bit_set(code, OP0_OFFSET + 2)) {
         // DP (Immediate)
-        printf("Type: DP (Immediate)\n");
         result->type = DP_IMMEDIATE_T;
         uint32_t rd = bit_slice(code, RD_START, RD_SIZE);
         uint32_t operand = bit_slice(code, DPI_OPERAND_START, DPI_OPERAND_SIZE);
         uint32_t opi = bit_slice(code, OPI_START, OPI_SIZE);
         uint32_t opc = bit_slice(code, OPC_START, OPC_SIZE);
         uint32_t sf = nth_bit_set(code, DP_SF_OFFSET);
+        printf("Type: DP (Immediate)\n");
+        printf("    rd: %032b\n", rd);
+        printf("    operand: %032b\n", operand);
+        printf("    opi: %032b\n", opi);
         printf("    opc: %032b\n", opc);
+        printf("    sf: %032b\n", sf);
         decode_dpi(rd, operand, opi, opc, sf, result);
     } else if (nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 2)) {
         // DP (Register)

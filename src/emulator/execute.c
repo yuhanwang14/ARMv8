@@ -142,15 +142,15 @@ void execute_dpi(Register *reg, DpImmed dpi) {
     }
     case WIDE_MOVE_T: {
         WideMove instr = dpi.wide_move;
-        uint32_t op = instr.imm16 << (instr.hw * 16);
+        uint64_t op = (uint64_t)instr.imm16 << (instr.hw * 16);
         switch (instr.mtype) {
         case MOVN: {
             if (instr.sf) {
                 // 64 bit mode
-                R64(instr.rd) = ~((uint64_t)op);
+                R64(instr.rd) = ~op;
             } else {
                 // 32 bit mode
-                R32(instr.rd) = ~op;
+                R32(instr.rd) = ~(uint32_t)op;
                 R32_cls_upper(instr.rd);
             }
             break;
@@ -158,10 +158,10 @@ void execute_dpi(Register *reg, DpImmed dpi) {
         case MOVZ: {
             if (instr.sf) {
                 // 64 bit mode
-                R64(instr.rd) = (uint64_t)op;
+                R64(instr.rd) = op;
             } else {
                 // 32 bit mode
-                R32(instr.rd) = op;
+                R32(instr.rd) = (uint32_t)op;
                 R32_cls_upper(instr.rd);
             }
             break;
