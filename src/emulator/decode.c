@@ -112,7 +112,6 @@ Instr *decode(uint32_t code) {
         uint32_t opi = bit_slice(code, OPI_START, OPI_SIZE);
         uint32_t opc = bit_slice(code, OPC_START, OPC_SIZE);
         uint32_t sf = nth_bit_set(code, DP_SF_OFFSET);
-        printf("    opc: %032b\n", opc);
         decode_dpi(rd, operand, opi, opc, sf, result);
     } else if (nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 2)) {
         // DP (Register)
@@ -127,8 +126,8 @@ Instr *decode(uint32_t code) {
         uint32_t opc = bit_slice(code, OPC_START, OPC_SIZE);
         uint32_t sf = nth_bit_set(code, DP_SF_OFFSET);
         decode_dpr(rd, rn, operand, rm, opr, m, opc, sf, result);
-    } else if (!nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 3) &&
-               nth_bit_set(code, OP0_OFFSET + 4) && nth_bit_set(code, OP0_OFFSET + 5)) {
+    } else if (!nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 2) &&
+               nth_bit_set(code, OP0_OFFSET + 3) && nth_bit_set(code, OP0_OFFSET + 4)) {
         // Single Data Transfer
         printf("Type: Single Data Transfer\n");
         result->type = SINGLE_DATA_TRANSFER_T;
@@ -139,8 +138,8 @@ Instr *decode(uint32_t code) {
         uint32_t u = nth_bit_set(code, U_OFFSET);
         uint32_t sf = nth_bit_set(code, LS_SF_OFFSET);
         decode_sdt(rt, xn, offset, l, u, sf, result);
-    } else if (!nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 3) &&
-               nth_bit_set(code, OP0_OFFSET + 4)) {
+    } else if (!nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 2) &&
+               nth_bit_set(code, OP0_OFFSET + 3)) {
         // Load From Literal
         printf("Type: Load From Literal\n");
         result->type = LOAD_LITERAL_T;
@@ -245,19 +244,20 @@ void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, uint32_t 
     } else if (nth_bit_set(offset, FLAG_OFFSET)) {
         // is pre/post-index type
         result->sing_data_transfer.type = PRE_POST_INDEX_T;
-        result->sing_data_transfer.pre_post_index.itype = (IndexType)nth_bit_set(offset, I_OFFSET);
-        result->sing_data_transfer.pre_post_index.L = l;
+        result->sing_data_transfer.pre_post_index.itype =
+            (nth_bit_set(offset, I_OFFSET) == (uint32_t)1) ? PRE_INDEX : POST_INDEX;
+        result->sing_data_transfer.pre_post_index.L = (bool)l;
         result->sing_data_transfer.pre_post_index.rt = rt;
-        result->sing_data_transfer.pre_post_index.sf = sf;
+        result->sing_data_transfer.pre_post_index.sf = (bool)sf;
         result->sing_data_transfer.pre_post_index.simm9 = bit_slice(offset, SIMM9_START, SIMM9_SIZE);
         result->sing_data_transfer.pre_post_index.xn = xn;
     } else if (!nth_bit_set(offset, FLAG_OFFSET)) {
         // is register type
         result->sing_data_transfer.type = SD_REGISTER_T;
         result->sing_data_transfer.reg.xm = bit_slice(offset, XM_START, XM_SIZE);
-        result->sing_data_transfer.reg.L = l;
+        result->sing_data_transfer.reg.L = (bool)l;
         result->sing_data_transfer.reg.rt = rt;
-        result->sing_data_transfer.reg.sf = sf;
+        result->sing_data_transfer.reg.sf = (bool)sf;
         result->sing_data_transfer.reg.xn = xn;
     } else {
         fprintf(stderr,

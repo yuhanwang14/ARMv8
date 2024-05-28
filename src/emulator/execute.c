@@ -43,12 +43,12 @@ void execute(Register *reg, Instr *instr) {
     }
 }
 
-#define R32(n) ((uint32_t *)reg->g_reg)[(n) * 2]
-#define R32_cls_upper(n) ((uint32_t *)reg->g_reg)[(n) * 2 + 1] = 0
+#define R32(n) ((uint32_t *)reg->g_reg)[(n)*2]
+#define R32_cls_upper(n) ((uint32_t *)reg->g_reg)[(n)*2 + 1] = 0
 #define R64(n) reg->g_reg[n]
 #define sgn64(n) (bool)((n >> 63) & 1)
 #define sgn32(n) (bool)((n >> 31) & 1)
-#define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n) * 4 + shift]
+#define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n)*4 + shift]
 #define R32_16(n, shift) R64_16(n, shift)
 
 void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t rd, uint32_t rn,
@@ -462,9 +462,9 @@ void execute_sdt(Register *reg, SdTrans sdt) {
             break;
         }
 
-        default:
-            fprintf(stderr, "Unknown Index type: 0x%x\n", instr.itype);
-            exit(EXIT_FAILURE);
+            // default:
+            //     fprintf(stderr, "Unknown Index type: 0x%x\n", instr.itype);
+            //     exit(EXIT_FAILURE);
         }
         break;
     }
@@ -502,12 +502,24 @@ void execute_sdt(Register *reg, SdTrans sdt) {
     }
 }
 void execute_ldl(Register *reg, LoadLiteral ldl) {
-    uint64_t addrs = reg->PC + (uint64_t)(ldl.simm19 * 4);
+    int64_t signed_simm19; 
+    if (ldl.simm19 & 0x40000) { // Check if the sign bit (18th bit) is set
+        signed_simm19 = ldl.simm19 | ~0x7FFFF; // Sign extend to 64 bits if negative
+    } else {
+        signed_simm19 = ldl.simm19; // Use the value as is if positive
+    }
+    uint64_t addrs = reg->PC + (uint64_t)(signed_simm19);
+    printf("PC: %lu, signed simm19: %ld, simm19: %d\n", reg->PC, signed_simm19, ldl.simm19);
     if (ldl.sf) {
         // 64 bits
         R64(ldl.rt) = *(reg->ram + addrs);
     } else {
         // 32 bits
+        // printf("addrs: %lu\n", addrs);
+        if (addrs >= MEMORY_SIZE) {
+            fprintf(stderr, "Address out of bounds: %lu out of %lu\n", addrs, MEMORY_SIZE);
+            exit(EXIT_FAILURE);
+        }
         R32(ldl.rt) = *(uint32_t *)(reg->ram + addrs);
         R32_cls_upper(ldl.rt);
     }

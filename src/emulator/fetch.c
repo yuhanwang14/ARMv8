@@ -1,6 +1,7 @@
 #include "fetch.h"
 #include "utils.h"
 #include <stdint.h>
+#include <stdio.h>
 
 void fail_PC_out_of_bound(void) {
     fprintf(stderr, "PC out of bound");
@@ -16,7 +17,7 @@ uint32_t fetch(Register *reg) {
     uint32_t instruction = *(uint32_t *)(reg->ram + reg->PC);
     printf("\n");
     printf("PC: %lu\n", reg->PC);
-    printf("instruction: %032b\n", instruction);
+    printf("instruction: 0x%x\n", instruction);
     // find the adress of instruction
     return instruction;
 }
