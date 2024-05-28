@@ -6,9 +6,7 @@
 #ifndef _REGISTER_H
 #define _REGISTER_H
 
-#define MEMORY_SIZE (size_t)(1 << 14)
-// I have change 2MB to (1<<20) and
-// then i think this is the right answer
+#define MEMORY_SIZE (size_t)(1 << 14) // 2MB
 
 typedef struct {
     bool N; // Negative condition flag

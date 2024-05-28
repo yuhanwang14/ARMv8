@@ -51,6 +51,9 @@ void execute(Register *reg, Instr *instr) {
 #define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n)*4 + shift]
 #define R32_16(n, shift) R64_16(n, shift)
 
+const int32_t sign_identification_const = 0x40000;
+const int64_t sign_extended_const = 0x7FFFF;
+
 void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t rd, uint32_t rn,
                         uint64_t op2) {
     uint32_t op2_32 = (uint32_t)op2;
@@ -503,8 +506,8 @@ void execute_sdt(Register *reg, SdTrans sdt) {
 }
 void execute_ldl(Register *reg, LoadLiteral ldl) {
     int64_t signed_simm19; 
-    if (ldl.simm19 & 0x40000) { // Check if the sign bit (18th bit) is set
-        signed_simm19 = ldl.simm19 | ~0x7FFFF; // Sign extend to 64 bits if negative
+    if (ldl.simm19 & sign_identification_const) { // Check if the sign bit (18th bit) is set
+        signed_simm19 = ldl.simm19 | ~sign_extended_const; // Sign extend to 64 bits if negative
     } else {
         signed_simm19 = ldl.simm19; // Use the value as is if positive
     }
