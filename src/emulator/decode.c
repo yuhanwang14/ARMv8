@@ -72,7 +72,7 @@ const uint32_t LL_SIMM19_SIZE = 19;
 
 // consts for branch
 const uint32_t BRANCH_OP_START = 0;
-const uint32_t BRANCH_OP_SIZE = 26;
+const uint32_t BRANCH_OP_SIZE = 25;
 const uint32_t BRANCH_TYPE_START = 26;
 const uint32_t BRANCH_TYPE_SIZE = 6;
 const uint32_t BR_XN_START = 5;
@@ -84,8 +84,8 @@ const uint32_t BR_SIMM19_SIZE = 19;
 
 // Both macros correspont to 0..31 in the spec
 // the first >> removes all bits before and the & removes all bits after
-#define bit_slice(bits, start, size) ((bits >> start) & ((1 << (size + 1)) - 1))
-#define nth_bit_set(bits, n) (bits & (1 << (n)))
+#define bit_slice(bits, start, size) ((bits >> start) & (((uint32_t)1 << size) - 1))
+#define nth_bit_set(bits, n) (bits & ((uint32_t)1 << (n)))
 
 // Decodes a DP (Immediate) instruction
 extern void decode_dpi(uint32_t rd, uint32_t operand, uint32_t opi, uint32_t opc, uint32_t sf, Instr *result);
@@ -105,15 +105,18 @@ Instr *decode(uint32_t code) {
     Instr *result = malloc(sizeof(Instr));
     if (!nth_bit_set(code, OP0_OFFSET + 1) && !nth_bit_set(code, OP0_OFFSET + 2)) {
         // DP (Immediate)
+        printf("Type: DP (Immediate)\n");
         result->type = DP_IMMEDIATE_T;
         uint32_t rd = bit_slice(code, RD_START, RD_SIZE);
         uint32_t operand = bit_slice(code, DPI_OPERAND_START, DPI_OPERAND_SIZE);
         uint32_t opi = bit_slice(code, OPI_START, OPI_SIZE);
         uint32_t opc = bit_slice(code, OPC_START, OPC_SIZE);
         uint32_t sf = nth_bit_set(code, DP_SF_OFFSET);
+        printf("    opc: %032b\n", opc);
         decode_dpi(rd, operand, opi, opc, sf, result);
     } else if (nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 2)) {
         // DP (Register)
+        printf("Type: DP (Register)\n");
         result->type = DP_REGISTER_T;
         uint32_t rd = bit_slice(code, RD_START, RD_SIZE);
         uint32_t rn = bit_slice(code, DPR_RN_START, DPR_RN_SIZE);
@@ -127,6 +130,7 @@ Instr *decode(uint32_t code) {
     } else if (!nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 3) &&
                nth_bit_set(code, OP0_OFFSET + 4) && nth_bit_set(code, OP0_OFFSET + 5)) {
         // Single Data Transfer
+        printf("Type: Single Data Transfer\n");
         result->type = SINGLE_DATA_TRANSFER_T;
         uint32_t rt = bit_slice(code, RT_START, RT_SIZE);
         uint64_t xn = bit_slice(code, SDT_XN_START, SDT_XN_SIZE);
@@ -138,12 +142,14 @@ Instr *decode(uint32_t code) {
     } else if (!nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 3) &&
                nth_bit_set(code, OP0_OFFSET + 4)) {
         // Load From Literal
+        printf("Type: Load From Literal\n");
         result->type = LOAD_LITERAL_T;
         result->load_literal.rt = bit_slice(code, RT_START, RT_SIZE);
         result->load_literal.sf = nth_bit_set(code, LS_SF_OFFSET);
         result->load_literal.simm19 = bit_slice(code, LL_SIMM19_START, LL_SIMM19_SIZE);
     } else if (nth_bit_set(code, OP0_OFFSET + 1) && nth_bit_set(code, OP0_OFFSET + 3)) {
         // Branch
+        printf("Type: Branch\n");
         result->type = BRANCH_T;
         uint32_t operand = bit_slice(code, BRANCH_OP_START, BRANCH_OP_SIZE);
         uint32_t type = bit_slice(code, BRANCH_TYPE_START, BRANCH_TYPE_SIZE);

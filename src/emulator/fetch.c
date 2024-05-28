@@ -13,9 +13,10 @@ uint32_t fetch(Register *reg) {
         fail_PC_out_of_bound();
     }
 
-    uint32_t instruction = *(uint32_t *)(reg->ram + reg->PC / sizeof(uint32_t));
+    uint32_t instruction = *(uint32_t *)(reg->ram + reg->PC);
+    printf("\n");
+    printf("PC: %lu\n", reg->PC);
+    printf("instruction: %032b\n", instruction);
     // find the adress of instruction
-    reg->PC++;
-    // update the program counter
     return instruction;
 }
