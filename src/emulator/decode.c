@@ -120,7 +120,6 @@ Instr *decode(uint32_t code) {
         decode_dpi(rd, operand, opi, opc, sf, result);
     } else if (nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 2)) {
         // DP (Register)
-        printf("Type: DP (Register)\n");
         result->type = DP_REGISTER_T;
         uint32_t rd = bit_slice(code, RD_START, RD_SIZE);
         uint32_t rn = bit_slice(code, DPR_RN_START, DPR_RN_SIZE);
@@ -130,6 +129,15 @@ Instr *decode(uint32_t code) {
         uint32_t m = nth_bit_set(code, M_OFFSET);
         uint32_t opc = bit_slice(code, OPC_START, OPC_SIZE);
         uint32_t sf = nth_bit_set(code, DP_SF_OFFSET);
+        printf("Type: DP (Register)\n");
+        printf("    rd: %032b\n", rd);
+        printf("    rn: %032b\n", rn);
+        printf("    operand: %032b\n", operand);
+        printf("    rm: %032b\n", rm);
+        printf("    opr: %032b\n", opr);
+        printf("    m: %032b\n", m);
+        printf("    opc: %032b\n", opc);
+        printf("    sf: %032b\n", sf);
         decode_dpr(rd, rn, operand, rm, opr, m, opc, sf, result);
     } else if (!nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 3) &&
                nth_bit_set(code, OP0_OFFSET + 4) && nth_bit_set(code, OP0_OFFSET + 5)) {
@@ -205,9 +213,10 @@ void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm, uint32_
         result->dp_reg.multiply.rm = rm;
         result->dp_reg.multiply.ra = bit_slice(operand, RA_START, RA_SIZE);
         result->dp_reg.multiply.x = (bool)nth_bit_set(operand, X_OFFSET);
+        printf("DPR Type: Multiply type\n");
     } else if (!m && !nth_bit_set(opr, ARIT_FLAG)) {
         // Bit-logic type
-        result->dp_reg.type = DPR_ARITHMETIC_T;
+        result->dp_reg.type = BIT_LOGIC_T;
         result->dp_reg.logical.stype = (LogcShiftType)bit_slice(opr, SHIFT_START, SHIFT_SIZE);
         result->dp_reg.logical.N = (bool)nth_bit_set(opr, N_OFFSET);
         result->dp_reg.logical.btype = (BitInstrType)opc;
@@ -216,6 +225,8 @@ void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm, uint32_
         result->dp_reg.logical.rm = rm;
         result->dp_reg.logical.sf = (bool)sf;
         result->dp_reg.logical.shift = operand;
+        printf("DPR Type: Bit logic type\n");
+        printf("    stype: %d\n", (LogcShiftType)result->dp_reg.logical.stype);
     } else if (!m && nth_bit_set(opr, ARIT_FLAG) && !nth_bit_set(opr, ARIT_NOT_FLAG)) {
         // Arithmetic type
         result->dp_reg.type = DPR_ARITHMETIC_T;
@@ -226,6 +237,7 @@ void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm, uint32_
         result->dp_reg.logical.rm = rm;
         result->dp_reg.logical.sf = (bool)sf;
         result->dp_reg.arithmetic.shift = operand;
+        printf("DPR Type: Arithmetic type\n");
     } else {
         fprintf(stderr,
                 "Failed to decode a DP (Register) instruction: Unknown "

@@ -248,14 +248,18 @@ void execute_dpr(Register *reg, DpRegister dpr) {
             switch (instr.stype) {
             case L_LSL_T:
                 op2 = rm << instr.shift;
+                break;
             case L_LSR_T:
                 op2 = rm >> instr.shift;
+                break;
             case L_ASR_T:
                 // WONT-FIX: non portable code
                 op2 = (int64_t)rm >> instr.shift;
+                break;
             case L_ROR_T:
                 // https://stackoverflow.com/questions/28303232/rotate-right-using-bit-operation-in-c
                 op2 = (rm >> instr.shift) | (rm << (64 - instr.shift));
+                break;
             default:
                 fprintf(stderr,
                         "Unknown shift type: 0x%x for data processing (Register) bit logic instruction\n",
@@ -295,14 +299,18 @@ void execute_dpr(Register *reg, DpRegister dpr) {
             switch (instr.stype) {
             case L_LSL_T:
                 op2 = rm << instr.shift;
+                break;
             case L_LSR_T:
                 op2 = rm >> instr.shift;
+                break;
             case L_ASR_T:
                 // WONT-FIX: non portable code
                 op2 = (int32_t)rm >> instr.shift;
+                break;
             case L_ROR_T:
                 // https://stackoverflow.com/questions/28303232/rotate-right-using-bit-operation-in-c
                 op2 = (rm >> instr.shift) | (rm << (32 - instr.shift));
+                break;
             default:
                 fprintf(stderr,
                         "Unknown shift type: 0x%x for data processing (Register) bit logic instruction\n",
