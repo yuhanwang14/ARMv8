@@ -36,7 +36,6 @@ int main(int argc, char **argv) {
         execute(reg, instr);
 
         free(instr);
-        log_state(reg, out);
     }
     log_state(reg, out);
 
