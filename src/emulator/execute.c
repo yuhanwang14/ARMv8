@@ -44,11 +44,14 @@ void execute(Register *reg, Instr *instr) {
     }
 }
 
+// register related macros
+#define R64(n) reg->g_reg[n]
 #define R32(n) ((uint32_t *)reg->g_reg)[(n) * 2]
 #define R32_cls_upper(n) ((uint32_t *)reg->g_reg)[(n) * 2 + 1] = 0
-#define R64(n) reg->g_reg[n]
+// getting sign bit macro
 #define sgn64(n) (bool)((n >> 63) & 1)
 #define sgn32(n) (bool)((n >> 31) & 1)
+// getting 16 bit long slices of register
 #define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n) * 4 + shift]
 #define R32_16(n, shift) R64_16(n, shift)
 
@@ -82,10 +85,6 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
             R64(rd) = u_result;
             reg->PSTATE->N = sgn64(i_result);
             reg->PSTATE->Z = u_result == 0;
-#if __GNUC__ == 14
-            printf("execute_arit_instr: added %064lb\n and\n %064lb\nresulted in %064lb\n", R64(rn), op2,
-                   R64(rd));
-#endif
         } else {
             // 32 bit mode
             uint32_t u_result;
@@ -102,6 +101,9 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
         if (sf) {
             // 64 bit mode
             R64(rd) = R64(rn) - op2;
+#if __GNUC__ == 14
+            printf("rd: %064lb\n", R64(rd));
+#endif
         } else {
             // 32 bit mode
             R32(rd) = R32(rn) - op2_32;
@@ -125,8 +127,22 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
             // 32 bit mode
             uint32_t u_result;
             int32_t i_result;
+#if __GNUC__ == 14
+            printf("rn: %032b\n", R32(rn));
+            printf("op2: %064lb\n", op2);
+            printf("op2_32: %032b\n", op2_32);
+            printf("rn: %d\n", R32(rn));
+            printf("op2: %d\n", op2_32);
+#endif
             reg->PSTATE->C = !__builtin_sub_overflow(R32(rn), op2_32, &u_result);
             reg->PSTATE->V = __builtin_sub_overflow((int32_t)R32(rn), (int32_t)op2_32, &i_result);
+#if __GNUC__ == 14
+            printf("u_result: %032b\n", u_result);
+            printf("i_result: %032b\n", i_result);
+            printf("u_result: %d\n", u_result);
+            printf("i_result: %d\n", i_result);
+            printf("sign: %032b\n", sgn32(i_result));
+#endif
             R32_cls_upper(rd);
             R64(rd) = u_result;
             reg->PSTATE->N = sgn32(i_result);
@@ -136,7 +152,6 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
     default:
         fprintf(stderr, "Unknown arithmetic type: 0x%x\n", atype);
         exit(EXIT_FAILURE);
-        break;
     }
 }
 
@@ -188,7 +203,6 @@ void execute_dpi(Register *reg, DpImmed dpi) {
         default:
             fprintf(stderr, "Unknown wide move type: 0x%x\n", instr.mtype);
             exit(EXIT_FAILURE);
-            break;
         }
         break;
     }
@@ -220,18 +234,22 @@ void execute_dpr(Register *reg, DpRegister dpr) {
                         "Unknown shift type: 0x%x for data processing (Register) arithmetic instruction\n",
                         dpr.type);
                 exit(EXIT_FAILURE);
-                break;
             }
             execute_arit_instr(reg, instr.atype, instr.sf, instr.rd, instr.rn, op2);
         } else {
             // 32 bit mode
             uint32_t op2;
+#if __GNUC__ == 14
+            printf("DPR bit-logic 32 bit: rm %032b\n", R32(instr.rm));
+#endif
+            printf("DPR bit-logic 32 bit: instr.stype %d\n", instr.stype);
             switch (instr.stype) {
             case A_LSL_T:
                 op2 = R32(instr.rm) << instr.shift;
                 break;
             case A_LSR_T:
                 op2 = R32(instr.rm) >> instr.shift;
+                break;
             case A_ASR_T:
                 // WONT-FIX: non portable code
                 op2 = (int32_t)R32(instr.rm) >> instr.shift;
@@ -241,8 +259,10 @@ void execute_dpr(Register *reg, DpRegister dpr) {
                         "Unknown shift type: 0x%x for data processing (Register) arithmetic instruction\n",
                         dpr.type);
                 exit(EXIT_FAILURE);
-                break;
             }
+#if __GNUC__ == 14
+            printf("DPR bit-logic 32 bit: op2 %032b\n", op2);
+#endif
             execute_arit_instr(reg, instr.atype, instr.sf, instr.rd, instr.rn, (uint64_t)op2);
         }
         break;
@@ -399,7 +419,6 @@ void execute_dpr(Register *reg, DpRegister dpr) {
     default:
         fprintf(stderr, "Unknown data processing (Register) type: 0x%x\n", dpr.type);
         exit(EXIT_FAILURE);
-        break;
     }
 }
 void execute_sdt(Register *reg, SdTrans sdt) {
@@ -428,6 +447,7 @@ void execute_sdt(Register *reg, SdTrans sdt) {
                 *(uint32_t *)(reg->ram + addrs) = R32(instr.rt);
             }
         }
+        break;
     }
     case PRE_POST_INDEX_T: {
         PrePostIndex instr = sdt.pre_post_index;
@@ -485,9 +505,9 @@ void execute_sdt(Register *reg, SdTrans sdt) {
             break;
         }
 
-            // default:
-            //     fprintf(stderr, "Unknown Index type: 0x%x\n", instr.itype);
-            //     exit(EXIT_FAILURE);
+        default:
+            fprintf(stderr, "Unknown Index type: 0x%x\n", instr.itype);
+            exit(EXIT_FAILURE);
         }
         break;
     }
@@ -601,7 +621,6 @@ void execute_branch(Register *reg, Branch branch) {
         default:
             fprintf(stderr, "Unknown branch conditional type: 0x%x\n", instr.cond);
             exit(EXIT_FAILURE);
-            break;
         }
         break;
     }
