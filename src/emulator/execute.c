@@ -1,4 +1,5 @@
 #include "execute.h"
+#include <features.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -243,9 +244,9 @@ void execute_dpr(Register *reg, DpRegister dpr) {
     }
     case BIT_LOGIC_T: {
         Logical instr = dpr.logical;
-        uint32_t op2;
         if (instr.sf) {
             // 64 bit mode
+            uint64_t op2;
             uint64_t rm = R64(instr.rm);
             uint64_t rn = R64(instr.rn);
             switch (instr.stype) {
@@ -278,6 +279,11 @@ void execute_dpr(Register *reg, DpRegister dpr) {
                 break;
             case OR:
                 R64(instr.rd) = rn | op2;
+#if __GNUC__ == 14
+                printf("rn: %lu\n", rn);
+                printf("op2: %lu\n", op2);
+                printf("Rd: %lu\n", R64(instr.rd));
+#endif
                 break;
             case EO:
                 R64(instr.rd) = rn ^ op2;
@@ -297,6 +303,7 @@ void execute_dpr(Register *reg, DpRegister dpr) {
             }
         } else {
             // 32 bit mode
+            uint32_t op2;
             uint32_t rm = R32(instr.rm);
             uint32_t rn = R32(instr.rn);
             switch (instr.stype) {

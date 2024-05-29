@@ -236,6 +236,13 @@ void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm, uint32_
         result->dp_reg.logical.shift = operand;
         printf("DPR Type: Bit logic type\n");
         printf("    stype: %d\n", (LogcShiftType)result->dp_reg.logical.stype);
+        printf("    N: %d\n", result->dp_reg.logical.N);
+        printf("    btype: %d\n", result->dp_reg.logical.btype);
+        printf("    rd: %u\n", result->dp_reg.logical.rd);
+        printf("    rn: %u\n", result->dp_reg.logical.rn);
+        printf("    rm: %u\n", result->dp_reg.logical.rm);
+        printf("    sf: %u\n", result->dp_reg.logical.sf);
+        printf("    shift: %u\n", result->dp_reg.logical.shift);
     } else if (!m && nth_bit_set(opr, ARIT_FLAG) && !nth_bit_set(opr, ARIT_NOT_FLAG)) {
         // Arithmetic type
         result->dp_reg.type = DPR_ARITHMETIC_T;
