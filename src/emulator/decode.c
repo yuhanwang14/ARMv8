@@ -82,9 +82,9 @@ const uint32_t COND_SIZE = 4;
 const uint32_t BR_SIMM19_START = 5;
 const uint32_t BR_SIMM19_SIZE = 19;
 
-// Both macros correspont to 0..31 in the spec
-// the first >> removes all bits before and the & removes all bits after
+// getting the bits in [start..start+size)
 #define bit_slice(bits, start, size) ((bits >> start) & (((uint32_t)1 << size) - 1))
+// whether or not the nth bit of bits is set
 #define nth_bit_set(bits, n) (bits & ((uint32_t)1 << (n)))
 
 // Decodes a DP (Immediate) instruction

@@ -44,11 +44,14 @@ void execute(Register *reg, Instr *instr) {
     }
 }
 
+// register related macros
+#define R64(n) reg->g_reg[n]
 #define R32(n) ((uint32_t *)reg->g_reg)[(n) * 2]
 #define R32_cls_upper(n) ((uint32_t *)reg->g_reg)[(n) * 2 + 1] = 0
-#define R64(n) reg->g_reg[n]
-#define sgn64(n) (bool)((n >> 63) & 1) // if highest bit is set it's negative
+// getting sign bit macro
+#define sgn64(n) (bool)((n >> 63) & 1)
 #define sgn32(n) (bool)((n >> 31) & 1)
+// getting 16 bit long slices of register
 #define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n) * 4 + shift]
 #define R32_16(n, shift) R64_16(n, shift)
 
