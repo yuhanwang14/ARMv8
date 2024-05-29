@@ -149,7 +149,6 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
     default:
         fprintf(stderr, "Unknown arithmetic type: 0x%x\n", atype);
         exit(EXIT_FAILURE);
-        break;
     }
 }
 
@@ -201,7 +200,6 @@ void execute_dpi(Register *reg, DpImmed dpi) {
         default:
             fprintf(stderr, "Unknown wide move type: 0x%x\n", instr.mtype);
             exit(EXIT_FAILURE);
-            break;
         }
         break;
     }
@@ -233,7 +231,6 @@ void execute_dpr(Register *reg, DpRegister dpr) {
                         "Unknown shift type: 0x%x for data processing (Register) arithmetic instruction\n",
                         dpr.type);
                 exit(EXIT_FAILURE);
-                break;
             }
             execute_arit_instr(reg, instr.atype, instr.sf, instr.rd, instr.rn, op2);
         } else {
@@ -259,7 +256,6 @@ void execute_dpr(Register *reg, DpRegister dpr) {
                         "Unknown shift type: 0x%x for data processing (Register) arithmetic instruction\n",
                         dpr.type);
                 exit(EXIT_FAILURE);
-                break;
             }
 #if __GNUC__ == 14
             printf("DPR bit-logic 32 bit: op2 %032b\n", op2);
@@ -420,7 +416,6 @@ void execute_dpr(Register *reg, DpRegister dpr) {
     default:
         fprintf(stderr, "Unknown data processing (Register) type: 0x%x\n", dpr.type);
         exit(EXIT_FAILURE);
-        break;
     }
 }
 void execute_sdt(Register *reg, SdTrans sdt) {
@@ -449,6 +444,7 @@ void execute_sdt(Register *reg, SdTrans sdt) {
                 *(uint32_t *)(reg->ram + addrs) = R32(instr.rt);
             }
         }
+        break;
     }
     case PRE_POST_INDEX_T: {
         PrePostIndex instr = sdt.pre_post_index;
@@ -506,9 +502,9 @@ void execute_sdt(Register *reg, SdTrans sdt) {
             break;
         }
 
-            // default:
-            //     fprintf(stderr, "Unknown Index type: 0x%x\n", instr.itype);
-            //     exit(EXIT_FAILURE);
+        default:
+            fprintf(stderr, "Unknown Index type: 0x%x\n", instr.itype);
+            exit(EXIT_FAILURE);
         }
         break;
     }
@@ -622,7 +618,6 @@ void execute_branch(Register *reg, Branch branch) {
         default:
             fprintf(stderr, "Unknown branch conditional type: 0x%x\n", instr.cond);
             exit(EXIT_FAILURE);
-            break;
         }
         break;
     }
