@@ -3,7 +3,7 @@
 
 int main(void) {
     printf("init\n");
-    char code[24] = "mul x3,x1,x2";
+    char code[24] = "ldr x2,[x0]";
     printf("%i\n",parse_instruction(code,0));
     return 0;
 }

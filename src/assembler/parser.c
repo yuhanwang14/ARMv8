@@ -52,7 +52,7 @@ if (arguments[0][0] == 'x'){
 uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
     printf("parse pos 1\n%s\n",instruction);
     char *opcode = strtok(instruction," ,");
-    // if (strcmp(opcode,"ldr") == 0 || strcmp(opcode,"str") == 0) return dt_parser(instruction,currentLoc);
+    if (strcmp(opcode,"ldr") == 0 || strcmp(opcode,"str") == 0) return dt_parser(instruction,currentLoc); //special handler for DTIs
     char *nextArg = strtok(NULL," ,");
     char *arguments[5] = {NULL,NULL,NULL,NULL,NULL};
     int numArg = 0;
