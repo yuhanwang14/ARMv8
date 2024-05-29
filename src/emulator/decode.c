@@ -19,7 +19,7 @@ const uint32_t OPC_SIZE = 2;
 const uint32_t DP_SF_OFFSET = 31;
 const uint32_t ARITHMETIC_OPI = 0x2;
 const uint32_t WIDE_MOVE_OPI = 0x5;
-const uint32_t SH_OFFSET = 22;
+const uint32_t SH_OFFSET = 17;
 const uint32_t DPI_ARIT_RN_START = 0;
 const uint32_t DPI_ARIT_RN_SIZE = 5;
 const uint32_t IMM12_START = DPI_ARIT_RN_START + DPI_ARIT_RN_SIZE;
@@ -111,6 +111,14 @@ Instr *decode(uint32_t code) {
         uint32_t opi = bit_slice(code, OPI_START, OPI_SIZE);
         uint32_t opc = bit_slice(code, OPC_START, OPC_SIZE);
         uint32_t sf = nth_bit_set(code, DP_SF_OFFSET);
+        printf("Type: DP (Immediate)\n");
+#if __GNUC__ == 14
+        printf("    rd: %032b\n", rd);
+        printf("    operand: %032b\n", operand);
+        printf("    opi: %032b\n", opi);
+        printf("    opc: %032b\n", opc);
+        printf("    sf: %032b\n", sf);
+#endif
         decode_dpi(rd, operand, opi, opc, sf, result);
     } else if (nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 2)) {
         // DP (Register)
@@ -123,6 +131,16 @@ Instr *decode(uint32_t code) {
         uint32_t m = nth_bit_set(code, M_OFFSET);
         uint32_t opc = bit_slice(code, OPC_START, OPC_SIZE);
         uint32_t sf = nth_bit_set(code, DP_SF_OFFSET);
+        printf("Type: DP (Register)\n");
+#if __GNUC__ == 14
+        printf("    rd: %032b\n", rd);
+        printf("    rn: %032b\n", rn);
+        printf("    operand: %032b\n", operand);
+        printf("    rm: %032b\n", rm);
+        printf("    opr: %032b\n", opr);
+        printf("    opc: %032b\n", opc);
+        printf("    sf: %032b\n", sf);
+#endif
         decode_dpr(rd, rn, operand, rm, opr, m, opc, sf, result);
     } else if (!nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 2) &&
                nth_bit_set(code, OP0_OFFSET + 3) && nth_bit_set(code, OP0_OFFSET + 4)) {
@@ -169,8 +187,14 @@ void decode_dpi(uint32_t rd, uint32_t operand, uint32_t opi, uint32_t opc, uint3
         result->dp_immed.arithmetic.imm12 = bit_slice(operand, IMM12_START, IMM12_SIZE);
         result->dp_immed.arithmetic.rn = bit_slice(operand, DPI_ARIT_RN_START, DPI_ARIT_RN_SIZE);
         result->dp_immed.arithmetic.rd = rd;
+        printf("    Type: Arithmetic\n");
+        printf("    opc: %u\n", opc);
+        printf("    sh: %u\n", result->dp_immed.arithmetic.sh);
+#if __GNUC__ == 14
+#endif
     } else if (opi == WIDE_MOVE_OPI) {
         // is wide move operation
+        printf("    Type: Wide move\n");
         result->dp_immed.type = WIDE_MOVE_T;
         result->dp_immed.wide_move.sf = (bool)sf;
         result->dp_immed.wide_move.hw = bit_slice(operand, HW_START, HW_SIZE);
