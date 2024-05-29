@@ -82,6 +82,10 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
             R64(rd) = u_result;
             reg->PSTATE->N = sgn64(i_result);
             reg->PSTATE->Z = u_result == 0;
+#if __GNUC__ == 14
+            printf("execute_arit_instr: added %064lb\n and\n %064lb\nresulted in %064lb\n", R64(rn), op2,
+                   R64(rd));
+#endif
         } else {
             // 32 bit mode
             uint32_t u_result;
@@ -206,6 +210,7 @@ void execute_dpr(Register *reg, DpRegister dpr) {
                 break;
             case A_LSR_T:
                 op2 = R64(instr.rm) >> instr.shift;
+                break;
             case A_ASR_T:
                 // WONT-FIX: non portable code
                 op2 = (int64_t)R64(instr.rm) >> instr.shift;
