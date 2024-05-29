@@ -36,4 +36,7 @@ bool is_shift(char *argument);
 
 void insertChar(char **targetArray,int32_t arraySize,char *element, int8_t index);
  // takes an array of char with at least one free space, inserts the element at the required index
+
+ int32_t safe_string_to_int(char *intStr);
+ // identifies between decimal and hex, then perform the correct atoi operation
 #endif

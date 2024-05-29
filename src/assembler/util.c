@@ -27,7 +27,7 @@ uint8_t parse_register(char *registerName){
         exit(EXIT_FAILURE);
     }
     if (strcmp(registerName+1,"zr") == 0) return 31;
-    return atoi(registerName + 1);
+    return strtol(registerName + 1,NULL,0);
 }
 
 bool is_literal(char *target){
@@ -35,24 +35,24 @@ bool is_literal(char *target){
 }
 
 uint32_t parse_imm16(char *literal, char*shiftCom, char *shiftVal){
-    if (shiftCom == NULL) return atoi(literal + 1);
+    if (shiftCom == NULL) return strtol(literal + 1, NULL,0);
     uint8_t *parsedShift = parse_shift(shiftCom, shiftVal);
     uint32_t result = parsedShift[1] / 4;
-    appendBits(&result, atoi(literal+1),16);
+    appendBits(&result, strtol(literal+1, NULL, 16),16);
     return result;
 }
 
 
 uint16_t parse_imm12(char *literal, char *shift){
     if (shift == NULL){
-        return atoi((literal+1));
+        return strtol(literal+1, NULL, 0);
     }else{
-        return (atoi((literal+1)) + (1<<12));
+        return (strtol(literal+1, NULL, 0) + (1<<12));
     }
 }
 
 uint8_t parse_imm6(char *literal){
-    return atoi(literal+1);
+    return strtol(literal+1, NULL, 0);
 }
 
 void appendBits(uint32_t *target,uint32_t appended,uint32_t length){
@@ -71,5 +71,5 @@ void insertChar(char **targetArray,int32_t arraySize,char *element, int8_t index
         targetArray[i+1] = targetArray[i];
     }
     targetArray[index] = element;
-
 }
+
