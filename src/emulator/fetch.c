@@ -1,5 +1,6 @@
 #include "fetch.h"
 #include "utils.h"
+#include <features.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -17,7 +18,11 @@ uint32_t fetch(Register *reg) {
     uint32_t instruction = *(uint32_t *)(reg->ram + reg->PC);
     printf("\n");
     printf("PC: %lu\n", reg->PC);
-    printf("instruction: 0x%x\n", instruction);
+#if __GNUC__ == 14
+    printf("instruction: %032b\n", instruction);
+#else
+    printf("instruction: %x\n", instruction);
+#endif
     // find the adress of instruction
     return instruction;
 }
