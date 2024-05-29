@@ -43,12 +43,12 @@ void execute(Register *reg, Instr *instr) {
     }
 }
 
-#define R32(n) ((uint32_t *)reg->g_reg)[(n)*2]
-#define R32_cls_upper(n) ((uint32_t *)reg->g_reg)[(n)*2 + 1] = 0
+#define R32(n) ((uint32_t *)reg->g_reg)[(n) * 2]
+#define R32_cls_upper(n) ((uint32_t *)reg->g_reg)[(n) * 2 + 1] = 0
 #define R64(n) reg->g_reg[n]
 #define sgn64(n) (bool)((n >> 63) & 1)
 #define sgn32(n) (bool)((n >> 31) & 1)
-#define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n)*4 + shift]
+#define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n) * 4 + shift]
 #define R32_16(n, shift) R64_16(n, shift)
 
 const int32_t sign_identification_const = 0x40000;
@@ -110,7 +110,7 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
             int64_t i_result;
             // ironically the function is likely implemented using these instructions
             // update unsigned overflow indicator flags
-            reg->PSTATE->C = __builtin_sub_overflow(R64(rn), op2, &u_result);
+            reg->PSTATE->C = !__builtin_sub_overflow(R64(rn), op2, &u_result);
             // update signed overflow indicator flags
             reg->PSTATE->V = __builtin_sub_overflow((int64_t)R64(rn), (int64_t)op2, &i_result);
             R64(rd) = u_result;
@@ -120,7 +120,7 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
             // 32 bit mode
             uint32_t u_result;
             int32_t i_result;
-            reg->PSTATE->C = __builtin_sub_overflow(R32(rn), op2_32, &u_result);
+            reg->PSTATE->C = !__builtin_sub_overflow(R32(rn), op2_32, &u_result);
             reg->PSTATE->V = __builtin_sub_overflow((int32_t)R32(rn), (int32_t)op2_32, &i_result);
             R32_cls_upper(rd);
             R64(rd) = u_result;
@@ -513,8 +513,8 @@ void execute_sdt(Register *reg, SdTrans sdt) {
     }
 }
 void execute_ldl(Register *reg, LoadLiteral ldl) {
-    int64_t signed_simm19; 
-    if (ldl.simm19 & sign_identification_const) { // Check if the sign bit (18th bit) is set
+    int64_t signed_simm19;
+    if (ldl.simm19 & sign_identification_const) {          // Check if the sign bit (18th bit) is set
         signed_simm19 = ldl.simm19 | ~sign_extended_const; // Sign extend to 64 bits if negative
     } else {
         signed_simm19 = ldl.simm19; // Use the value as is if positive
