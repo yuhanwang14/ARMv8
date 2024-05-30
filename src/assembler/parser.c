@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 
-int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char *buffer) {
+static int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char *buffer) {
     // this checks if any alias occur and change the opcode and arguments if so
     buffer = malloc(4 * sizeof(char));
     if (arguments[0][0] == 'x') {

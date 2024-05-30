@@ -3,26 +3,26 @@
 #include <stdlib.h>
 #include <string.h>
 
-const uint8_t OPC_ADD = 0;
-const uint8_t OPC_ADDS = 1;
-const uint8_t OPC_AND = 0;
-const uint8_t OPC_ANDS = 3;
-const uint8_t OPC_BIC = 0;
-const uint8_t OPC_BICS = 3;
-const uint8_t OPC_EOR = 2;
-const uint8_t OPC_EON = 2;
-const uint8_t OPC_ORR = 1;
-const uint8_t OPC_ORN = 1;
-const uint8_t OPC_SUB = 2;
-const uint8_t OPC_SUBS = 3;
-const uint8_t OPC_MOVN = 0;
-const uint8_t OPC_MOVZ = 2;
-const uint8_t OPC_MOVK = 3;
-const uint8_t DPI_WIDE_MOVE_OPI = 5;
-const uint8_t DPI_ARITH_OPI = 2;
-const uint8_t DPI_IMM_26_28 = 4;
-const uint8_t DPI_REG_ARITH_LOGIC_25_28 = 5;
-const uint16_t DPI_MUL_21_30 = 216;
+static const uint8_t OPC_ADD = 0;
+static const uint8_t OPC_ADDS = 1;
+static const uint8_t OPC_AND = 0;
+static const uint8_t OPC_ANDS = 3;
+static const uint8_t OPC_BIC = 0;
+static const uint8_t OPC_BICS = 3;
+static const uint8_t OPC_EOR = 2;
+static const uint8_t OPC_EON = 2;
+static const uint8_t OPC_ORR = 1;
+static const uint8_t OPC_ORN = 1;
+static const uint8_t OPC_SUB = 2;
+static const uint8_t OPC_SUBS = 3;
+static const uint8_t OPC_MOVN = 0;
+static const uint8_t OPC_MOVZ = 2;
+static const uint8_t OPC_MOVK = 3;
+static const uint8_t DPI_WIDE_MOVE_OPI = 5;
+static const uint8_t DPI_ARITH_OPI = 2;
+static const uint8_t DPI_IMM_26_28 = 4;
+static const uint8_t DPI_REG_ARITH_LOGIC_25_28 = 5;
+static const uint16_t DPI_MUL_21_30 = 216;
 
 uint32_t parse_2op_with_dest(char *opcode, char **arguments) {
     int8_t opc;        // holds the opc for this instruction
