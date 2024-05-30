@@ -34,3 +34,6 @@ assemble
 *.toc
 
 .vscode
+.idea/
+CMakeLists.txt
+cmake-build-debug/
