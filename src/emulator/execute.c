@@ -1,60 +1,25 @@
 #include "execute.h"
+#include <features.h>
 #include <stdint.h>
 #include <stdio.h>
 
-const uint32_t MULT_ZERO_REG = 0x1F;
-
-extern void execute_dpi(Register *reg, DpImmed dpi);
-extern void execute_dpr(Register *reg, DpRegister dpr);
-extern void execute_sdt(Register *reg, SdTrans dpr);
-extern void execute_ldl(Register *reg, LoadLiteral ldl);
-extern void execute_branch(Register *reg, Branch branch);
-
-void execute(Register *reg, Instr *instr) {
-    uint64_t PC_prev = reg->PC;
-    switch (instr->type) {
-    case DP_IMMEDIATE_T:
-        // DP Immediate
-        execute_dpi(reg, instr->dp_immed);
-        break;
-    case DP_REGISTER_T:
-        // DP Register
-        execute_dpr(reg, instr->dp_reg);
-        break;
-    case SINGLE_DATA_TRANSFER_T:
-        // Single Data Transfer
-        execute_sdt(reg, instr->sing_data_transfer);
-        break;
-    case LOAD_LITERAL_T:
-        // Load Literal
-        execute_ldl(reg, instr->load_literal);
-        break;
-    case BRANCH_T:
-        // Branch
-        execute_branch(reg, instr->branch);
-        break;
-    default:
-        fprintf(stderr, "Unknown instruction type: 0x%x\n", instr->type);
-        exit(EXIT_FAILURE);
-    }
-    // update program counter if it was not changed by branch operation
-    if (reg->PC == PC_prev) {
-        reg->PC++;
-    }
-}
-
-#define R32(n) ((uint32_t *)reg->g_reg)[(n)*2]
-#define R32_cls_upper(n) ((uint32_t *)reg->g_reg)[(n)*2 + 1] = 0
+// register related macros
 #define R64(n) reg->g_reg[n]
+#define R32(n) ((uint32_t *)reg->g_reg)[(n) * 2]
+#define R32_cls_upper(n) ((uint32_t *)reg->g_reg)[(n) * 2 + 1] = 0
+// getting sign bit macro
 #define sgn64(n) (bool)((n >> 63) & 1)
 #define sgn32(n) (bool)((n >> 31) & 1)
-#define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n)*4 + shift]
+// getting 16 bit long slices of register
+#define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n) * 4 + shift]
 #define R32_16(n, shift) R64_16(n, shift)
 
-const int32_t sign_identification_const_simm19 = 0x40000;
-const int64_t sign_extended_const_simm19 = 0x7FFFF;
-const int32_t sign_identification_const_simm9 = 0x100;
-const int64_t sign_extended_const_simm9 = 0x1FF;
+static const uint32_t MULT_ZERO_REG = 0x1F;
+
+static const int32_t SIGN_IDENT_SIMM19 = 0x40000;
+static const int64_t SIGN_EXTENDED_SIMM19 = 0x7FFFF;
+static const int32_t SIGN_IDENT_SIMM9 = 0x100;
+static const int64_t SIGN_EXTENDED_SIMM9 = 0x1FF;
 
 void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t rd, uint32_t rn,
                         uint64_t op2) {
@@ -112,7 +77,7 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
             int64_t i_result;
             // ironically the function is likely implemented using these instructions
             // update unsigned overflow indicator flags
-            reg->PSTATE->C = __builtin_sub_overflow(R64(rn), op2, &u_result);
+            reg->PSTATE->C = !__builtin_sub_overflow(R64(rn), op2, &u_result);
             // update signed overflow indicator flags
             reg->PSTATE->V = __builtin_sub_overflow((int64_t)R64(rn), (int64_t)op2, &i_result);
             R64(rd) = u_result;
@@ -122,7 +87,7 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
             // 32 bit mode
             uint32_t u_result;
             int32_t i_result;
-            reg->PSTATE->C = __builtin_sub_overflow(R32(rn), op2_32, &u_result);
+            reg->PSTATE->C = !__builtin_sub_overflow(R32(rn), op2_32, &u_result);
             reg->PSTATE->V = __builtin_sub_overflow((int32_t)R32(rn), (int32_t)op2_32, &i_result);
             R32_cls_upper(rd);
             R64(rd) = u_result;
@@ -133,11 +98,10 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
     default:
         fprintf(stderr, "Unknown arithmetic type: 0x%x\n", atype);
         exit(EXIT_FAILURE);
-        break;
     }
 }
 
-void execute_dpi(Register *reg, DpImmed dpi) {
+static void execute_dpi(Register *reg, DpImmed dpi) {
     switch (dpi.type) {
     case DPI_ARITHMETIC_T: {
         DPIArithmetic instr = dpi.arithmetic;
@@ -185,7 +149,6 @@ void execute_dpi(Register *reg, DpImmed dpi) {
         default:
             fprintf(stderr, "Unknown wide move type: 0x%x\n", instr.mtype);
             exit(EXIT_FAILURE);
-            break;
         }
         break;
     }
@@ -194,7 +157,7 @@ void execute_dpi(Register *reg, DpImmed dpi) {
         exit(EXIT_FAILURE);
     }
 }
-void execute_dpr(Register *reg, DpRegister dpr) {
+static void execute_dpr(Register *reg, DpRegister dpr) {
     switch (dpr.type) {
     case DPR_ARITHMETIC_T: {
         DPRArithmetic instr = dpr.arithmetic;
@@ -207,6 +170,7 @@ void execute_dpr(Register *reg, DpRegister dpr) {
                 break;
             case A_LSR_T:
                 op2 = R64(instr.rm) >> instr.shift;
+                break;
             case A_ASR_T:
                 // WONT-FIX: non portable code
                 op2 = (int64_t)R64(instr.rm) >> instr.shift;
@@ -216,7 +180,6 @@ void execute_dpr(Register *reg, DpRegister dpr) {
                         "Unknown shift type: 0x%x for data processing (Register) arithmetic instruction\n",
                         dpr.type);
                 exit(EXIT_FAILURE);
-                break;
             }
             execute_arit_instr(reg, instr.atype, instr.sf, instr.rd, instr.rn, op2);
         } else {
@@ -228,6 +191,7 @@ void execute_dpr(Register *reg, DpRegister dpr) {
                 break;
             case A_LSR_T:
                 op2 = R32(instr.rm) >> instr.shift;
+                break;
             case A_ASR_T:
                 // WONT-FIX: non portable code
                 op2 = (int32_t)R32(instr.rm) >> instr.shift;
@@ -237,7 +201,6 @@ void execute_dpr(Register *reg, DpRegister dpr) {
                         "Unknown shift type: 0x%x for data processing (Register) arithmetic instruction\n",
                         dpr.type);
                 exit(EXIT_FAILURE);
-                break;
             }
             execute_arit_instr(reg, instr.atype, instr.sf, instr.rd, instr.rn, (uint64_t)op2);
         }
@@ -245,9 +208,9 @@ void execute_dpr(Register *reg, DpRegister dpr) {
     }
     case BIT_LOGIC_T: {
         Logical instr = dpr.logical;
-        uint32_t op2;
         if (instr.sf) {
             // 64 bit mode
+            uint64_t op2;
             uint64_t rm = R64(instr.rm);
             uint64_t rn = R64(instr.rn);
             switch (instr.stype) {
@@ -299,6 +262,7 @@ void execute_dpr(Register *reg, DpRegister dpr) {
             }
         } else {
             // 32 bit mode
+            uint32_t op2;
             uint32_t rm = R32(instr.rm);
             uint32_t rn = R32(instr.rn);
             switch (instr.stype) {
@@ -348,6 +312,7 @@ void execute_dpr(Register *reg, DpRegister dpr) {
                         instr.btype);
                 exit(EXIT_FAILURE);
             }
+            R32_cls_upper(instr.rd);
         }
         break;
     }
@@ -379,9 +344,11 @@ void execute_dpr(Register *reg, DpRegister dpr) {
             if (instr.x) {
                 // negate result, aka msub
                 R32(instr.rd) = ra - (R32(instr.rn) * R32(instr.rm));
+                R32_cls_upper(instr.rd);
             } else {
                 // don't negate result, aka madd
                 R32(instr.rd) = ra + (R32(instr.rn) * R32(instr.rm));
+                R32_cls_upper(instr.rd);
             }
         }
         break;
@@ -389,10 +356,9 @@ void execute_dpr(Register *reg, DpRegister dpr) {
     default:
         fprintf(stderr, "Unknown data processing (Register) type: 0x%x\n", dpr.type);
         exit(EXIT_FAILURE);
-        break;
     }
 }
-void execute_sdt(Register *reg, SdTrans sdt) {
+static void execute_sdt(Register *reg, SdTrans sdt) {
     uint64_t addrs;
     switch (sdt.type) {
     case SD_REGISTER_T: {
@@ -418,12 +384,13 @@ void execute_sdt(Register *reg, SdTrans sdt) {
                 *(uint32_t *)(reg->ram + addrs) = R32(instr.rt);
             }
         }
+        break;
     }
     case PRE_POST_INDEX_T: {
         PrePostIndex instr = sdt.pre_post_index;
         int64_t signed_simm9; 
-        if (instr.simm9 & sign_identification_const_simm9) { // Check if the sign bit (18th bit) is set
-            signed_simm9 = instr.simm9 | ~sign_extended_const_simm9; // Sign extend to 64 bits if negative
+        if (instr.simm9 & SIGN_IDENT_SIMM9) { // Check if the sign bit (18th bit) is set
+            signed_simm9 = instr.simm9 | ~SIGN_EXTENDED_SIMM9; // Sign extend to 64 bits if negative
         } else {
             signed_simm9 = instr.simm9; // Use the value as is if positive
         }
@@ -481,9 +448,9 @@ void execute_sdt(Register *reg, SdTrans sdt) {
             break;
         }
 
-            // default:
-            //     fprintf(stderr, "Unknown Index type: 0x%x\n", instr.itype);
-            //     exit(EXIT_FAILURE);
+        default:
+            fprintf(stderr, "Unknown Index type: 0x%x\n", instr.itype);
+            exit(EXIT_FAILURE);
         }
         break;
     }
@@ -522,8 +489,8 @@ void execute_sdt(Register *reg, SdTrans sdt) {
 }
 void execute_ldl(Register *reg, LoadLiteral ldl) {
     int64_t signed_simm19; 
-    if (ldl.simm19 & sign_identification_const_simm19) { // Check if the sign bit (18th bit) is set
-        signed_simm19 = ldl.simm19 | ~sign_extended_const_simm19; // Sign extend to 64 bits if negative
+    if (ldl.simm19 & SIGN_IDENT_SIMM19) { // Check if the sign bit (18th bit) is set
+        signed_simm19 = ldl.simm19 | ~SIGN_EXTENDED_SIMM19; // Sign extend to 64 bits if negative
     } else {
         signed_simm19 = ldl.simm19; // Use the value as is if positive
     }
@@ -535,15 +502,15 @@ void execute_ldl(Register *reg, LoadLiteral ldl) {
     } else {
         // 32 bits
         // printf("addrs: %lu\n", addrs);
-        if (addrs >= MEMORY_SIZE) {
-            fprintf(stderr, "Address out of bounds: %lu out of %lu\n", addrs, MEMORY_SIZE);
+        if (addrs >= WORD_COUNT) {
+            fprintf(stderr, "Address out of bounds: %lu out of %lu\n", addrs, WORD_COUNT);
             exit(EXIT_FAILURE);
         }
         R32(ldl.rt) = *(uint32_t *)(reg->ram + addrs);
         R32_cls_upper(ldl.rt);
     }
 }
-void execute_branch(Register *reg, Branch branch) {
+static void execute_branch(Register *reg, Branch branch) {
     switch (branch.type) {
     case UNCONDITIONAL_T: {
         Unconditional instr = branch.unconditional;
@@ -597,7 +564,6 @@ void execute_branch(Register *reg, Branch branch) {
         default:
             fprintf(stderr, "Unknown branch conditional type: 0x%x\n", instr.cond);
             exit(EXIT_FAILURE);
-            break;
         }
         break;
     }
@@ -605,5 +571,38 @@ void execute_branch(Register *reg, Branch branch) {
         fprintf(stderr, "Unknown branch type: 0x%x\n", branch.type);
         exit(EXIT_FAILURE);
         break;
+    }
+}
+
+void execute(Register *reg, Instr *instr) {
+    uint64_t PC_prev = reg->PC;
+    switch (instr->type) {
+    case DP_IMMEDIATE_T:
+        // DP Immediate
+        execute_dpi(reg, instr->dp_immed);
+        break;
+    case DP_REGISTER_T:
+        // DP Register
+        execute_dpr(reg, instr->dp_reg);
+        break;
+    case SINGLE_DATA_TRANSFER_T:
+        // Single Data Transfer
+        execute_sdt(reg, instr->sing_data_transfer);
+        break;
+    case LOAD_LITERAL_T:
+        // Load Literal
+        execute_ldl(reg, instr->load_literal);
+        break;
+    case BRANCH_T:
+        // Branch
+        execute_branch(reg, instr->branch);
+        break;
+    default:
+        fprintf(stderr, "Unknown instruction type: 0x%x\n", instr->type);
+        exit(EXIT_FAILURE);
+    }
+    // update program counter if it was not changed by branch operation
+    if (reg->PC == PC_prev) {
+        reg->PC++;
     }
 }
