@@ -409,9 +409,11 @@ void execute_dpr(Register *reg, DpRegister dpr) {
             if (instr.x) {
                 // negate result, aka msub
                 R32(instr.rd) = ra - (R32(instr.rn) * R32(instr.rm));
+                R32_cls_upper(instr.rd);
             } else {
                 // don't negate result, aka madd
                 R32(instr.rd) = ra + (R32(instr.rn) * R32(instr.rm));
+                R32_cls_upper(instr.rd);
             }
         }
         break;
