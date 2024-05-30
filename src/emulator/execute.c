@@ -13,6 +13,9 @@
 // getting 16 bit long slices of register
 #define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n) * 4 + shift]
 #define R32_16(n, shift) R64_16(n, shift)
+// get ram with offset, ram is always BYTE INDEXED
+#define RAM_64(n) *(uint64_t *)((char *)reg->ram + n)
+#define RAM_32(n) *(uint32_t *)((char *)reg->ram + n)
 
 static const uint32_t MULT_ZERO_REG = 0x1F;
 
@@ -368,28 +371,28 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
             // load operation
             if (instr.sf) {
                 // 64 bits
-                R64(instr.rt) = *(uint64_t *)(reg->ram + addrs);
+                R64(instr.rt) = RAM_64(addrs);
             } else {
                 // 32 bits
-                R32(instr.rt) = *(reg->ram + addrs);
+                R32(instr.rt) = RAM_32(addrs);
                 R32_cls_upper(instr.rt);
             }
         } else {
             // store operation
             if (instr.sf) {
                 // 64 bits
-                *(uint64_t *)(reg->ram + addrs) = R64(instr.rt);
+                RAM_64(addrs) = R64(instr.rt);
             } else {
                 // 32 bits
-                *(reg->ram + addrs) = R32(instr.rt);
+                RAM_32(addrs) = R32(instr.rt);
             }
         }
         break;
     }
     case PRE_POST_INDEX_T: {
         PrePostIndex instr = sdt.pre_post_index;
-        int64_t signed_simm9; 
-        if (instr.simm9 & SIGN_IDENT_SIMM9) { // Check if the sign bit (18th bit) is set
+        int64_t signed_simm9;
+        if (instr.simm9 & SIGN_IDENT_SIMM9) {                  // Check if the sign bit (18th bit) is set
             signed_simm9 = instr.simm9 | ~SIGN_EXTENDED_SIMM9; // Sign extend to 64 bits if negative
         } else {
             signed_simm9 = instr.simm9; // Use the value as is if positive
@@ -403,20 +406,20 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
                 // load operation
                 if (instr.sf) {
                     // 64 bits
-                    R64(instr.rt) = *(uint64_t *)(reg->ram + addrs);
+                    R64(instr.rt) = RAM_64(addrs);
                 } else {
                     // 32 bits
-                    R32(instr.rt) = *(reg->ram + addrs);
+                    R32(instr.rt) = RAM_32(addrs);
                     R32_cls_upper(instr.rt);
                 }
             } else {
                 // store operation
                 if (instr.sf) {
                     // 64 bits
-                    *(uint64_t *)(reg->ram + addrs) = R64(instr.rt);
+                    RAM_64(addrs) = R64(instr.rt);
                 } else {
                     // 32 bits
-                    *(reg->ram + addrs) = R32(instr.rt);
+                    RAM_32(addrs) = R32(instr.rt);
                 }
             }
             break;
@@ -429,20 +432,20 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
                 // load operation
                 if (instr.sf) {
                     // 64 bits
-                    R64(instr.rt) = *(uint64_t *)(reg->ram + addrs);
+                    R64(instr.rt) = RAM_64(addrs);
                 } else {
                     // 32 bits
-                    R32(instr.rt) = *(reg->ram + addrs);
+                    R32(instr.rt) = RAM_32(addrs);
                     R32_cls_upper(instr.rt);
                 }
             } else {
                 // store operation
                 if (instr.sf) {
                     // 64 bits
-                    *(uint64_t *)(reg->ram + addrs) = R64(instr.rt);
+                    RAM_64(addrs) = R64(instr.rt);
                 } else {
                     // 32 bits
-                    *(reg->ram + addrs) = R32(instr.rt);
+                    RAM_32(addrs) = R32(instr.rt);
                 }
             }
             break;
@@ -461,15 +464,11 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
             if (instr.sf) {
                 // 64 bits
                 addrs = R64(instr.xn) + ((uint64_t)(instr.imm12) * 8);
-                printf("imm12: %x\n", instr.imm12);
-                printf("loaded before: %lx\n", R64(instr.rt));
-                R64(instr.rt) = *(uint64_t *)((char *)reg->ram + addrs);
-                printf("addrs: %lx\n", addrs);
-                printf("loaded after: %lx\n", R64(instr.rt));
+                R64(instr.rt) = RAM_64(addrs);
             } else {
                 // 32 bits
                 addrs = R64(instr.xn) + (uint64_t)(instr.imm12 << 2);
-                R32(instr.rt) = *(reg->ram + addrs);
+                R32(instr.rt) = RAM_32(addrs);
                 R32_cls_upper(instr.rt);
             }
         } else {
@@ -477,11 +476,11 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
             if (instr.sf) {
                 // 64 bits
                 addrs = R64(instr.xn) + (uint64_t)(instr.imm12 << 3);
-                *(uint64_t *)(reg->ram + addrs) = R64(instr.rt);
+                RAM_64(addrs) = R64(instr.rt);
             } else {
                 // 32 bits
                 addrs = R64(instr.xn) + (uint64_t)(instr.imm12 << 2);
-                *(reg->ram + addrs) = R32(instr.rt);
+                RAM_32(addrs) = R32(instr.rt);
             }
         }
         break;
@@ -492,8 +491,8 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
     }
 }
 static void execute_ldl(Register *reg, LoadLiteral ldl) {
-    int64_t signed_simm19; 
-    if (ldl.simm19 & SIGN_IDENT_SIMM19) { // Check if the sign bit (18th bit) is set
+    int64_t signed_simm19;
+    if (ldl.simm19 & SIGN_IDENT_SIMM19) {                   // Check if the sign bit (18th bit) is set
         signed_simm19 = ldl.simm19 | ~SIGN_EXTENDED_SIMM19; // Sign extend to 64 bits if negative
     } else {
         signed_simm19 = ldl.simm19; // Use the value as is if positive
