@@ -16,8 +16,12 @@ Register *reg_init(void) {
     PSTATE->C = 0;
     PSTATE->V = 0;
     result->PSTATE = PSTATE;
-    memset(result->g_reg, 0, 31 * sizeof(uint64_t));
-    memset(result->ram, 0, WORD_COUNT * sizeof(uint32_t));
+    for (int i = 0; i < REG_COUNT; i++) {
+        result->g_reg[i] = 0;
+    }
+    for (size_t i = 0; i < WORD_COUNT; i++) {
+        result->ram[i] = 0;
+    }
     return result;
 }
 
