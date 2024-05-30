@@ -80,7 +80,11 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
         case 2:
                 return parse_wide_move(opcode,arguments);
         case 1:
+            if (*opcode == '.'){
+                 return parse_dir(opcode, arguments);
+            }else{
                 return branch_parser(opcode,arguments,currentLoc);
+            }
         default:
             fprintf(stderr,"instruction fails to parse\n'%s'\ndoes not have correct number of arguments",instruction);
             exit(EXIT_FAILURE);
