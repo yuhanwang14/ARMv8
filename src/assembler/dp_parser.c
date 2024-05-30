@@ -93,6 +93,7 @@ uint32_t parse_two_operands_with_des(char * opcode, char **arguments) {
         appendBits(&result,parsedShift[1],6);
         appendBits(&result, parse_register(arguments[1]),REGISTER_ADR_SIZE);
         appendBits(&result, parse_register(arguments[0]),REGISTER_ADR_SIZE);
+        free(parsedShift);
     }
     return result;
 }

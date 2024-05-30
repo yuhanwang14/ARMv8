@@ -79,7 +79,7 @@ uint32_t parse_unsigned(char*opcode, char**addressArg,int8_t numArg, bool is64){
     return result;
 }
 
-uint32_t dt_parser(char *opcode, char *argument, uint32_t currentLoc){
+uint32_t parse_sdt(char *opcode, char *argument, uint32_t currentLoc){
     printf("dt_parser control pos 1\n");
     char *rt = strtok(argument," ,");
     char *rest = strtok(NULL,"");

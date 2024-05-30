@@ -8,23 +8,23 @@
 // Every instruction is a GADT that's separated into categories, and every
 // category itself is a GADT.
 // Using this design allows for finer-tuned type checking and less unclear
-// branching, though presumably results in higher memory use, but this is so
+// branching, though presumably results in higher memory use. This is so
 // cool I have to try it :)
 
 // A DP Immediate instruction is one of:
 //      - arithmetic
 //      - wide move
 typedef enum { DPI_ARITHMETIC_T, WIDE_MOVE_T } DpImmedType;
-typedef enum { ADD = 0, ADDS = 1, SUB = 2, SUBS = 3 } DpArithmeticType;
+typedef enum { ADD = 0, ADDS = 1, SUB = 2, SUBS = 3 } ArithmeticType;
 typedef enum { MOVN = 0, MOVZ = 2, MOVK = 3 } DpWideMoveType;
 
 typedef struct {
-    bool sf;                // 32/64 mode flag
-    bool sh;                // whether imm12 should be moved left by 12 bits
-    DpArithmeticType atype; // operation type
-    uint32_t imm12;         // Op2
-    uint32_t rn;            // source register index
-    uint32_t rd;            // destination register index
+    bool sf;              // 32/64 mode flag
+    bool sh;              // whether imm12 should be moved left by 12 bits
+    ArithmeticType atype; // operation type
+    uint32_t imm12;       // Op2
+    uint32_t rn;          // source register index
+    uint32_t rd;          // destination register index
 } DPIArithmetic;
 
 typedef struct {
@@ -35,7 +35,7 @@ typedef struct {
     uint32_t rd;          // destination register index
 } WideMove;
 
-// Main def
+// DP (Immediate)
 typedef struct {
     DpImmedType type;
     union {
@@ -51,23 +51,21 @@ typedef struct {
 typedef enum { DPR_ARITHMETIC_T, BIT_LOGIC_T, MULTIPLY_T } DpRegisterType;
 typedef enum { A_LSL_T = 0, A_LSR_T = 1, A_ASR_T = 2 } AritShiftType;
 typedef enum { L_LSL_T = 0, L_LSR_T = 1, L_ASR_T = 2, L_ROR_T = 3 } LogcShiftType;
-typedef enum { MADD = 0, MSUB = 1 } MultType;
 typedef enum {
     AND = 0,
     OR = 1,
     EO = 2,
     ANDC = 3,
 } BitInstrType;
-typedef DpArithmeticType DrArithmeticType;
 
 typedef struct {
-    AritShiftType stype;    // right operand preprocessing: how should it be shifted
-    DrArithmeticType atype; // operation type
-    uint32_t rd;            // destination register index
-    uint32_t rn;            // left operand
-    uint32_t rm;            // right operand
-    bool sf;                // 32/64 mode flag
-    uint32_t shift;         // right operand preprocessing: how many bits should it be shifted
+    AritShiftType stype;  // right operand preprocessing: how should it be shifted
+    ArithmeticType atype; // operation type
+    uint32_t rd;          // destination register index
+    uint32_t rn;          // left operand
+    uint32_t rm;          // right operand
+    bool sf;              // 32/64 mode flag
+    uint32_t shift;       // right operand preprocessing: how many bits should it be shifted
 } DPRArithmetic;
 
 typedef struct {
@@ -86,11 +84,11 @@ typedef struct {
     uint32_t rn; // Rn
     uint32_t rm; // Rm
     bool sf;     // 32/64 mode flag
-    MultType x;  // operation type
+    bool x;      // operation type
     uint32_t ra; // Ra
 } Multiply;
 
-// Main def
+// DP (Register)
 typedef struct {
     DpRegisterType type;
     union {
@@ -113,7 +111,7 @@ typedef struct {
 // 		- Unsigned offset
 
 typedef enum { SD_REGISTER_T, PRE_POST_INDEX_T, UNSIGN_T } SDTransType;
-typedef enum { POST_INDEX = 0, PRE_INDEXED = 1 } IndexType;
+typedef enum { POST_INDEX, PRE_INDEX } IndexType;
 
 typedef struct {
     uint64_t xm; // Another X-register
@@ -125,8 +123,8 @@ typedef struct {
 
 typedef struct {
     IndexType itype; // pre-indexed / post-indexed.
-    uint32_t simm9;
-    bool sf; // 32/64 mode flag
+    int32_t simm9;   // signed
+    bool sf;         // 32/64 mode flag
     bool L;
     uint64_t xn;
     uint64_t rt;
@@ -140,7 +138,7 @@ typedef struct {
     uint64_t rt;
 } Unsigned;
 
-// Main def
+// Single data transfer
 typedef struct {
     SDTransType type;
     union {
@@ -152,9 +150,10 @@ typedef struct {
 
 // Load Literal is similar to data transfer.
 
+// Load literal
 typedef struct {
     bool sf;
-    uint32_t simm19;
+    int32_t simm19;
     uint64_t rt;
 } LoadLiteral;
 
@@ -162,7 +161,7 @@ typedef struct {
 //      - Unconditional
 //      - Register
 //      - Conditional
-typedef enum { UNCONDITIONAL_T, BR_REGISTER_T, CONDITIONAL_T } BranchType;
+typedef enum { UNCONDITIONAL_T = 0x5, BR_REGISTER_T = 0x35, CONDITIONAL_T = 0x15 } BranchType;
 typedef enum { EQ = 0, NE = 1, GE = 10, LT = 11, GT = 12, LE = 13, AL = 14 } CondType;
 
 typedef struct {
@@ -178,7 +177,7 @@ typedef struct {
     CondType cond;   // conditions that PSTATE must meet to apply the jump
 } Conditional;
 
-// Main def
+// Branch
 typedef struct {
     BranchType type;
     union {
@@ -188,7 +187,7 @@ typedef struct {
     };
 } Branch;
 
-// A GADT Instr(uction) that is one of:
+// A Instr(uction) that we can handle is one of:
 //      - DP Immediate
 //      - DP Register
 //      - Single Data Transfer
