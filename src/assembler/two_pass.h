@@ -25,4 +25,20 @@ typedef struct {
     int length;
 } FileLines;
 
-FileLines *two_pass(FILE *file);
+typedef struct {
+    char **lines;
+    Index *table;
+    int length;
+} FirstPass;
+
+FileLines *two_pass(char *file_name);
+
+FirstPass *split_lines(char *file_name);
+
+int find_label(char *line);
+
+char *sub_str(char *str, int start, int end);
+
+int count_non_empty_lines(char *file_name);
+
+Index *first_pass(char **lines, int number_of_lines);
