@@ -101,9 +101,6 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
         if (sf) {
             // 64 bit mode
             R64(rd) = R64(rn) - op2;
-#if __GNUC__ == 14
-            printf("rd: %064lb\n", R64(rd));
-#endif
         } else {
             // 32 bit mode
             R32(rd) = R32(rn) - op2_32;
@@ -127,22 +124,8 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
             // 32 bit mode
             uint32_t u_result;
             int32_t i_result;
-#if __GNUC__ == 14
-            printf("rn: %032b\n", R32(rn));
-            printf("op2: %064lb\n", op2);
-            printf("op2_32: %032b\n", op2_32);
-            printf("rn: %d\n", R32(rn));
-            printf("op2: %d\n", op2_32);
-#endif
             reg->PSTATE->C = !__builtin_sub_overflow(R32(rn), op2_32, &u_result);
             reg->PSTATE->V = __builtin_sub_overflow((int32_t)R32(rn), (int32_t)op2_32, &i_result);
-#if __GNUC__ == 14
-            printf("u_result: %032b\n", u_result);
-            printf("i_result: %032b\n", i_result);
-            printf("u_result: %d\n", u_result);
-            printf("i_result: %d\n", i_result);
-            printf("sign: %032b\n", sgn32(i_result));
-#endif
             R32_cls_upper(rd);
             R64(rd) = u_result;
             reg->PSTATE->N = sgn32(i_result);
@@ -239,10 +222,6 @@ void execute_dpr(Register *reg, DpRegister dpr) {
         } else {
             // 32 bit mode
             uint32_t op2;
-#if __GNUC__ == 14
-            printf("DPR bit-logic 32 bit: rm %032b\n", R32(instr.rm));
-#endif
-            printf("DPR bit-logic 32 bit: instr.stype %d\n", instr.stype);
             switch (instr.stype) {
             case A_LSL_T:
                 op2 = R32(instr.rm) << instr.shift;
@@ -260,9 +239,6 @@ void execute_dpr(Register *reg, DpRegister dpr) {
                         dpr.type);
                 exit(EXIT_FAILURE);
             }
-#if __GNUC__ == 14
-            printf("DPR bit-logic 32 bit: op2 %032b\n", op2);
-#endif
             execute_arit_instr(reg, instr.atype, instr.sf, instr.rd, instr.rn, (uint64_t)op2);
         }
         break;
@@ -304,11 +280,6 @@ void execute_dpr(Register *reg, DpRegister dpr) {
                 break;
             case OR:
                 R64(instr.rd) = rn | op2;
-#if __GNUC__ == 14
-                printf("rn: %lu\n", rn);
-                printf("op2: %lu\n", op2);
-                printf("Rd: %lu\n", R64(instr.rd));
-#endif
                 break;
             case EO:
                 R64(instr.rd) = rn ^ op2;
