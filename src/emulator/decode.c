@@ -101,8 +101,7 @@ extern void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, ui
 // Decodes a branch instruction
 extern void decode_branch(uint32_t operand, uint32_t type, Instr *result);
 
-Instr *decode(uint32_t code) {
-    Instr *result = malloc(sizeof(Instr));
+void decode(uint32_t code, Instr *result) {
     if (!nth_bit_set(code, OP0_OFFSET + 1) && !nth_bit_set(code, OP0_OFFSET + 2)) {
         // DP (Immediate)
         result->type = DP_IMMEDIATE_T;
@@ -155,7 +154,6 @@ Instr *decode(uint32_t code) {
         free(result);
         exit(EXIT_FAILURE);
     }
-    return result;
 }
 
 void decode_dpi(uint32_t rd, uint32_t operand, uint32_t opi, uint32_t opc, uint32_t sf, Instr *result) {

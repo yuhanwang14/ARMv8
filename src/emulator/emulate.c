@@ -25,6 +25,7 @@ int main(int argc, char **argv) {
     }
     source = safe_open(argv[1], "r");
     reg = reg_init();
+    instr = malloc(sizeof(Instr));
     fread(reg->ram, sizeof(uint32_t), MEMORY_SIZE, source);
 
     while (true) {
@@ -32,13 +33,12 @@ int main(int argc, char **argv) {
         if (code == HALT) {
             break;
         }
-        instr = decode(code);
+        decode(code, instr);
         execute(reg, instr);
-
-        free(instr);
     }
     log_state(reg, out);
 
+    free(instr);
     reg_free(reg);
     fclose(out);
     fclose(source);

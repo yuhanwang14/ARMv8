@@ -1,4 +1,4 @@
 #include "instr.h"
 #include <stdint.h>
 
-Instr *decode(uint32_t code);
+void decode(uint32_t code, Instr *instr);
