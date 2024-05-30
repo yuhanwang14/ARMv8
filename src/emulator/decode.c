@@ -90,18 +90,138 @@ const uint32_t BR_SIMM19_SIZE = 19;
 #define op0(n) nth_bit_set(code, OP0_OFFSET + n)
 
 // Decodes a DP (Immediate) instruction
-extern void decode_dpi(uint32_t rd, uint32_t operand, uint32_t opi, uint32_t opc, uint32_t sf, Instr *result);
+static void decode_dpi(uint32_t rd, uint32_t operand, uint32_t opi, uint32_t opc, uint32_t sf,
+                       Instr *result) {
+    if (opi == ARITHMETIC_OPI) {
+        // arithmetic type
+        result->dp_immed.type = DPI_ARITHMETIC_T;
+        result->dp_immed.arithmetic.sf = (bool)sf;
+        result->dp_immed.arithmetic.sh = (bool)nth_bit_set(operand, SH_OFFSET);
+        result->dp_immed.arithmetic.atype = (ArithmeticType)opc;
+        result->dp_immed.arithmetic.imm12 = bit_slice(operand, IMM12_START, IMM12_SIZE);
+        result->dp_immed.arithmetic.rn = bit_slice(operand, DPI_ARIT_RN_START, DPI_ARIT_RN_SIZE);
+        result->dp_immed.arithmetic.rd = rd;
+    } else if (opi == WIDE_MOVE_OPI) {
+        // wide move type
+        result->dp_immed.type = WIDE_MOVE_T;
+        result->dp_immed.wide_move.sf = (bool)sf;
+        result->dp_immed.wide_move.hw = bit_slice(operand, HW_START, HW_SIZE);
+        result->dp_immed.wide_move.mtype = (DpWideMoveType)opc;
+        result->dp_immed.wide_move.imm16 = bit_slice(operand, IMM16_START, IMM16_SIZE);
+        result->dp_immed.wide_move.rd = rd;
+    } else {
+        fprintf(stderr,
+                "Failed to decode a DP (Immediate) instruction: Unknown opi "
+                "0x%x from operand %x\n",
+                opi, operand);
+        free(result);
+        exit(EXIT_FAILURE);
+    }
+}
 
 // Decodes a DP (Register) instruction
-extern void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm, uint32_t opr, uint32_t m,
-                       uint32_t opc, uint32_t sf, Instr *result);
+static void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm, uint32_t opr, uint32_t m,
+                       uint32_t opc, uint32_t sf, Instr *result) {
+    if (m && opr == OPR_MULTIPLY) {
+        // multiply type
+        result->dp_reg.type = MULTIPLY_T;
+        result->dp_reg.multiply.sf = (bool)sf;
+        result->dp_reg.multiply.rd = rd;
+        result->dp_reg.multiply.rn = rn;
+        result->dp_reg.multiply.rm = rm;
+        result->dp_reg.multiply.ra = bit_slice(operand, RA_START, RA_SIZE);
+        result->dp_reg.multiply.x = (bool)nth_bit_set(operand, X_OFFSET);
+    } else if (!m && !nth_bit_set(opr, ARIT_FLAG)) {
+        // bit-logic type
+        result->dp_reg.type = BIT_LOGIC_T;
+        result->dp_reg.logical.stype = (LogcShiftType)bit_slice(opr, SHIFT_START, SHIFT_SIZE);
+        result->dp_reg.logical.N = (bool)nth_bit_set(opr, N_OFFSET);
+        result->dp_reg.logical.btype = (BitInstrType)opc;
+        result->dp_reg.logical.rd = rd;
+        result->dp_reg.logical.rn = rn;
+        result->dp_reg.logical.rm = rm;
+        result->dp_reg.logical.sf = (bool)sf;
+        result->dp_reg.logical.shift = operand;
+    } else if (!m && nth_bit_set(opr, ARIT_FLAG) && !nth_bit_set(opr, ARIT_NOT_FLAG)) {
+        // arithmetic type
+        result->dp_reg.type = DPR_ARITHMETIC_T;
+        result->dp_reg.arithmetic.stype = (AritShiftType)bit_slice(opr, SHIFT_START, SHIFT_SIZE);
+        result->dp_reg.arithmetic.atype = (ArithmeticType)opc;
+        result->dp_reg.logical.rd = rd;
+        result->dp_reg.logical.rn = rn;
+        result->dp_reg.logical.rm = rm;
+        result->dp_reg.logical.sf = (bool)sf;
+        result->dp_reg.arithmetic.shift = operand;
+    } else {
+        fprintf(stderr,
+                "Failed to decode a DP (Register) instruction: Unknown "
+                "combination of m = 0x%x and opr 0x%x\n",
+                m, opr);
+        free(result);
+        exit(EXIT_FAILURE);
+    }
+}
 
 // Decodes a single data transfer instruction
-extern void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, uint32_t u, uint32_t sf,
-                       Instr *result);
+static void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, uint32_t u, uint32_t sf,
+                       Instr *result) {
+    if (u == 0x1) {
+        // unsigned type
+        result->sing_data_transfer.type = UNSIGN_T;
+        result->sing_data_transfer.usigned.imm12 = offset;
+        result->sing_data_transfer.usigned.xn = xn;
+        result->sing_data_transfer.usigned.rt = rt;
+        result->sing_data_transfer.usigned.sf = (bool)sf;
+        result->sing_data_transfer.usigned.L = l;
+    } else if (nth_bit_set(offset, FLAG_OFFSET)) {
+        // pre/post-index type
+        result->sing_data_transfer.type = PRE_POST_INDEX_T;
+        result->sing_data_transfer.pre_post_index.itype =
+            (nth_bit_set(offset, I_OFFSET) == (uint32_t)1) ? PRE_INDEX : POST_INDEX;
+        result->sing_data_transfer.pre_post_index.L = (bool)l;
+        result->sing_data_transfer.pre_post_index.rt = rt;
+        result->sing_data_transfer.pre_post_index.sf = (bool)sf;
+        result->sing_data_transfer.pre_post_index.simm9 = bit_slice(offset, SIMM9_START, SIMM9_SIZE);
+        result->sing_data_transfer.pre_post_index.xn = xn;
+    } else if (!nth_bit_set(offset, FLAG_OFFSET)) {
+        // register type
+        result->sing_data_transfer.type = SD_REGISTER_T;
+        result->sing_data_transfer.reg.xm = bit_slice(offset, XM_START, XM_SIZE);
+        result->sing_data_transfer.reg.L = (bool)l;
+        result->sing_data_transfer.reg.rt = rt;
+        result->sing_data_transfer.reg.sf = (bool)sf;
+        result->sing_data_transfer.reg.xn = xn;
+    } else {
+        fprintf(stderr,
+                "Failed to decode a single data transfer instruction: Unknown "
+                "combination of u = 0x%x and offset 0x%x\n",
+                u, offset);
+        free(result);
+        exit(EXIT_FAILURE);
+    }
+}
 
 // Decodes a branch instruction
-extern void decode_branch(uint32_t operand, uint32_t type, Instr *result);
+static void decode_branch(uint32_t operand, uint32_t type, Instr *result) {
+    if (type == UNCONDITIONAL_T) {
+        // unconditional type
+        result->branch.type = UNCONDITIONAL_T;
+        result->branch.unconditional.simm26 = operand;
+    } else if (type == BR_REGISTER_T) {
+        // register type
+        result->branch.type = BR_REGISTER_T;
+        result->branch.reg.xn = bit_slice(operand, BR_XN_START, BR_XN_SIZE);
+    } else if (type == CONDITIONAL_T) {
+        // conditional type
+        result->branch.type = CONDITIONAL_T;
+        result->branch.conditional.cond = bit_slice(operand, COND_START, COND_SIZE);
+        result->branch.conditional.simm19 = bit_slice(operand, BR_SIMM19_START, BR_SIMM19_SIZE);
+    } else {
+        fprintf(stderr, "Failed to decode a branch instruction: Unknown combination of type = 0x%x\n", type);
+        free(result);
+        exit(EXIT_FAILURE);
+    }
+}
 
 void decode(uint32_t code, Instr *result) {
     // we read op0 to determine which category of instruction we have encountered (spec p8)
@@ -154,139 +274,6 @@ void decode(uint32_t code, Instr *result) {
         decode_branch(operand, type, result);
     } else {
         fprintf(stderr, "Failed to recognize 0x%x as any instruction", code);
-        free(result);
-        exit(EXIT_FAILURE);
-    }
-}
-
-// Decodes a DP (Immediate) instruction
-void decode_dpi(uint32_t rd, uint32_t operand, uint32_t opi, uint32_t opc, uint32_t sf, Instr *result) {
-    if (opi == ARITHMETIC_OPI) {
-        // arithmetic type
-        result->dp_immed.type = DPI_ARITHMETIC_T;
-        result->dp_immed.arithmetic.sf = (bool)sf;
-        result->dp_immed.arithmetic.sh = (bool)nth_bit_set(operand, SH_OFFSET);
-        result->dp_immed.arithmetic.atype = (ArithmeticType)opc;
-        result->dp_immed.arithmetic.imm12 = bit_slice(operand, IMM12_START, IMM12_SIZE);
-        result->dp_immed.arithmetic.rn = bit_slice(operand, DPI_ARIT_RN_START, DPI_ARIT_RN_SIZE);
-        result->dp_immed.arithmetic.rd = rd;
-    } else if (opi == WIDE_MOVE_OPI) {
-        // wide move type
-        result->dp_immed.type = WIDE_MOVE_T;
-        result->dp_immed.wide_move.sf = (bool)sf;
-        result->dp_immed.wide_move.hw = bit_slice(operand, HW_START, HW_SIZE);
-        result->dp_immed.wide_move.mtype = (DpWideMoveType)opc;
-        result->dp_immed.wide_move.imm16 = bit_slice(operand, IMM16_START, IMM16_SIZE);
-        result->dp_immed.wide_move.rd = rd;
-    } else {
-        fprintf(stderr,
-                "Failed to decode a DP (Immediate) instruction: Unknown opi "
-                "0x%x from operand %x\n",
-                opi, operand);
-        free(result);
-        exit(EXIT_FAILURE);
-    }
-}
-
-// Decodes a DP (Register) instruction
-void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm, uint32_t opr, uint32_t m,
-                uint32_t opc, uint32_t sf, Instr *result) {
-    if (m && opr == OPR_MULTIPLY) {
-        // multiply type
-        result->dp_reg.type = MULTIPLY_T;
-        result->dp_reg.multiply.sf = (bool)sf;
-        result->dp_reg.multiply.rd = rd;
-        result->dp_reg.multiply.rn = rn;
-        result->dp_reg.multiply.rm = rm;
-        result->dp_reg.multiply.ra = bit_slice(operand, RA_START, RA_SIZE);
-        result->dp_reg.multiply.x = (bool)nth_bit_set(operand, X_OFFSET);
-    } else if (!m && !nth_bit_set(opr, ARIT_FLAG)) {
-        // bit-logic type
-        result->dp_reg.type = BIT_LOGIC_T;
-        result->dp_reg.logical.stype = (LogcShiftType)bit_slice(opr, SHIFT_START, SHIFT_SIZE);
-        result->dp_reg.logical.N = (bool)nth_bit_set(opr, N_OFFSET);
-        result->dp_reg.logical.btype = (BitInstrType)opc;
-        result->dp_reg.logical.rd = rd;
-        result->dp_reg.logical.rn = rn;
-        result->dp_reg.logical.rm = rm;
-        result->dp_reg.logical.sf = (bool)sf;
-        result->dp_reg.logical.shift = operand;
-    } else if (!m && nth_bit_set(opr, ARIT_FLAG) && !nth_bit_set(opr, ARIT_NOT_FLAG)) {
-        // arithmetic type
-        result->dp_reg.type = DPR_ARITHMETIC_T;
-        result->dp_reg.arithmetic.stype = (AritShiftType)bit_slice(opr, SHIFT_START, SHIFT_SIZE);
-        result->dp_reg.arithmetic.atype = (ArithmeticType)opc;
-        result->dp_reg.logical.rd = rd;
-        result->dp_reg.logical.rn = rn;
-        result->dp_reg.logical.rm = rm;
-        result->dp_reg.logical.sf = (bool)sf;
-        result->dp_reg.arithmetic.shift = operand;
-    } else {
-        fprintf(stderr,
-                "Failed to decode a DP (Register) instruction: Unknown "
-                "combination of m = 0x%x and opr 0x%x\n",
-                m, opr);
-        free(result);
-        exit(EXIT_FAILURE);
-    }
-}
-
-// Decodes a single data transfer instruction
-void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, uint32_t u, uint32_t sf,
-                Instr *result) {
-    if (u == 0x1) {
-        // unsigned type
-        result->sing_data_transfer.type = UNSIGN_T;
-        result->sing_data_transfer.usigned.imm12 = offset;
-        result->sing_data_transfer.usigned.xn = xn;
-        result->sing_data_transfer.usigned.rt = rt;
-        result->sing_data_transfer.usigned.sf = (bool)sf;
-        result->sing_data_transfer.usigned.L = l;
-    } else if (nth_bit_set(offset, FLAG_OFFSET)) {
-        // pre/post-index type
-        result->sing_data_transfer.type = PRE_POST_INDEX_T;
-        result->sing_data_transfer.pre_post_index.itype =
-            (nth_bit_set(offset, I_OFFSET) == (uint32_t)1) ? PRE_INDEX : POST_INDEX;
-        result->sing_data_transfer.pre_post_index.L = (bool)l;
-        result->sing_data_transfer.pre_post_index.rt = rt;
-        result->sing_data_transfer.pre_post_index.sf = (bool)sf;
-        result->sing_data_transfer.pre_post_index.simm9 = bit_slice(offset, SIMM9_START, SIMM9_SIZE);
-        result->sing_data_transfer.pre_post_index.xn = xn;
-    } else if (!nth_bit_set(offset, FLAG_OFFSET)) {
-        // register type
-        result->sing_data_transfer.type = SD_REGISTER_T;
-        result->sing_data_transfer.reg.xm = bit_slice(offset, XM_START, XM_SIZE);
-        result->sing_data_transfer.reg.L = (bool)l;
-        result->sing_data_transfer.reg.rt = rt;
-        result->sing_data_transfer.reg.sf = (bool)sf;
-        result->sing_data_transfer.reg.xn = xn;
-    } else {
-        fprintf(stderr,
-                "Failed to decode a single data transfer instruction: Unknown "
-                "combination of u = 0x%x and offset 0x%x\n",
-                u, offset);
-        free(result);
-        exit(EXIT_FAILURE);
-    }
-}
-
-// Decodes a branch instruction
-void decode_branch(uint32_t operand, uint32_t type, Instr *result) {
-    if (type == UNCONDITIONAL_T) {
-        // unconditional type
-        result->branch.type = UNCONDITIONAL_T;
-        result->branch.unconditional.simm26 = operand;
-    } else if (type == BR_REGISTER_T) {
-        // register type
-        result->branch.type = BR_REGISTER_T;
-        result->branch.reg.xn = bit_slice(operand, BR_XN_START, BR_XN_SIZE);
-    } else if (type == CONDITIONAL_T) {
-        // conditional type
-        result->branch.type = CONDITIONAL_T;
-        result->branch.conditional.cond = bit_slice(operand, COND_START, COND_SIZE);
-        result->branch.conditional.simm19 = bit_slice(operand, BR_SIMM19_START, BR_SIMM19_SIZE);
-    } else {
-        fprintf(stderr, "Failed to decode a branch instruction: Unknown combination of type = 0x%x\n", type);
         free(result);
         exit(EXIT_FAILURE);
     }

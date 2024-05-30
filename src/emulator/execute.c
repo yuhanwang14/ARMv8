@@ -5,45 +5,6 @@
 
 const uint32_t MULT_ZERO_REG = 0x1F;
 
-extern void execute_dpi(Register *reg, DpImmed dpi);
-extern void execute_dpr(Register *reg, DpRegister dpr);
-extern void execute_sdt(Register *reg, SdTrans dpr);
-extern void execute_ldl(Register *reg, LoadLiteral ldl);
-extern void execute_branch(Register *reg, Branch branch);
-
-void execute(Register *reg, Instr *instr) {
-    uint64_t PC_prev = reg->PC;
-    switch (instr->type) {
-    case DP_IMMEDIATE_T:
-        // DP Immediate
-        execute_dpi(reg, instr->dp_immed);
-        break;
-    case DP_REGISTER_T:
-        // DP Register
-        execute_dpr(reg, instr->dp_reg);
-        break;
-    case SINGLE_DATA_TRANSFER_T:
-        // Single Data Transfer
-        execute_sdt(reg, instr->sing_data_transfer);
-        break;
-    case LOAD_LITERAL_T:
-        // Load Literal
-        execute_ldl(reg, instr->load_literal);
-        break;
-    case BRANCH_T:
-        // Branch
-        execute_branch(reg, instr->branch);
-        break;
-    default:
-        fprintf(stderr, "Unknown instruction type: 0x%x\n", instr->type);
-        exit(EXIT_FAILURE);
-    }
-    // update program counter if it was not changed by branch operation
-    if (reg->PC == PC_prev) {
-        reg->PC++;
-    }
-}
-
 // register related macros
 #define R64(n) reg->g_reg[n]
 #define R32(n) ((uint32_t *)reg->g_reg)[(n) * 2]
@@ -58,8 +19,8 @@ void execute(Register *reg, Instr *instr) {
 const int32_t sign_identification_const = 0x40000;
 const int64_t sign_extended_const = 0x7FFFF;
 
-void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t rd, uint32_t rn,
-                        uint64_t op2) {
+static void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t rd, uint32_t rn,
+                               uint64_t op2) {
     uint32_t op2_32 = (uint32_t)op2;
     switch (atype) {
     case ADD:
@@ -138,7 +99,7 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
     }
 }
 
-void execute_dpi(Register *reg, DpImmed dpi) {
+static void execute_dpi(Register *reg, DpImmed dpi) {
     switch (dpi.type) {
     case DPI_ARITHMETIC_T: {
         DPIArithmetic instr = dpi.arithmetic;
@@ -194,7 +155,7 @@ void execute_dpi(Register *reg, DpImmed dpi) {
         exit(EXIT_FAILURE);
     }
 }
-void execute_dpr(Register *reg, DpRegister dpr) {
+static void execute_dpr(Register *reg, DpRegister dpr) {
     switch (dpr.type) {
     case DPR_ARITHMETIC_T: {
         DPRArithmetic instr = dpr.arithmetic;
@@ -395,7 +356,7 @@ void execute_dpr(Register *reg, DpRegister dpr) {
         exit(EXIT_FAILURE);
     }
 }
-void execute_sdt(Register *reg, SdTrans sdt) {
+static void execute_sdt(Register *reg, SdTrans sdt) {
     uint64_t addrs;
     switch (sdt.type) {
     case SD_REGISTER_T: {
@@ -518,7 +479,7 @@ void execute_sdt(Register *reg, SdTrans sdt) {
         exit(EXIT_FAILURE);
     }
 }
-void execute_ldl(Register *reg, LoadLiteral ldl) {
+static void execute_ldl(Register *reg, LoadLiteral ldl) {
     int64_t signed_simm19;
     if (ldl.simm19 & sign_identification_const) {          // Check if the sign bit (18th bit) is set
         signed_simm19 = ldl.simm19 | ~sign_extended_const; // Sign extend to 64 bits if negative
@@ -541,7 +502,7 @@ void execute_ldl(Register *reg, LoadLiteral ldl) {
         R32_cls_upper(ldl.rt);
     }
 }
-void execute_branch(Register *reg, Branch branch) {
+static void execute_branch(Register *reg, Branch branch) {
     switch (branch.type) {
     case UNCONDITIONAL_T: {
         Unconditional instr = branch.unconditional;
@@ -602,5 +563,38 @@ void execute_branch(Register *reg, Branch branch) {
         fprintf(stderr, "Unknown branch type: 0x%x\n", branch.type);
         exit(EXIT_FAILURE);
         break;
+    }
+}
+
+void execute(Register *reg, Instr *instr) {
+    uint64_t PC_prev = reg->PC;
+    switch (instr->type) {
+    case DP_IMMEDIATE_T:
+        // DP Immediate
+        execute_dpi(reg, instr->dp_immed);
+        break;
+    case DP_REGISTER_T:
+        // DP Register
+        execute_dpr(reg, instr->dp_reg);
+        break;
+    case SINGLE_DATA_TRANSFER_T:
+        // Single Data Transfer
+        execute_sdt(reg, instr->sing_data_transfer);
+        break;
+    case LOAD_LITERAL_T:
+        // Load Literal
+        execute_ldl(reg, instr->load_literal);
+        break;
+    case BRANCH_T:
+        // Branch
+        execute_branch(reg, instr->branch);
+        break;
+    default:
+        fprintf(stderr, "Unknown instruction type: 0x%x\n", instr->type);
+        exit(EXIT_FAILURE);
+    }
+    // update program counter if it was not changed by branch operation
+    if (reg->PC == PC_prev) {
+        reg->PC++;
     }
 }
