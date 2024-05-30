@@ -8,7 +8,7 @@
 // Every instruction is a GADT that's separated into categories, and every
 // category itself is a GADT.
 // Using this design allows for finer-tuned type checking and less unclear
-// branching, though presumably results in higher memory use, but this is so
+// branching, though presumably results in higher memory use. This is so
 // cool I have to try it :)
 
 // A DP Immediate instruction is one of:
@@ -35,7 +35,7 @@ typedef struct {
     uint32_t rd;          // destination register index
 } WideMove;
 
-// Main def
+// DP (Immediate)
 typedef struct {
     DpImmedType type;
     union {
@@ -88,7 +88,7 @@ typedef struct {
     uint32_t ra; // Ra
 } Multiply;
 
-// Main def
+// DP (Register)
 typedef struct {
     DpRegisterType type;
     union {
@@ -138,7 +138,7 @@ typedef struct {
     uint64_t rt;
 } Unsigned;
 
-// Main def
+// Single data transfer
 typedef struct {
     SDTransType type;
     union {
@@ -150,6 +150,7 @@ typedef struct {
 
 // Load Literal is similar to data transfer.
 
+// Load literal
 typedef struct {
     bool sf;
     int32_t simm19;
@@ -176,7 +177,7 @@ typedef struct {
     CondType cond;   // conditions that PSTATE must meet to apply the jump
 } Conditional;
 
-// Main def
+// Branch
 typedef struct {
     BranchType type;
     union {
@@ -186,7 +187,7 @@ typedef struct {
     };
 } Branch;
 
-// A GADT Instr(uction) that is one of:
+// A Instr(uction) that we can handle is one of:
 //      - DP Immediate
 //      - DP Register
 //      - Single Data Transfer

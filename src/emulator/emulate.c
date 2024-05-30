@@ -23,11 +23,20 @@ int main(int argc, char **argv) {
         puts("usage: emulate <binary> <log file>");
         return EXIT_FAILURE;
     }
+    // open binary file to execute
     source = safe_open(argv[1], "r");
     reg = reg_init();
     instr = malloc(sizeof(Instr));
-    fread(reg->ram, sizeof(uint32_t), MEMORY_SIZE, source);
+    // load the program into memory
+    fread(reg->ram, sizeof(uint32_t), WORD_COUNT, source);
 
+    // exit if we encountered error when reading
+    if (ferror(source)) {
+        fprintf(stderr, "Error encountered when reading from %s", argv[1]);
+        exit(EXIT_FAILURE);
+    }
+
+    // main loop
     while (true) {
         uint32_t code = fetch(reg);
         if (code == HALT) {
@@ -38,6 +47,7 @@ int main(int argc, char **argv) {
     }
     log_state(reg, out);
 
+    // cleanup
     free(instr);
     reg_free(reg);
     fclose(out);

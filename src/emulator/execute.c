@@ -533,8 +533,8 @@ void execute_ldl(Register *reg, LoadLiteral ldl) {
     } else {
         // 32 bits
         // printf("addrs: %lu\n", addrs);
-        if (addrs >= MEMORY_SIZE) {
-            fprintf(stderr, "Address out of bounds: %lu out of %lu\n", addrs, MEMORY_SIZE);
+        if (addrs >= WORD_COUNT) {
+            fprintf(stderr, "Address out of bounds: %lu out of %lu\n", addrs, WORD_COUNT);
             exit(EXIT_FAILURE);
         }
         R32(ldl.rt) = *(uint32_t *)(reg->ram + addrs);
