@@ -7,10 +7,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-FILE *out, *source;
-Register *reg;
-Instr *instr;
-const uint32_t HALT = 0x8a000000;
+static FILE *out, *source;
+static Register *reg;
+static Instr *instr;
+static const uint32_t HALT = 0x8a000000;
 
 int main(int argc, char **argv) {
     if (argc == 2) {
