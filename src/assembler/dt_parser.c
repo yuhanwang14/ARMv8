@@ -129,6 +129,6 @@ uint32_t parse_sdt(char *opcode, char *argument, uint32_t currentLoc) {
         printf("dt_instruction parsed as index or register\n");
         bit_append(&result, parse_indexed_or_reg(opcode, addressArg, numArg), 20);
     }
-    bit_append(&result, parse_register(rt), REGISTER_ADR_SIZE);
+    bit_append(&result, parse_register(rt), REGISTER_ADR_SIZE); // rt, pos 0 - 4
     return result;
 }

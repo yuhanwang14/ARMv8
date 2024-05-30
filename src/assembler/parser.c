@@ -67,7 +67,7 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
         nextArg = strtok(NULL, " ,");
     }
     printf("init pos 2, arguments seprated successfully\n");
-    char *buffer;
+    char *buffer = NULL;
     numArg = resolve_alias(&opcode, arguments, numArg, buffer);
     printf("init pos 3, instruction treated as '%s %s, %s, %s,%s, %s'\n", opcode, arguments[0], arguments[1],
            arguments[2], arguments[3], arguments[4]);
