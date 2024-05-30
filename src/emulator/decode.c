@@ -241,7 +241,7 @@ static void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm, 
 // Decodes a single data transfer instruction
 static void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, uint32_t u, uint32_t sf,
                        Instr *result) {
-    if (u == 0x1) {
+    if (u) {
         // unsigned type
         result->sing_data_transfer.type = UNSIGN_T;
         result->sing_data_transfer.usigned.imm12 = offset;
@@ -253,8 +253,8 @@ static void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, ui
         // pre/post-index type
         result->sing_data_transfer.type = PRE_POST_INDEX_T;
         result->sing_data_transfer.pre_post_index.itype =
-            (nth_bit_set(offset, I_OFFSET) == (uint32_t)1) ? PRE_INDEX : POST_INDEX;
-        if ((nth_bit_set(offset, I_OFFSET) == (uint32_t)1)) {
+            (nth_bit_set(offset, I_OFFSET)) ? PRE_INDEX : POST_INDEX;
+        if ((nth_bit_set(offset, I_OFFSET))) {
             printf("Type: sdt - pre-indexed type\n");
         } else {
             printf("Type: sdt - post-indexed type\n");

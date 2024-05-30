@@ -368,20 +368,20 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
             // load operation
             if (instr.sf) {
                 // 64 bits
-                R64(instr.rt) = *(reg->ram + addrs);
+                R64(instr.rt) = *(uint64_t *)(reg->ram + addrs);
             } else {
                 // 32 bits
-                R32(instr.rt) = *(uint32_t *)(reg->ram + addrs);
+                R32(instr.rt) = *(reg->ram + addrs);
                 R32_cls_upper(instr.rt);
             }
         } else {
             // store operation
             if (instr.sf) {
                 // 64 bits
-                *(reg->ram + addrs) = R64(instr.rt);
+                *(uint64_t *)(reg->ram + addrs) = R64(instr.rt);
             } else {
                 // 32 bits
-                *(uint32_t *)(reg->ram + addrs) = R32(instr.rt);
+                *(reg->ram + addrs) = R32(instr.rt);
             }
         }
         break;
@@ -403,20 +403,20 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
                 // load operation
                 if (instr.sf) {
                     // 64 bits
-                    R64(instr.rt) = *(reg->ram + addrs);
+                    R64(instr.rt) = *(uint64_t *)(reg->ram + addrs);
                 } else {
                     // 32 bits
-                    R32(instr.rt) = *(uint32_t *)(reg->ram + addrs);
+                    R32(instr.rt) = *(reg->ram + addrs);
                     R32_cls_upper(instr.rt);
                 }
             } else {
                 // store operation
                 if (instr.sf) {
                     // 64 bits
-                    *(reg->ram + addrs) = R64(instr.rt);
+                    *(uint64_t *)(reg->ram + addrs) = R64(instr.rt);
                 } else {
                     // 32 bits
-                    *(uint32_t *)(reg->ram + addrs) = R32(instr.rt);
+                    *(reg->ram + addrs) = R32(instr.rt);
                 }
             }
             break;
@@ -429,20 +429,20 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
                 // load operation
                 if (instr.sf) {
                     // 64 bits
-                    R64(instr.rt) = *(reg->ram + addrs);
+                    R64(instr.rt) = *(uint64_t *)(reg->ram + addrs);
                 } else {
                     // 32 bits
-                    R32(instr.rt) = *(uint32_t *)(reg->ram + addrs);
+                    R32(instr.rt) = *(reg->ram + addrs);
                     R32_cls_upper(instr.rt);
                 }
             } else {
                 // store operation
                 if (instr.sf) {
                     // 64 bits
-                    *(reg->ram + addrs) = R64(instr.rt);
+                    *(uint64_t *)(reg->ram + addrs) = R64(instr.rt);
                 } else {
                     // 32 bits
-                    *(uint32_t *)(reg->ram + addrs) = R32(instr.rt);
+                    *(reg->ram + addrs) = R32(instr.rt);
                 }
             }
             break;
@@ -460,12 +460,16 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
             // load operation
             if (instr.sf) {
                 // 64 bits
-                addrs = R64(instr.xn) + (uint64_t)(instr.imm12 << 3);
-                R64(instr.rt) = *(reg->ram + addrs);
+                addrs = R64(instr.xn) + ((uint64_t)(instr.imm12) * 8);
+                printf("imm12: %x\n", instr.imm12);
+                printf("loaded before: %lx\n", R64(instr.rt));
+                R64(instr.rt) = *(uint64_t *)((char *)reg->ram + addrs);
+                printf("addrs: %lx\n", addrs);
+                printf("loaded after: %lx\n", R64(instr.rt));
             } else {
                 // 32 bits
                 addrs = R64(instr.xn) + (uint64_t)(instr.imm12 << 2);
-                R32(instr.rt) = *(uint32_t *)(reg->ram + addrs);
+                R32(instr.rt) = *(reg->ram + addrs);
                 R32_cls_upper(instr.rt);
             }
         } else {
@@ -473,11 +477,11 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
             if (instr.sf) {
                 // 64 bits
                 addrs = R64(instr.xn) + (uint64_t)(instr.imm12 << 3);
-                *(reg->ram + addrs) = R64(instr.rt);
+                *(uint64_t *)(reg->ram + addrs) = R64(instr.rt);
             } else {
                 // 32 bits
                 addrs = R64(instr.xn) + (uint64_t)(instr.imm12 << 2);
-                *(uint32_t *)(reg->ram + addrs) = R32(instr.rt);
+                *(reg->ram + addrs) = R32(instr.rt);
             }
         }
         break;
@@ -487,7 +491,7 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
         exit(EXIT_FAILURE);
     }
 }
-void execute_ldl(Register *reg, LoadLiteral ldl) {
+static void execute_ldl(Register *reg, LoadLiteral ldl) {
     int64_t signed_simm19; 
     if (ldl.simm19 & SIGN_IDENT_SIMM19) { // Check if the sign bit (18th bit) is set
         signed_simm19 = ldl.simm19 | ~SIGN_EXTENDED_SIMM19; // Sign extend to 64 bits if negative
@@ -498,7 +502,7 @@ void execute_ldl(Register *reg, LoadLiteral ldl) {
     printf("PC: %lu, signed simm19: %ld, simm19: %d\n", reg->PC, signed_simm19, ldl.simm19);
     if (ldl.sf) {
         // 64 bits
-        R64(ldl.rt) = *(reg->ram + addrs);
+        R64(ldl.rt) = *(uint64_t *)(reg->ram + addrs);
     } else {
         // 32 bits
         // printf("addrs: %lu\n", addrs);
@@ -506,7 +510,7 @@ void execute_ldl(Register *reg, LoadLiteral ldl) {
             fprintf(stderr, "Address out of bounds: %lu out of %lu\n", addrs, WORD_COUNT);
             exit(EXIT_FAILURE);
         }
-        R32(ldl.rt) = *(uint32_t *)(reg->ram + addrs);
+        R32(ldl.rt) = *(reg->ram + addrs);
         R32_cls_upper(ldl.rt);
     }
 }
