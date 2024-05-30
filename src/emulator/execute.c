@@ -378,6 +378,7 @@ void execute_dpr(Register *reg, DpRegister dpr) {
                         instr.btype);
                 exit(EXIT_FAILURE);
             }
+            R32_cls_upper(instr.rd);
         }
         break;
     }
