@@ -39,6 +39,7 @@ int main(int argc, char **argv) {
     }
     log_state(reg, out);
 
+    reg_free(reg);
     fclose(out);
     fclose(source);
     return EXIT_SUCCESS;
