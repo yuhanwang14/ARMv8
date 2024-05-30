@@ -73,3 +73,7 @@ void insertChar(char **targetArray,int32_t arraySize,char *element, int8_t index
     targetArray[index] = element;
 }
 
+int32_t parse_imm_general(char *strImm){
+    return strtol(strImm + 1, NULL, 0);
+}
+

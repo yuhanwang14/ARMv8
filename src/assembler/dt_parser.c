@@ -34,7 +34,7 @@ uint32_t parse_indexed_or_reg(char *opcode, char **addressArg, int8_t numArg){
         // pre/post indexed
         printf("dt_instruction parsed as indexed\n");
         appendBits(&result, 0, 1); // pos 21
-        appendBits(&result, parse_imm12(addressArg[1],NULL), 9); // simm 9, pos 12-20
+        appendBits(&result, parse_imm_general(addressArg[1]), 9); // simm 9, pos 12-20
         if (numArg == 3){
             // pre-indexed
             appendBits(&result, 1 ,1);// 'I', pos 11
@@ -69,9 +69,9 @@ uint32_t parse_unsigned(char*opcode, char**addressArg,int8_t numArg, bool is64){
         appendBits(&result, 0, 12); // offset, pos 10-21
     }else{
         if (is64){
-            appendBits(&result, parse_imm12(addressArg[1],NULL)/8,12);
+            appendBits(&result, parse_imm_general(addressArg[1])/8,12);
         }else{
-            appendBits(&result, parse_imm12(addressArg[1],NULL)/8,12);
+            appendBits(&result, parse_imm_general(addressArg[1])/4,12);
         }
     }
     appendBits(&result, parse_register(addressArg[0]), REGISTER_ADR_SIZE); // xn, pos 5-9
