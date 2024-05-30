@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 
-int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char *buffer) {
+static int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char *buffer) {
     // this checks if any alias occur and change the opcode and arguments if so
     buffer = malloc(4 * sizeof(char));
     if (arguments[0][0] == 'x') {
@@ -67,14 +67,14 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
         nextArg = strtok(NULL, " ,");
     }
     printf("init pos 2, arguments seprated successfully\n");
-    char *buffer;
+    char *buffer = NULL;
     numArg = resolve_alias(&opcode, arguments, numArg, buffer);
     printf("init pos 3, instruction treated as '%s %s, %s, %s,%s, %s'\n", opcode, arguments[0], arguments[1],
            arguments[2], arguments[3], arguments[4]);
     uint32_t result;
     switch (numArg) {
     case 5:
-        result = parse_two_operands_with_des(opcode, arguments);
+        result = parse_2op_with_dest(opcode, arguments);
         break;
     case 4:
         if (is_shift(arguments[2])) {
@@ -85,7 +85,7 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
         }
         break;
     case 3:
-        result = parse_two_operands_with_des(opcode, arguments);
+        result = parse_2op_with_dest(opcode, arguments);
         break;
     case 2:
         result = parse_wide_move(opcode, arguments);

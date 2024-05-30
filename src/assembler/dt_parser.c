@@ -3,17 +3,17 @@
 #include <string.h>
 #include <stdio.h>
 
-const int8_t SDT_LITERAL_24_29 = 24;
-const int8_t SDT_NOT_LITERAL_25_29 = 28;
+static const int8_t SDT_LITERAL_24_29 = 24;
+static const int8_t SDT_NOT_LITERAL_25_29 = 28;
 
-int32_t parse_simm19(char *absoluteAddress, uint32_t currentLoc) {
+static int32_t parse_simm19(char *absoluteAddress, uint32_t currentLoc) {
     int32_t offset = strtol(absoluteAddress + 1, NULL, 0) - currentLoc;
     if (offset > 0)
         return offset;
     return offset + (1 << 19);
 }
 
-uint32_t parse_dt_literal(char *rt, char *immediate, uint32_t currentLoc) {
+static uint32_t parse_dt_literal(char *rt, char *immediate, uint32_t currentLoc) {
     uint32_t result = 0; // pos 31
     if (rt[0] == 'x') {
         bit_append(&result, 1, 1); // sf, pos 30
@@ -24,7 +24,7 @@ uint32_t parse_dt_literal(char *rt, char *immediate, uint32_t currentLoc) {
     return result;
 }
 
-uint32_t parse_indexed_or_reg(char *opcode, char **addressArg, int8_t numArg) {
+static uint32_t parse_indexed_or_reg(char *opcode, char **addressArg, int8_t numArg) {
     uint32_t result = 0; // pos 23, 24 are both 0
     if (strcmp(opcode, "str") == 0) {
         bit_append(&result, 0, 1); // 'L'bit, pos 22
@@ -58,7 +58,7 @@ uint32_t parse_indexed_or_reg(char *opcode, char **addressArg, int8_t numArg) {
     return result;
 }
 
-uint32_t parse_unsigned(char *opcode, char **addressArg, int8_t numArg, bool is64) {
+static uint32_t parse_unsigned(char *opcode, char **addressArg, int8_t numArg, bool is64) {
     uint32_t result = 2; // the highest digit is '1' since it is an unsigned offset
     if (strcmp(opcode, "str") == 0) {
         bit_append(&result, 0, 1); // 'L'bit, pos 22
@@ -129,6 +129,6 @@ uint32_t parse_sdt(char *opcode, char *argument, uint32_t currentLoc) {
         printf("dt_instruction parsed as index or register\n");
         bit_append(&result, parse_indexed_or_reg(opcode, addressArg, numArg), 20);
     }
-    bit_append(&result, parse_register(rt), REGISTER_ADR_SIZE);
+    bit_append(&result, parse_register(rt), REGISTER_ADR_SIZE); // rt, pos 0 - 4
     return result;
 }
