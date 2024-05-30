@@ -51,8 +51,10 @@ void execute(Register *reg, Instr *instr) {
 #define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n)*4 + shift]
 #define R32_16(n, shift) R64_16(n, shift)
 
-const int32_t sign_identification_const = 0x40000;
-const int64_t sign_extended_const = 0x7FFFF;
+const int32_t sign_identification_const_simm19 = 0x40000;
+const int64_t sign_extended_const_simm19 = 0x7FFFF;
+const int32_t sign_identification_const_simm9 = 0x100;
+const int64_t sign_extended_const_simm9 = 0x1FF;
 
 void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t rd, uint32_t rn,
                         uint64_t op2) {
@@ -419,9 +421,16 @@ void execute_sdt(Register *reg, SdTrans sdt) {
     }
     case PRE_POST_INDEX_T: {
         PrePostIndex instr = sdt.pre_post_index;
+        int64_t signed_simm9; 
+        if (instr.simm9 & sign_identification_const_simm9) { // Check if the sign bit (18th bit) is set
+            signed_simm9 = instr.simm9 | ~sign_extended_const_simm9; // Sign extend to 64 bits if negative
+        } else {
+            signed_simm9 = instr.simm9; // Use the value as is if positive
+        }
         switch (instr.itype) {
         case PRE_INDEX: {
-            addrs = R64(instr.xn) + (uint64_t)instr.simm9;
+            addrs = R64(instr.xn) + (uint64_t)(signed_simm9);
+            R64(instr.xn) = R64(instr.xn) + (uint64_t)(signed_simm9);
             // transfer address
             if (instr.L) {
                 // load operation
@@ -443,12 +452,12 @@ void execute_sdt(Register *reg, SdTrans sdt) {
                     *(uint32_t *)(reg->ram + addrs) = R32(instr.rt);
                 }
             }
-            R64(instr.xn) = R64(instr.xn) + (uint64_t)instr.simm9;
             break;
         }
 
         case POST_INDEX: {
             addrs = R64(instr.xn);
+            R64(instr.xn) = R64(instr.xn) + (uint64_t)(signed_simm9);
             if (instr.L) {
                 // load operation
                 if (instr.sf) {
@@ -469,7 +478,6 @@ void execute_sdt(Register *reg, SdTrans sdt) {
                     *(uint32_t *)(reg->ram + addrs) = R32(instr.rt);
                 }
             }
-            R64(instr.xn) = R64(instr.xn) + (uint64_t)instr.simm9;
             break;
         }
 
@@ -514,8 +522,8 @@ void execute_sdt(Register *reg, SdTrans sdt) {
 }
 void execute_ldl(Register *reg, LoadLiteral ldl) {
     int64_t signed_simm19; 
-    if (ldl.simm19 & sign_identification_const) { // Check if the sign bit (18th bit) is set
-        signed_simm19 = ldl.simm19 | ~sign_extended_const; // Sign extend to 64 bits if negative
+    if (ldl.simm19 & sign_identification_const_simm19) { // Check if the sign bit (18th bit) is set
+        signed_simm19 = ldl.simm19 | ~sign_extended_const_simm19; // Sign extend to 64 bits if negative
     } else {
         signed_simm19 = ldl.simm19; // Use the value as is if positive
     }

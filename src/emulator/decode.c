@@ -105,6 +105,7 @@ Instr *decode(uint32_t code) {
     Instr *result = malloc(sizeof(Instr));
     if (!nth_bit_set(code, OP0_OFFSET + 1) && !nth_bit_set(code, OP0_OFFSET + 2)) {
         // DP (Immediate)
+        printf("Type: Data Processing (Immediate)\n");
         result->type = DP_IMMEDIATE_T;
         uint32_t rd = bit_slice(code, RD_START, RD_SIZE);
         uint32_t operand = bit_slice(code, DPI_OPERAND_START, DPI_OPERAND_SIZE);
@@ -114,6 +115,7 @@ Instr *decode(uint32_t code) {
         decode_dpi(rd, operand, opi, opc, sf, result);
     } else if (nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 2)) {
         // DP (Register)
+        printf("Type: Data Processing (Register)\n");
         result->type = DP_REGISTER_T;
         uint32_t rd = bit_slice(code, RD_START, RD_SIZE);
         uint32_t rn = bit_slice(code, DPR_RN_START, DPR_RN_SIZE);
@@ -237,6 +239,7 @@ void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, uint32_t 
                 Instr *result) {
     if (u == 0x1) {
         // is unsigned type
+        printf("Type: sdt - unsigned type\n");
         result->sing_data_transfer.type = UNSIGN_T;
         result->sing_data_transfer.usigned.imm12 = offset;
         result->sing_data_transfer.usigned.xn = xn;
@@ -248,6 +251,11 @@ void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, uint32_t 
         result->sing_data_transfer.type = PRE_POST_INDEX_T;
         result->sing_data_transfer.pre_post_index.itype =
             (nth_bit_set(offset, I_OFFSET) == (uint32_t)1) ? PRE_INDEX : POST_INDEX;
+        if ((nth_bit_set(offset, I_OFFSET) == (uint32_t)1)) {
+            printf("Type: sdt - pre-indexed type\n");
+        } else {
+            printf("Type: sdt - post-indexed type\n");
+        }
         result->sing_data_transfer.pre_post_index.L = (bool)l;
         result->sing_data_transfer.pre_post_index.rt = rt;
         result->sing_data_transfer.pre_post_index.sf = (bool)sf;
@@ -255,6 +263,7 @@ void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, uint32_t 
         result->sing_data_transfer.pre_post_index.xn = xn;
     } else if (!nth_bit_set(offset, FLAG_OFFSET)) {
         // is register type
+        printf("Type: sdt - register type\n");
         result->sing_data_transfer.type = SD_REGISTER_T;
         result->sing_data_transfer.reg.xm = bit_slice(offset, XM_START, XM_SIZE);
         result->sing_data_transfer.reg.L = (bool)l;
