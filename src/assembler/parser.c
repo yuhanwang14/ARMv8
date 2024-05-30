@@ -74,7 +74,7 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
     uint32_t result;
     switch (numArg) {
     case 5:
-        result = parse_two_operands_with_des(opcode, arguments);
+        result = parse_2op_with_dest(opcode, arguments);
         break;
     case 4:
         if (is_shift(arguments[2])) {
@@ -85,7 +85,7 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
         }
         break;
     case 3:
-        result = parse_two_operands_with_des(opcode, arguments);
+        result = parse_2op_with_dest(opcode, arguments);
         break;
     case 2:
         result = parse_wide_move(opcode, arguments);
