@@ -66,8 +66,11 @@ uint16_t parse_imm12(char *literal, char *shiftCom, char *shiftVal) {
 
 uint8_t parse_imm6(char *literal) { return strtol(literal + 1, NULL, 0); }
 
-void bit_append(uint32_t *target, uint32_t appended, uint32_t length) {
-    assert((appended >> length) == 0);
+void bit_append(uint32_t *target, int32_t appended, uint32_t length) {
+    if (appended < 0){
+        *target = ((*target) << length) + appended + (1 << length);
+        return;
+    };
     *target = ((*target) << length) + appended;
     return;
 }

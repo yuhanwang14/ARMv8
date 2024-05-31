@@ -29,7 +29,7 @@ uint8_t parse_imm6(char *immediateValue);
 uint8_t *parse_shift(char *shiftArg, char *shiftVal);
 
 // takes in a pointer to an int, appends the second parameter behind it.
-void bit_append(uint32_t *target, uint32_t appended, uint32_t length);
+void bit_append(uint32_t *target, int32_t appended, uint32_t length);
 
 // checks if the argument is a shift operation
 bool is_shift(char *argument);
