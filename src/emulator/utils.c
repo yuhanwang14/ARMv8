@@ -1,4 +1,3 @@
-#include "inttypes.h"
 #include "utils.h"
 #include <stdint.h>
 #include <stdio.h>
