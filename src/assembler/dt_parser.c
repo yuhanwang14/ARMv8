@@ -87,6 +87,7 @@ uint32_t parse_sdt(char *opcode, char *argument, uint32_t currentLoc) {
     printf("dt_parser control pos 1\n");
     char *rt = strtok(argument, " ,");
     char *rest = strtok(NULL, "");
+    if (*rest == ' ') rest ++;
     if (*rest == '#')
         return parse_dt_literal(rt, rest, currentLoc);
     while (*rest == ' ')
