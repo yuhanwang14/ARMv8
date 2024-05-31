@@ -1,5 +1,6 @@
 #include "decode.h"
 #include "stddef.h"
+#include "utils.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -200,13 +201,6 @@ static void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, ui
         free(result);
         exit(EXIT_FAILURE);
     }
-}
-
-// https://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend
-static int64_t sign_extend(int64_t x, unsigned nbits) {
-    const int64_t m = 1U << (nbits - 1);
-    x = x & ((1U << nbits) - 1);
-    return (x ^ m) - m;
 }
 
 // Decodes a branch instruction
