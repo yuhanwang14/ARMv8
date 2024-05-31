@@ -5,7 +5,6 @@
 #define _REGISTER_H
 
 // hence the 2Mib memory contains this many 4-bytes words
-#define WORD_COUNT (1 << 19)
 #define BYTE_COUNT (1 << 21)
 // number of registers
 #define REG_COUNT 31

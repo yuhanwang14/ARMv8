@@ -31,7 +31,7 @@ void log_state(Register *reg, FILE *fd) {
     // log non-zero memory
     fprintf(fd, "Non-Zero Memory:\n");
     uint32_t *ram = (uint32_t *)reg->ram;
-    for (int i = 0; i < WORD_COUNT; i++) {
+    for (int i = 0; i < BYTE_COUNT / sizeof(uint32_t); i++) {
         if (ram[i] != 0) {
             fprintf(fd, "0x%08lx : %08x\n", i * sizeof(uint32_t), ram[i]);
         }

@@ -13,8 +13,9 @@ static Instr *instr;
 static const uint32_t HALT = 0x8a000000;
 
 int main(int argc, char **argv) {
+    // process arguments
     if (argc == 2) {
-        // print to stdout
+        // output file not specified, print to stdout
         out = stdout;
     } else if (argc == 3) {
         // print to given file
@@ -23,14 +24,12 @@ int main(int argc, char **argv) {
         puts("usage: emulate <binary> <log file>");
         return EXIT_FAILURE;
     }
-    // open binary file to execute
+
+    // initialize register machine and load the program
     source = safe_open(argv[1], "r");
     reg = reg_init();
     instr = malloc(sizeof(Instr));
-    // load the program into memory
     fread(reg->ram, sizeof(uint8_t), BYTE_COUNT, source);
-
-    // exit if we encountered error when reading
     if (ferror(source)) {
         fprintf(stderr, "Error encountered when reading from %s", argv[1]);
         exit(EXIT_FAILURE);
@@ -47,7 +46,7 @@ int main(int argc, char **argv) {
     }
     log_state(reg, out);
 
-    // cleanup
+    // clean up after ourselves
     free(instr);
     reg_free(reg);
     fclose(out);

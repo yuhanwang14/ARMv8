@@ -9,82 +9,82 @@
 // whether the nth bit from op0 is set
 #define OP0(n) nth_bit_set(code, OP0_OFFSET + n)
 
-static const uint32_t OP0_OFFSET = 25;
+static const unsigned OP0_OFFSET = 25;
 
 // consts for DP (Immediate)
-static const uint32_t RD_START = 0;
-static const uint32_t RD_SIZE = 5;
-static const uint32_t DPI_OPERAND_START = RD_START + RD_SIZE;
-static const uint32_t DPI_OPERAND_SIZE = 18;
-static const uint32_t OPI_START = DPI_OPERAND_START + DPI_OPERAND_SIZE;
-static const uint32_t OPI_SIZE = 3;
-static const uint32_t OPC_START = 29;
-static const uint32_t OPC_SIZE = 2;
-static const uint32_t DP_SF_OFFSET = 31;
-static const uint32_t ARITHMETIC_OPI = 0x2;
-static const uint32_t WIDE_MOVE_OPI = 0x5;
-static const uint32_t SH_OFFSET = 17;
-static const uint32_t DPI_ARIT_RN_START = 0;
-static const uint32_t DPI_ARIT_RN_SIZE = 5;
-static const uint32_t IMM12_START = DPI_ARIT_RN_START + DPI_ARIT_RN_SIZE;
-static const uint32_t IMM12_SIZE = 12;
-static const uint32_t IMM16_START = 0;
-static const uint32_t IMM16_SIZE = 16;
-static const uint32_t HW_START = IMM16_START + IMM16_SIZE;
-static const uint32_t HW_SIZE = 2;
+static const unsigned RD_START = 0;
+static const unsigned RD_SIZE = 5;
+static const unsigned DPI_OPERAND_START = RD_START + RD_SIZE;
+static const unsigned DPI_OPERAND_SIZE = 18;
+static const unsigned OPI_START = DPI_OPERAND_START + DPI_OPERAND_SIZE;
+static const unsigned OPI_SIZE = 3;
+static const unsigned OPC_START = 29;
+static const unsigned OPC_SIZE = 2;
+static const unsigned DP_SF_OFFSET = 31;
+static const unsigned ARITHMETIC_OPI = 0x2;
+static const unsigned WIDE_MOVE_OPI = 0x5;
+static const unsigned SH_OFFSET = 17;
+static const unsigned DPI_ARIT_RN_START = 0;
+static const unsigned DPI_ARIT_RN_SIZE = 5;
+static const unsigned IMM12_START = DPI_ARIT_RN_START + DPI_ARIT_RN_SIZE;
+static const unsigned IMM12_SIZE = 12;
+static const unsigned IMM16_START = 0;
+static const unsigned IMM16_SIZE = 16;
+static const unsigned HW_START = IMM16_START + IMM16_SIZE;
+static const unsigned HW_SIZE = 2;
 
 // consts for DP (Register)
-static const uint32_t DPR_RN_START = RD_START + RD_SIZE;
-static const uint32_t DPR_RN_SIZE = 5;
-static const uint32_t DPR_OPERAND_START = DPR_RN_START + DPR_RN_SIZE;
-static const uint32_t DPR_OPERAND_SIZE = 6;
-static const uint32_t RM_START = DPR_OPERAND_START + DPR_OPERAND_SIZE;
-static const uint32_t RM_SIZE = 5;
-static const uint32_t OPR_START = RM_START + RM_SIZE;
-static const uint32_t OPR_SIZE = 4;
-static const uint32_t M_OFFSET = 28;
-static const uint32_t OPR_MULTIPLY = 8;
-static const uint32_t RA_START = 0;
-static const uint32_t RA_SIZE = 5;
-static const uint32_t X_OFFSET = 5;
-static const uint32_t ARIT_FLAG = 3;
-static const uint32_t ARIT_NOT_FLAG = 0;
-static const uint32_t SHIFT_START = 1;
-static const uint32_t SHIFT_SIZE = 2;
-static const uint32_t N_OFFSET = 0;
+static const unsigned DPR_RN_START = RD_START + RD_SIZE;
+static const unsigned DPR_RN_SIZE = 5;
+static const unsigned DPR_OPERAND_START = DPR_RN_START + DPR_RN_SIZE;
+static const unsigned DPR_OPERAND_SIZE = 6;
+static const unsigned RM_START = DPR_OPERAND_START + DPR_OPERAND_SIZE;
+static const unsigned RM_SIZE = 5;
+static const unsigned OPR_START = RM_START + RM_SIZE;
+static const unsigned OPR_SIZE = 4;
+static const unsigned M_OFFSET = 28;
+static const unsigned OPR_MULTIPLY = 8;
+static const unsigned RA_START = 0;
+static const unsigned RA_SIZE = 5;
+static const unsigned X_OFFSET = 5;
+static const unsigned ARIT_FLAG = 3;
+static const unsigned ARIT_NOT_FLAG = 0;
+static const unsigned SHIFT_START = 1;
+static const unsigned SHIFT_SIZE = 2;
+static const unsigned N_OFFSET = 0;
 
 // consts for single data transfer
-static const uint32_t RT_START = 0;
-static const uint32_t RT_SIZE = 5;
-static const uint32_t SDT_XN_START = 5;
-static const uint32_t SDT_XN_SIZE = 5;
-static const uint32_t OFFSET_START = 10;
-static const uint32_t OFFSET_SIZE = 12;
-static const uint32_t L_OFFSET = 22;
-static const uint32_t U_OFFSET = 24;
-static const uint32_t LS_SF_OFFSET = 30;
-static const uint32_t FLAG_OFFSET = 0;
-static const uint32_t I_OFFSET = 1;
-static const uint32_t SIMM9_START = 2;
-static const uint32_t SIMM9_SIZE = 9;
-static const uint32_t XM_START = 6;
-static const uint32_t XM_SIZE = 5;
+static const unsigned RT_START = 0;
+static const unsigned RT_SIZE = 5;
+static const unsigned SDT_XN_START = 5;
+static const unsigned SDT_XN_SIZE = 5;
+static const unsigned OFFSET_START = 10;
+static const unsigned OFFSET_SIZE = 12;
+static const unsigned L_OFFSET = 22;
+static const unsigned U_OFFSET = 24;
+static const unsigned LS_SF_OFFSET = 30;
+static const unsigned FLAG_OFFSET = 0;
+static const unsigned I_OFFSET = 1;
+static const unsigned SIMM9_START = 2;
+static const unsigned SIMM9_SIZE = 9;
+static const unsigned XM_START = 6;
+static const unsigned XM_SIZE = 5;
 
 // consts for load literals
-static const uint32_t LL_SIMM19_START = 5;
-static const uint32_t LL_SIMM19_SIZE = 19;
+static const unsigned LL_SIMM19_START = 5;
+static const unsigned LL_SIMM19_SIZE = 19;
 
 // consts for branch
-static const uint32_t BRANCH_OP_START = 0;
-static const uint32_t BRANCH_OP_SIZE = 25;
-static const uint32_t BRANCH_TYPE_START = 26;
-static const uint32_t BRANCH_TYPE_SIZE = 6;
-static const uint32_t BR_XN_START = 5;
-static const uint32_t BR_XN_SIZE = 5;
-static const uint32_t COND_START = 0;
-static const uint32_t COND_SIZE = 4;
-static const uint32_t BR_SIMM19_START = 5;
-static const uint32_t BR_SIMM19_SIZE = 19;
+static const unsigned BRANCH_OP_START = 0;
+static const unsigned BRANCH_OP_SIZE = 25;
+static const unsigned BRANCH_TYPE_START = 26;
+static const unsigned BRANCH_TYPE_SIZE = 6;
+static const unsigned BR_XN_START = 5;
+static const unsigned BR_XN_SIZE = 5;
+static const unsigned COND_START = 0;
+static const unsigned COND_SIZE = 4;
+static const unsigned BR_SIMM19_START = 5;
+static const unsigned BR_SIMM19_SIZE = 19;
 static const unsigned BR_UNCOND_OFF_SIZE = 21;
 static const unsigned BR_COND_OFF_SIZE = 28;
 
