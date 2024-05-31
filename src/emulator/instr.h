@@ -114,47 +114,47 @@ typedef enum { SD_REGISTER_T, PRE_POST_INDEX_T, UNSIGN_T } SDTransType;
 typedef enum { POST_INDEX, PRE_INDEX } IndexType;
 
 typedef struct {
-    uint64_t xm; // Another X-register
-    bool sf;     // The size of the load, 0 is 32-bit, 1 is 64-bit
-    bool L;      // The type of data transfer, 0 is store, 1 is load.
-    uint64_t xn; // The base X-register
-    uint64_t rt; // The target register
+    uint64_t xm; // another X-register
+    bool sf;     // size of the load, 0 is 32-bit, 1 is 64-bit
+    bool L;      // type of data transfer, 0 is store, 1 is load.
+    uint64_t xn; // base X-register
+    uint64_t rt; // target register
 } SDRegister;
 
 typedef struct {
-    IndexType itype; // pre-indexed / post-indexed.
-    int32_t simm9;   // signed
-    bool sf;         // 32/64 mode flag
-    bool L;
-    uint64_t xn;
-    uint64_t rt;
+    IndexType itype; // pre-indexed / post-indexed
+    int32_t simm9;   // index offset encoding
+    bool sf;         // size of the load, 0 is 32-bit, 1 is 64-bit
+    bool L;          // type of data transfer, 0 is store, 1 is load.
+    uint64_t xn;     // base X-register
+    uint64_t rt;     // target register
 } PrePostIndex;
 
 typedef struct {
-    uint32_t imm12;
-    bool sf; // 32/64 mode flag
-    bool L;
-    uint64_t xn;
-    uint64_t rt;
+    uint32_t imm12; // unsigned offset encoding
+    bool sf;        // size of the load, 0 is 32-bit, 1 is 64-bit
+    bool L;         // type of data transfer, 0 is store, 1 is load.
+    uint64_t xn;    // base X-register
+    uint64_t rt;    // target register
 } Unsigned;
 
 // Single data transfer
 typedef struct {
     SDTransType type;
     union {
-        SDRegister reg;
-        PrePostIndex pre_post_index;
-        Unsigned usigned;
+        SDRegister reg;              // register offset type
+        PrePostIndex pre_post_index; // pre/post index type
+        Unsigned usigned;            // unsigned offset type
     };
 } SdTrans;
 
-// Load Literal is similar to data transfer.
+// Load Literal is similar to the load operation in single data transfer.
 
 // Load literal
 typedef struct {
-    bool sf;
-    int32_t simm19;
-    uint64_t rt;
+    bool sf;        // size of the load, 0 is 32-bit, 1 is 64-bit
+    int32_t simm19; // offset encoding
+    uint64_t rt;    // target register
 } LoadLiteral;
 
 // A Branch is one of:
