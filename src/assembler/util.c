@@ -1,8 +1,9 @@
 #include "util.h"
 #include <assert.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 uint8_t *parse_shift(char *shiftArg, char *shiftVal) {
     uint8_t *result = malloc(2 * sizeof(uint8_t));
@@ -42,24 +43,34 @@ uint32_t parse_imm16(char *literal, char *shiftCom, char *shiftVal) {
     if (shiftCom == NULL)
         return strtol(literal + 1, NULL, 0);
     uint8_t *parsedShift = parse_shift(shiftCom, shiftVal);
-    uint32_t result = parsedShift[1] / 4;
-    bit_append(&result, strtol(literal + 1, NULL, 16), 16);
+    uint32_t result = parsedShift[1] / 16;
+    bit_append(&result, strtol(literal + 1, NULL, 0), 16);
     free(parsedShift);
     return result;
 }
 
-uint16_t parse_imm12(char *literal, char *shift) {
-    if (shift == NULL) {
+uint16_t parse_imm12(char *literal, char *shiftCom, char *shiftVal) {
+    if (shiftCom == NULL) {
         return strtol(literal + 1, NULL, 0);
-    } else {
-        return (strtol(literal + 1, NULL, 0) + (1 << 12));
     }
+    uint8_t *parsedShift = parse_shift(shiftCom, shiftVal);
+    if (parsedShift[0] != 0){
+        fprintf(stderr, "failed to parse imm12 with shift %s", shiftCom);
+        exit(EXIT_FAILURE);
+    }
+    if (parsedShift[1] == 0){
+        return strtol(literal + 1, NULL, 0);
+    }
+    return (strtol(literal + 1, NULL, 0) + (1 << 12));
 }
 
 uint8_t parse_imm6(char *literal) { return strtol(literal + 1, NULL, 0); }
 
-void bit_append(uint32_t *target, uint32_t appended, uint32_t length) {
-    assert((appended >> length) == 0);
+void bit_append(uint32_t *target, int32_t appended, uint32_t length) {
+    if (appended < 0){
+        *target = ((*target) << length) + appended + (1 << length);
+        return;
+    };
     *target = ((*target) << length) + appended;
     return;
 }

@@ -13,7 +13,7 @@ uint8_t parse_register(char *registerName);
 bool is_literal(char *target);
 
 // Parse 12 bit immediate values with possible shift, returns a 13-bit int
-uint16_t parse_imm12(char *immediateValue, char *shift);
+uint16_t parse_imm12(char *literal, char *shiftCom, char *shiftVal);
 // Parse 12 bit immediate values with possible shift, returns a 13-bit int
 
 // Parse 16 bit immediate values with possible shift, returns an 18-bit int
@@ -29,7 +29,7 @@ uint8_t parse_imm6(char *immediateValue);
 uint8_t *parse_shift(char *shiftArg, char *shiftVal);
 
 // takes in a pointer to an int, appends the second parameter behind it.
-void bit_append(uint32_t *target, uint32_t appended, uint32_t length);
+void bit_append(uint32_t *target, int32_t appended, uint32_t length);
 
 // checks if the argument is a shift operation
 bool is_shift(char *argument);

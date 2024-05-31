@@ -16,8 +16,8 @@ static const uint8_t COND_CODE_LE = 13;
 static const uint8_t COND_CODE_AL = 14;
 
 static uint32_t parse_uncond(char *opcode, char **arguments, int32_t currentLoc) {
-    uint32_t result = PARSE_UNCOND_START;                     // pos 26-31
-    bit_append(&result, parse_imm_general(arguments[0]), 26); // simm 26, pos 0 - 25
+    uint32_t result = PARSE_UNCOND_START;                                  // pos 26-31
+    bit_append(&result, parse_imm_general(arguments[0]) - currentLoc, 26); // simm 26, pos 0 - 25
     return result;
 }
 
@@ -29,10 +29,10 @@ static uint32_t parse_with_reg(char *opcode, char **arguments, int32_t currentLo
 }
 
 static uint32_t parse_cond(char *opcode, char **arguments, int32_t currentLoc) {
-    uint32_t result = PARSE_COND_START;                       // pos 24-31
-    bit_append(&result, parse_imm_general(arguments[0]), 19); // simm19, pos 5 - 23
-    bit_append(&result, 0, 1);                                // pos 4
-    if (strcmp(opcode, "b.eq") == 0) {                         // cond, pos 0 - 4
+    uint32_t result = PARSE_COND_START;                                    // pos 24-31
+    bit_append(&result, parse_imm_general(arguments[0]) - currentLoc, 19); // simm19, pos 5 - 23
+    bit_append(&result, 0, 1);                                             // pos 4
+    if (strcmp(opcode, "b.eq") == 0) {                                     // cond, pos 0 - 4
         bit_append(&result, COND_CODE_EQ, 4);
     } else if (strcmp(opcode, "b.ne") == 0) {
         bit_append(&result, COND_CODE_NE, 4);

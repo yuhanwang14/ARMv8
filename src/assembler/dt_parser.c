@@ -87,12 +87,13 @@ uint32_t parse_sdt(char *opcode, char *argument, uint32_t currentLoc) {
     printf("dt_parser control pos 1\n");
     char *rt = strtok(argument, " ,");
     char *rest = strtok(NULL, "");
+    if (*rest == ' ') rest ++;
     if (*rest == '#')
         return parse_dt_literal(rt, rest, currentLoc);
     while (*rest == ' ')
         rest++;      // removes all spaces at the front(if any)
     rest = rest + 1; // if we reach here, it implies the original str starts with '[', remove the bracket
-    bool postIndex = rest[2] == ']'; // this is used to distingush Unsigned offset and post-index
+    bool postIndex = rest[3] == ']' || rest[2] == ']'; // this is used to distingush Unsigned offset and post-index
     char *nextArg = strtok(rest, ",] ");
     char *addressArg[3];
     int8_t numArg = 0;
@@ -106,6 +107,8 @@ uint32_t parse_sdt(char *opcode, char *argument, uint32_t currentLoc) {
     uint32_t result = 1; // pos 31
     if (*rt == 'x') {
         bit_append(&result, 1, 1); // sf, pos 30
+    }else{
+        bit_append(&result, 0, 1);
     }
     bit_append(&result, SDT_NOT_LITERAL_25_29, 5); // pos 25-29
     switch (numArg) {
