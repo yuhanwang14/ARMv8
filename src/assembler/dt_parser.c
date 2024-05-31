@@ -93,7 +93,7 @@ uint32_t parse_sdt(char *opcode, char *argument, uint32_t currentLoc) {
     while (*rest == ' ')
         rest++;      // removes all spaces at the front(if any)
     rest = rest + 1; // if we reach here, it implies the original str starts with '[', remove the bracket
-    bool postIndex = rest[2] == ']'; // this is used to distingush Unsigned offset and post-index
+    bool postIndex = rest[3] == ']' || rest[2] == ']'; // this is used to distingush Unsigned offset and post-index
     char *nextArg = strtok(rest, ",] ");
     char *addressArg[3];
     int8_t numArg = 0;
