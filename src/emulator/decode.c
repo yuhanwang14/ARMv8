@@ -81,6 +81,8 @@ static const uint32_t COND_START = 0;
 static const uint32_t COND_SIZE = 4;
 static const uint32_t BR_SIMM19_START = 5;
 static const uint32_t BR_SIMM19_SIZE = 19;
+static const unsigned BR_UNCOND_OFF_SIZE = 21;
+static const unsigned BR_COND_OFF_SIZE = 28;
 
 // getting the bits in [start..start+size)
 #define bit_slice(bits, start, size) ((bits >> start) & (((uint32_t)1 << size) - 1))
@@ -205,12 +207,19 @@ static void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, ui
     }
 }
 
+// https://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend
+static int64_t sign_extend(int64_t x, unsigned nbits) {
+    const int64_t m = 1U << (nbits - 1);
+    x = x & ((1U << nbits) - 1);
+    return (x ^ m) - m;
+}
+
 // Decodes a branch instruction
 static void decode_branch(uint32_t operand, uint32_t type, Instr *result) {
     if (type == UNCONDITIONAL_T) {
         // unconditional type
         result->branch.type = UNCONDITIONAL_T;
-        result->branch.unconditional.simm26 = operand;
+        result->branch.unconditional.offset = sign_extend((int64_t)operand, BR_COND_OFF_SIZE);
     } else if (type == BR_REGISTER_T) {
         // register type
         result->branch.type = BR_REGISTER_T;
@@ -219,13 +228,8 @@ static void decode_branch(uint32_t operand, uint32_t type, Instr *result) {
         // conditional type
         result->branch.type = CONDITIONAL_T;
         result->branch.conditional.cond = bit_slice(operand, COND_START, COND_SIZE);
-        int64_t simm19_nonextended = (int64_t)(bit_slice(operand, BR_SIMM19_START, BR_SIMM19_SIZE) << 2);
-        // sign extend from 21 bit to 64 bit
-        // https://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend
-        struct {
-            int64_t temp : 21;
-        } s;
-        result->branch.conditional.offset = s.temp = simm19_nonextended;
+        int64_t offset_nonextended = (int64_t)(bit_slice(operand, BR_SIMM19_START, BR_SIMM19_SIZE) << 2);
+        result->branch.conditional.offset = sign_extend(offset_nonextended, BR_UNCOND_OFF_SIZE);
     } else {
         fprintf(stderr, "Failed to decode a branch instruction: Unknown combination of type = 0x%x\n", type);
         free(result);

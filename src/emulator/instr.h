@@ -165,7 +165,7 @@ typedef enum { UNCONDITIONAL_T = 0x5, BR_REGISTER_T = 0x35, CONDITIONAL_T = 0x15
 typedef enum { EQ = 0, NE = 1, GE = 10, LT = 11, GT = 12, LE = 13, AL = 14 } CondType;
 
 typedef struct {
-    uint32_t simm26; // 1/4 of the offset to be applied to PC
+    uint32_t offset; // the offset to be applied to PC
 } Unconditional;
 
 typedef struct {

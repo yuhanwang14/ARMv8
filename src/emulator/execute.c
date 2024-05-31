@@ -521,7 +521,7 @@ static void execute_branch(Register *reg, Branch branch) {
     switch (branch.type) {
     case UNCONDITIONAL_T: {
         Unconditional instr = branch.unconditional;
-        reg->PC += instr.simm26;
+        reg->PC += instr.offset;
         break;
     }
     case BR_REGISTER_T: {
