@@ -7,25 +7,29 @@
 
 // register related macros
 #define R64(n) reg->g_reg[n]
-#define R32(n) ((uint32_t *)reg->g_reg)[(n)*2]
-#define R32_cls_upper(n) ((uint32_t *)reg->g_reg)[(n)*2 + 1] = 0
+#define R32(n) ((uint32_t *)reg->g_reg)[(n) * 2]
+#define R32_cls_upper(n) ((uint32_t *)reg->g_reg)[(n) * 2 + 1] = 0
 // getting sign bit macro
 #define SGN64(n) (bool)((n >> 63) & 1)
 #define SGN32(n) (bool)((n >> 31) & 1)
 // getting 16 bit long slices of register
-#define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n)*4 + shift]
+#define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n) * 4 + shift]
 #define R32_16(n, shift) R64_16(n, shift)
 // get ram with offset, ram is always BYTE INDEXED
 #define RAM_64(n) *(uint64_t *)(reg->ram + (n))
 #define RAM_32(n) *(uint32_t *)(reg->ram + (n))
+// offset the PC if condition is statisfied
+#define JUMP_IF(cond) reg->PC = (cond) ? reg->PC + offset : reg->PC
 
 static const uint32_t MULT_ZERO_REG = 0x1F;
 
-void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t rd, uint32_t rn,
-                        uint64_t op2) {
+// generalisation of arithmetic operations
+static void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t rd,
+                               uint32_t rn, uint64_t op2) {
     uint32_t op2_32 = (uint32_t)op2;
     switch (atype) {
     case ADD:
+        // addition
         if (sf) {
             // 64 bit mode
             R64(rd) = R64(rn) + op2;
@@ -36,6 +40,7 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
         }
         break;
     case ADDS:
+        // addition with state update
         if (sf) {
             // 64 bit mode
             uint64_t u_result;
@@ -61,6 +66,7 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
         }
         break;
     case SUB:
+        // subtraction
         if (sf) {
             // 64 bit mode
             R64(rd) = R64(rn) - op2;
@@ -71,6 +77,7 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
         }
         break;
     case SUBS:
+        // subtraction with state update
         if (sf) {
             // 64 bit mode
             uint64_t u_result;
@@ -101,19 +108,23 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
     }
 }
 
+// Executes a DP (Immediate) instruction
 static void execute_dpi(Register *reg, DpImmed dpi) {
     switch (dpi.type) {
     case DPI_ARITHMETIC_T: {
+        // arithmetic operation
         DPIArithmetic instr = dpi.arithmetic;
         uint32_t op2 = instr.sh ? instr.imm12 << 12 : instr.imm12;
         execute_arit_instr(reg, instr.atype, instr.sf, instr.rd, instr.rn, (uint64_t)op2);
         break;
     }
     case WIDE_MOVE_T: {
+        // wide move operation
         WideMove instr = dpi.wide_move;
         uint64_t op = (uint64_t)instr.imm16 << (instr.hw * 16);
         switch (instr.mtype) {
         case MOVN: {
+            // move with negate
             if (instr.sf) {
                 // 64 bit mode
                 R64(instr.rd) = ~op;
@@ -125,6 +136,7 @@ static void execute_dpi(Register *reg, DpImmed dpi) {
             break;
         }
         case MOVZ: {
+            // move with zero
             if (instr.sf) {
                 // 64 bit mode
                 R64(instr.rd) = op;
@@ -136,6 +148,7 @@ static void execute_dpi(Register *reg, DpImmed dpi) {
             break;
         }
         case MOVK: {
+            // move with keep
             if (instr.sf) {
                 // 64 bit mode
                 R64_16(instr.rd, instr.hw) = instr.imm16;
@@ -158,21 +171,26 @@ static void execute_dpi(Register *reg, DpImmed dpi) {
     }
 }
 
+// Executes a DP (Register) instruction
 static void execute_dpr(Register *reg, DpRegister dpr) {
     switch (dpr.type) {
     case DPR_ARITHMETIC_T: {
+        // arithmetic operation
         DPRArithmetic instr = dpr.arithmetic;
         if (instr.sf) {
             // 64 bit mode
             uint64_t op2;
             switch (instr.stype) {
             case A_LSL_T:
+                // left shift
                 op2 = R64(instr.rm) << instr.shift;
                 break;
             case A_LSR_T:
+                // right shift
                 op2 = R64(instr.rm) >> instr.shift;
                 break;
             case A_ASR_T:
+                // right arithmetic shift
                 // WONT-FIX: non portable code
                 op2 = (int64_t)R64(instr.rm) >> instr.shift;
                 break;
@@ -189,12 +207,15 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
             uint32_t op2;
             switch (instr.stype) {
             case A_LSL_T:
+                // left shift
                 op2 = R32(instr.rm) << instr.shift;
                 break;
             case A_LSR_T:
+                // right shift
                 op2 = R32(instr.rm) >> instr.shift;
                 break;
             case A_ASR_T:
+                // right arithmetic shift
                 // WONT-FIX: non portable code
                 op2 = (int32_t)R32(instr.rm) >> instr.shift;
                 break;
@@ -218,16 +239,20 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
             uint64_t rn = R64(instr.rn);
             switch (instr.stype) {
             case L_LSL_T:
+                // left shift
                 op2 = rm << instr.shift;
                 break;
             case L_LSR_T:
+                // right shift
                 op2 = rm >> instr.shift;
                 break;
             case L_ASR_T:
+                // left arithmetic shift
                 // WONT-FIX: non portable code
                 op2 = (int64_t)rm >> instr.shift;
                 break;
             case L_ROR_T:
+                // rotate right
                 // https://stackoverflow.com/questions/28303232/rotate-right-using-bit-operation-in-c
                 op2 = (rm >> instr.shift) | (rm << (64 - instr.shift));
                 break;
@@ -272,16 +297,20 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
             uint32_t rn = R32(instr.rn);
             switch (instr.stype) {
             case L_LSL_T:
+                // left shift
                 op2 = rm << instr.shift;
                 break;
             case L_LSR_T:
+                // right shift
                 op2 = rm >> instr.shift;
                 break;
             case L_ASR_T:
+                // arithmetic shift
                 // WONT-FIX: non portable code
                 op2 = (int32_t)rm >> instr.shift;
                 break;
             case L_ROR_T:
+                // rotate right
                 // https://stackoverflow.com/questions/28303232/rotate-right-using-bit-operation-in-c
                 op2 = (rm >> instr.shift) | (rm << (32 - instr.shift));
                 break;
@@ -328,6 +357,7 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
         if (instr.sf) {
             // 64 bit mode
             uint64_t ra;
+            // check if it's zero vector
             if (instr.ra == MULT_ZERO_REG) {
                 ra = reg->ZR;
             } else {
@@ -343,6 +373,7 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
         } else {
             // 32 bit mode
             uint32_t ra;
+            // check if it's zero vector
             if (instr.ra == MULT_ZERO_REG) {
                 ra = reg->ZR;
             } else {
@@ -366,6 +397,7 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
     }
 }
 
+// Execute single data transfer instruction
 static void execute_sdt(Register *reg, SdTrans sdt) {
     uint64_t addrs;
     switch (sdt.type) {
@@ -491,6 +523,7 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
     }
 }
 
+// Execute a load literal instruction
 static void execute_ldl(Register *reg, LoadLiteral ldl) {
     int64_t signed_simm19 = sign_extend(ldl.simm19, 19);
     uint64_t addrs = reg->PC + (uint64_t)(signed_simm19) * sizeof(uint32_t);
@@ -504,6 +537,7 @@ static void execute_ldl(Register *reg, LoadLiteral ldl) {
     }
 }
 
+// execute a branch instruction
 static void execute_branch(Register *reg, Branch branch) {
     switch (branch.type) {
     case UNCONDITIONAL_T: {
@@ -523,39 +557,25 @@ static void execute_branch(Register *reg, Branch branch) {
         int64_t offset = instr.offset;
         switch (instr.cond) {
         case EQ:
-            if (ps.Z) {
-                reg->PC += offset;
-            }
+            JUMP_IF(ps.Z);
             break;
         case NE:
-            if (!ps.Z) {
-                reg->PC += offset;
-            }
+            JUMP_IF(!ps.Z);
             break;
         case GE:
-            if (ps.N == ps.V) {
-                reg->PC += offset;
-            }
+            JUMP_IF(ps.N == ps.V);
             break;
         case LT:
-            if (ps.N != ps.V) {
-                reg->PC += offset;
-            }
+            JUMP_IF(ps.N != ps.V);
             break;
         case GT:
-            if (!ps.Z && ps.N == ps.V) {
-                reg->PC += offset;
-            }
+            JUMP_IF(!ps.Z && ps.N == ps.V);
             break;
         case LE:
-            if (!(!ps.Z && ps.N == ps.V)) {
-                reg->PC += offset;
-            }
+            JUMP_IF(!(!ps.Z && ps.N == ps.V));
             break;
         case AL:
-            if (true) {
-                reg->PC += offset;
-            }
+            JUMP_IF(true);
             break;
         default:
             fprintf(stderr, "Unknown branch conditional type: 0x%x\n", instr.cond);

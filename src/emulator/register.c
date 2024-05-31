@@ -19,7 +19,7 @@ Register *reg_init(void) {
     for (int i = 0; i < REG_COUNT; i++) {
         result->g_reg[i] = 0;
     }
-    for (size_t i = 0; i < WORD_COUNT; i++) {
+    for (size_t i = 0; i < BYTE_COUNT; i++) {
         result->ram[i] = 0;
     }
     return result;

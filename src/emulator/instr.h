@@ -188,12 +188,13 @@ typedef struct {
 } Branch;
 
 // A Instr(uction) that we can handle is one of:
-//      - DP Immediate
-//      - DP Register
-//      - Single Data Transfer
-//      - Load Literal
-//      - Branch
-typedef enum { DP_IMMEDIATE_T, DP_REGISTER_T, SINGLE_DATA_TRANSFER_T, LOAD_LITERAL_T, BRANCH_T } InstrType;
+typedef enum {
+    DP_IMMEDIATE_T,         // DP Immediate
+    DP_REGISTER_T,          // DP Register
+    SINGLE_DATA_TRANSFER_T, // Single Data Transfer
+    LOAD_LITERAL_T,         // Load Literal
+    BRANCH_T                // Branch
+} InstrType;
 
 typedef struct {
     InstrType type;
