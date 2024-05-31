@@ -14,7 +14,7 @@ FILE *safe_open(char *path, const char *mode) {
 }
 
 // gives the string representation of whether a flag is set
-#define flag_conv(ident, str) reg->PSTATE->ident ? str : '-'
+#define show_flag(ident) reg->PSTATE->ident ? #ident : "-"
 
 void log_state(Register *reg, FILE *fd) {
     // log register state
@@ -25,15 +25,15 @@ void log_state(Register *reg, FILE *fd) {
     }
 
     // log PC and PSTATE
-    fprintf(fd, "PC     = %016lx\n", reg->PC * sizeof(uint32_t));
-    fprintf(fd, "PSTATE : %c%c%c%c\n", flag_conv(N, 'N'), flag_conv(Z, 'Z'), flag_conv(C, 'C'),
-            flag_conv(V, 'V'));
+    fprintf(fd, "PC     = %016lx\n", reg->PC);
+    fprintf(fd, "PSTATE : %s%s%s%s\n", show_flag(N), show_flag(Z), show_flag(C), show_flag(V));
 
     // log non-zero memory
     fprintf(fd, "Non-Zero Memory:\n");
+    uint32_t *ram = (uint32_t *)reg->ram;
     for (int i = 0; i < WORD_COUNT; i++) {
-        if (reg->ram[i] != 0) {
-            fprintf(fd, "0x%08lx : %08x\n", i * sizeof(uint32_t), reg->ram[i]);
+        if (ram[i] != 0) {
+            fprintf(fd, "0x%08lx : %08x\n", i * sizeof(uint32_t), ram[i]);
         }
     }
 }

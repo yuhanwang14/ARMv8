@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     reg = reg_init();
     instr = malloc(sizeof(Instr));
     // load the program into memory
-    fread(reg->ram, sizeof(uint32_t), WORD_COUNT, source);
+    fread(reg->ram, sizeof(uint8_t), BYTE_COUNT, source);
 
     // exit if we encountered error when reading
     if (ferror(source)) {

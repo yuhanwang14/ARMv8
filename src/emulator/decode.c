@@ -81,6 +81,8 @@ static const uint32_t COND_START = 0;
 static const uint32_t COND_SIZE = 4;
 static const uint32_t BR_SIMM19_START = 5;
 static const uint32_t BR_SIMM19_SIZE = 19;
+static const unsigned BR_UNCOND_OFF_SIZE = 21;
+static const unsigned BR_COND_OFF_SIZE = 28;
 
 // getting the bits in [start..start+size)
 #define bit_slice(bits, start, size) ((bits >> start) & (((uint32_t)1 << size) - 1))
@@ -89,7 +91,6 @@ static const uint32_t BR_SIMM19_SIZE = 19;
 // whether the nth bit from op0 is set
 #define op0(n) nth_bit_set(code, OP0_OFFSET + n)
 
-// Decodes a DP (Immediate) instruction
 static void decode_dpi(uint32_t rd, uint32_t operand, uint32_t opi, uint32_t opc, uint32_t sf,
                        Instr *result) {
     if (opi == ARITHMETIC_OPI) {
@@ -165,7 +166,7 @@ static void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm, 
 // Decodes a single data transfer instruction
 static void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, uint32_t u, uint32_t sf,
                        Instr *result) {
-    if (u == 0x1) {
+    if (u) {
         // unsigned type
         result->sing_data_transfer.type = UNSIGN_T;
         result->sing_data_transfer.usigned.imm12 = offset;
@@ -177,7 +178,7 @@ static void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, ui
         // pre/post-index type
         result->sing_data_transfer.type = PRE_POST_INDEX_T;
         result->sing_data_transfer.pre_post_index.itype =
-            (nth_bit_set(offset, I_OFFSET) == (uint32_t)1) ? PRE_INDEX : POST_INDEX;
+            (nth_bit_set(offset, I_OFFSET)) ? PRE_INDEX : POST_INDEX;
         result->sing_data_transfer.pre_post_index.L = (bool)l;
         result->sing_data_transfer.pre_post_index.rt = rt;
         result->sing_data_transfer.pre_post_index.sf = (bool)sf;
@@ -201,12 +202,19 @@ static void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, ui
     }
 }
 
+// https://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend
+static int64_t sign_extend(int64_t x, unsigned nbits) {
+    const int64_t m = 1U << (nbits - 1);
+    x = x & ((1U << nbits) - 1);
+    return (x ^ m) - m;
+}
+
 // Decodes a branch instruction
 static void decode_branch(uint32_t operand, uint32_t type, Instr *result) {
     if (type == UNCONDITIONAL_T) {
         // unconditional type
         result->branch.type = UNCONDITIONAL_T;
-        result->branch.unconditional.simm26 = operand;
+        result->branch.unconditional.offset = sign_extend((int64_t)operand, BR_COND_OFF_SIZE);
     } else if (type == BR_REGISTER_T) {
         // register type
         result->branch.type = BR_REGISTER_T;
@@ -215,7 +223,8 @@ static void decode_branch(uint32_t operand, uint32_t type, Instr *result) {
         // conditional type
         result->branch.type = CONDITIONAL_T;
         result->branch.conditional.cond = bit_slice(operand, COND_START, COND_SIZE);
-        result->branch.conditional.simm19 = bit_slice(operand, BR_SIMM19_START, BR_SIMM19_SIZE);
+        int64_t offset_nonextended = (int64_t)(bit_slice(operand, BR_SIMM19_START, BR_SIMM19_SIZE) << 2);
+        result->branch.conditional.offset = sign_extend(offset_nonextended, BR_UNCOND_OFF_SIZE);
     } else {
         fprintf(stderr, "Failed to decode a branch instruction: Unknown combination of type = 0x%x\n", type);
         free(result);
@@ -250,7 +259,6 @@ void decode(uint32_t code, Instr *result) {
         decode_dpr(rd, rn, operand, rm, opr, m, opc, sf, result);
     } else if (!op0(0) && op0(2) && op0(3) && op0(4)) {
         // Single Data Transfer
-        printf("Type: Single Data Transfer\n");
         result->type = SINGLE_DATA_TRANSFER_T;
         uint32_t rt = bit_slice(code, RT_START, RT_SIZE);
         uint64_t xn = bit_slice(code, SDT_XN_START, SDT_XN_SIZE);
@@ -261,7 +269,6 @@ void decode(uint32_t code, Instr *result) {
         decode_sdt(rt, xn, offset, l, u, sf, result);
     } else if (!op0(0) && op0(2) && op0(3)) {
         // Load From Literal
-        printf("Type: Load From Literal\n");
         result->type = LOAD_LITERAL_T;
         result->load_literal.rt = bit_slice(code, RT_START, RT_SIZE);
         result->load_literal.sf = nth_bit_set(code, LS_SF_OFFSET);

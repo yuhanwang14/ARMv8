@@ -2,6 +2,7 @@
 #include <features.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 // register related macros
 #define R64(n) reg->g_reg[n]
@@ -13,14 +14,19 @@
 // getting 16 bit long slices of register
 #define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n) * 4 + shift]
 #define R32_16(n, shift) R64_16(n, shift)
+// get ram with offset, ram is always BYTE INDEXED
+#define RAM_64(n) *(uint64_t *)(reg->ram + (n))
+#define RAM_32(n) *(uint32_t *)(reg->ram + (n))
 
 static const uint32_t MULT_ZERO_REG = 0x1F;
 
-static const int32_t SIGN_IDENTIFICATION_CONST = 0x40000;
-static const int64_t SIGN_EXTENDED_CONST = 0x7FFFF;
+static const int32_t SIGN_IDENT_SIMM19 = 0x40000;
+static const int64_t SIGN_EXTENDED_SIMM19 = 0x7FFFF;
+static const int32_t SIGN_IDENT_SIMM9 = 0x100;
+static const int64_t SIGN_EXTENDED_SIMM9 = 0x1FF;
 
-static void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t rd, uint32_t rn,
-                               uint64_t op2) {
+void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t rd, uint32_t rn,
+                        uint64_t op2) {
     uint32_t op2_32 = (uint32_t)op2;
     switch (atype) {
     case ADD:
@@ -155,6 +161,7 @@ static void execute_dpi(Register *reg, DpImmed dpi) {
         exit(EXIT_FAILURE);
     }
 }
+
 static void execute_dpr(Register *reg, DpRegister dpr) {
     switch (dpr.type) {
     case DPR_ARITHMETIC_T: {
@@ -356,6 +363,7 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
         exit(EXIT_FAILURE);
     }
 }
+
 static void execute_sdt(Register *reg, SdTrans sdt) {
     uint64_t addrs;
     switch (sdt.type) {
@@ -366,77 +374,83 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
             // load operation
             if (instr.sf) {
                 // 64 bits
-                R64(instr.rt) = *(reg->ram + addrs);
+                R64(instr.rt) = RAM_64(addrs);
             } else {
                 // 32 bits
-                R32(instr.rt) = *(uint32_t *)(reg->ram + addrs);
+                R32(instr.rt) = RAM_32(addrs);
                 R32_cls_upper(instr.rt);
             }
         } else {
             // store operation
             if (instr.sf) {
                 // 64 bits
-                *(reg->ram + addrs) = R64(instr.rt);
+                RAM_64(addrs) = R64(instr.rt);
             } else {
                 // 32 bits
-                *(uint32_t *)(reg->ram + addrs) = R32(instr.rt);
+                RAM_32(addrs) = R32(instr.rt);
             }
         }
         break;
     }
     case PRE_POST_INDEX_T: {
         PrePostIndex instr = sdt.pre_post_index;
+        int64_t signed_simm9;
+        if (instr.simm9 & SIGN_IDENT_SIMM9) {                  // Check if the sign bit (18th bit) is set
+            signed_simm9 = instr.simm9 | ~SIGN_EXTENDED_SIMM9; // Sign extend to 64 bits if negative
+        } else {
+            signed_simm9 = instr.simm9; // Use the value as is if positive
+        }
         switch (instr.itype) {
         case PRE_INDEX: {
-            addrs = R64(instr.xn) + (uint64_t)instr.simm9;
+            addrs = R64(instr.xn) + (uint64_t)(signed_simm9);
+            R64(instr.xn) = R64(instr.xn) + (uint64_t)(signed_simm9);
             // transfer address
             if (instr.L) {
                 // load operation
                 if (instr.sf) {
                     // 64 bits
-                    R64(instr.rt) = *(reg->ram + addrs);
+                    R64(instr.rt) = RAM_64(addrs);
                 } else {
                     // 32 bits
-                    R32(instr.rt) = *(uint32_t *)(reg->ram + addrs);
+                    R32(instr.rt) = RAM_32(addrs);
                     R32_cls_upper(instr.rt);
                 }
             } else {
                 // store operation
                 if (instr.sf) {
                     // 64 bits
-                    *(reg->ram + addrs) = R64(instr.rt);
+                    RAM_64(addrs) = R64(instr.rt);
                 } else {
                     // 32 bits
-                    *(uint32_t *)(reg->ram + addrs) = R32(instr.rt);
+                    RAM_32(addrs) = R32(instr.rt);
                 }
             }
-            R64(instr.xn) = R64(instr.xn) + (uint64_t)instr.simm9;
             break;
         }
 
         case POST_INDEX: {
             addrs = R64(instr.xn);
+            R64(instr.xn) = R64(instr.xn) + (uint64_t)(signed_simm9);
             if (instr.L) {
                 // load operation
                 if (instr.sf) {
                     // 64 bits
-                    R64(instr.rt) = *(reg->ram + addrs);
+                    R64(instr.rt) = RAM_64(addrs);
                 } else {
                     // 32 bits
-                    R32(instr.rt) = *(uint32_t *)(reg->ram + addrs);
+                    R32(instr.rt) = RAM_32(addrs);
                     R32_cls_upper(instr.rt);
                 }
             } else {
                 // store operation
                 if (instr.sf) {
                     // 64 bits
-                    *(reg->ram + addrs) = R64(instr.rt);
+                    RAM_64(addrs) = R64(instr.rt);
                 } else {
                     // 32 bits
-                    *(uint32_t *)(reg->ram + addrs) = R32(instr.rt);
+                    RAM_32(addrs) = R32(instr.rt);
                 }
             }
-            R64(instr.xn) = R64(instr.xn) + (uint64_t)instr.simm9;
             break;
         }
 
@@ -452,24 +466,24 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
             // load operation
             if (instr.sf) {
                 // 64 bits
-                addrs = R64(instr.xn) + (uint64_t)(instr.imm12 << 3);
-                R64(instr.rt) = *(reg->ram + addrs);
+                addrs = R64(instr.xn) + (uint64_t)(instr.imm12) * 8;
+                R64(instr.rt) = RAM_64(addrs);
             } else {
                 // 32 bits
-                addrs = R64(instr.xn) + (uint64_t)(instr.imm12 << 2);
-                R32(instr.rt) = *(uint32_t *)(reg->ram + addrs);
+                addrs = R64(instr.xn) + (uint64_t)(instr.imm12 * 4);
+                R32(instr.rt) = RAM_32(addrs);
                 R32_cls_upper(instr.rt);
             }
         } else {
             // store operation
             if (instr.sf) {
                 // 64 bits
-                addrs = R64(instr.xn) + (uint64_t)(instr.imm12 << 3);
-                *(reg->ram + addrs) = R64(instr.rt);
+                addrs = R64(instr.xn) + (uint64_t)(instr.imm12 * 8);
+                RAM_64(addrs) = R64(instr.rt);
             } else {
                 // 32 bits
-                addrs = R64(instr.xn) + (uint64_t)(instr.imm12 << 2);
-                *(uint32_t *)(reg->ram + addrs) = R32(instr.rt);
+                addrs = R64(instr.xn) + (uint64_t)(instr.imm12 * 4);
+                RAM_32(addrs) = R32(instr.rt);
             }
         }
         break;
@@ -479,34 +493,30 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
         exit(EXIT_FAILURE);
     }
 }
+
 static void execute_ldl(Register *reg, LoadLiteral ldl) {
     int64_t signed_simm19;
-    if (ldl.simm19 & SIGN_IDENTIFICATION_CONST) {          // Check if the sign bit (18th bit) is set
-        signed_simm19 = ldl.simm19 | ~SIGN_EXTENDED_CONST; // Sign extend to 64 bits if negative
+    if (ldl.simm19 & SIGN_IDENT_SIMM19) {                   // Check if the sign bit (18th bit) is set
+        signed_simm19 = ldl.simm19 | ~SIGN_EXTENDED_SIMM19; // Sign extend to 64 bits if negative
     } else {
         signed_simm19 = ldl.simm19; // Use the value as is if positive
     }
-    uint64_t addrs = reg->PC + (uint64_t)(signed_simm19);
-    printf("PC: %lu, signed simm19: %ld, simm19: %d\n", reg->PC, signed_simm19, ldl.simm19);
+    uint64_t addrs = reg->PC + (uint64_t)(signed_simm19) * sizeof(uint32_t);
     if (ldl.sf) {
         // 64 bits
-        R64(ldl.rt) = *(reg->ram + addrs);
+        R64(ldl.rt) = RAM_64(addrs);
     } else {
         // 32 bits
-        // printf("addrs: %lu\n", addrs);
-        if (addrs >= WORD_COUNT) {
-            fprintf(stderr, "Address out of bounds: %lu out of %lu\n", addrs, WORD_COUNT);
-            exit(EXIT_FAILURE);
-        }
-        R32(ldl.rt) = *(uint32_t *)(reg->ram + addrs);
+        R32(ldl.rt) = RAM_32(addrs);
         R32_cls_upper(ldl.rt);
     }
 }
+
 static void execute_branch(Register *reg, Branch branch) {
     switch (branch.type) {
     case UNCONDITIONAL_T: {
         Unconditional instr = branch.unconditional;
-        reg->PC += instr.simm26;
+        reg->PC += instr.offset * sizeof(uint32_t);
         break;
     }
     case BR_REGISTER_T: {
@@ -517,40 +527,42 @@ static void execute_branch(Register *reg, Branch branch) {
     case CONDITIONAL_T: {
         Conditional instr = branch.conditional;
         PState ps = *reg->PSTATE;
+        // offset is byte indexed instead of word indexed
+        int64_t offset = instr.offset;
         switch (instr.cond) {
         case EQ:
             if (ps.Z) {
-                reg->PC += instr.simm19;
+                reg->PC += offset;
             }
             break;
         case NE:
             if (!ps.Z) {
-                reg->PC += instr.simm19;
+                reg->PC += offset;
             }
             break;
         case GE:
             if (ps.N == ps.V) {
-                reg->PC += instr.simm19;
+                reg->PC += offset;
             }
             break;
         case LT:
             if (ps.N != ps.V) {
-                reg->PC += instr.simm19;
+                reg->PC += offset;
             }
             break;
         case GT:
             if (!ps.Z && ps.N == ps.V) {
-                reg->PC += instr.simm19;
+                reg->PC += offset;
             }
             break;
         case LE:
             if (!(!ps.Z && ps.N == ps.V)) {
-                reg->PC += instr.simm19;
+                reg->PC += offset;
             }
             break;
         case AL:
             if (true) {
-                reg->PC += instr.simm19;
+                reg->PC += offset;
             }
             break;
         default:
@@ -595,6 +607,8 @@ void execute(Register *reg, Instr *instr) {
     }
     // update program counter if it was not changed by branch operation
     if (reg->PC == PC_prev) {
-        reg->PC++;
+        reg->PC += 4;
     }
+    // reset the zero register to zero, in case we wrote to it
+    reg->ZR = 0;
 }
