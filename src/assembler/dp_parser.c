@@ -78,7 +78,7 @@ uint32_t parse_2op_with_dest(char *opcode, char **arguments) {
         printf("pos2\n%s\n", arguments[2]);
         bit_append(&result, DPI_IMM_26_28, 3);                                // pos 26 - 28
         bit_append(&result, DPI_ARITH_OPI, 3);                                // opi, pos 23 - 25
-        bit_append(&result, parse_imm12(arguments[2], arguments[3]), 13);     // sh & imm12, pos 10 - 22
+        bit_append(&result, parse_imm12(arguments[2], arguments[3],arguments[4]), 13);     // sh & imm12, pos 10 - 22
         bit_append(&result, parse_register(arguments[1]), REGISTER_ADR_SIZE); // rn, pos 5 - 9
         bit_append(&result, parse_register(arguments[0]), REGISTER_ADR_SIZE); // rd, pos 0 - 4
     } else {

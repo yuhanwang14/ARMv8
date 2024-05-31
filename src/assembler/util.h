@@ -13,7 +13,7 @@ uint8_t parse_register(char *registerName);
 bool is_literal(char *target);
 
 // Parse 12 bit immediate values with possible shift, returns a 13-bit int
-uint16_t parse_imm12(char *immediateValue, char *shift);
+uint16_t parse_imm12(char *literal, char *shiftCom, char *shiftVal);
 // Parse 12 bit immediate values with possible shift, returns a 13-bit int
 
 // Parse 16 bit immediate values with possible shift, returns an 18-bit int
