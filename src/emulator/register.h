@@ -1,12 +1,12 @@
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdlib.h>
 
 #ifndef _REGISTER_H
 #define _REGISTER_H
 
 // hence the 2Mib memory contains this many 4-bytes words
-#define WORD_COUNT (size_t)(1 << 14)
+#define WORD_COUNT (1 << 14)
+#define BYTE_COUNT (1 << 16)
 // number of registers
 #define REG_COUNT 31
 

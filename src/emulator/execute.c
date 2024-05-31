@@ -2,6 +2,7 @@
 #include <features.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 // register related macros
 #define R64(n) reg->g_reg[n]
@@ -14,8 +15,8 @@
 #define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n) * 4 + shift]
 #define R32_16(n, shift) R64_16(n, shift)
 // get ram with offset, ram is always BYTE INDEXED
-#define RAM_64(n) *(uint64_t *)((char *)reg->ram + n)
-#define RAM_32(n) *(uint32_t *)((char *)reg->ram + n)
+#define RAM_64(n) *(uint64_t *)((char *)reg->ram + (n) % BYTE_COUNT)
+#define RAM_32(n) *(uint32_t *)((char *)reg->ram + (n) % BYTE_COUNT)
 
 static const uint32_t MULT_ZERO_REG = 0x1F;
 
@@ -509,7 +510,7 @@ static void execute_ldl(Register *reg, LoadLiteral ldl) {
         // 32 bits
         // printf("addrs: %lu\n", addrs);
         if (addrs >= WORD_COUNT) {
-            fprintf(stderr, "Address out of bounds: %lu out of %lu\n", addrs, WORD_COUNT);
+            fprintf(stderr, "Address out of bounds: %lu out of %d\n", addrs, WORD_COUNT);
             exit(EXIT_FAILURE);
         }
         R32(ldl.rt) = *(reg->ram + addrs);
