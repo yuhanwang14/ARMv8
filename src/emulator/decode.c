@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// whether the nth bit from op0 is set
+#define OP0(n) nth_bit_set(code, OP0_OFFSET + n)
+
 static const uint32_t OP0_OFFSET = 25;
 
 // consts for DP (Immediate)
@@ -84,12 +87,15 @@ static const uint32_t BR_SIMM19_SIZE = 19;
 static const unsigned BR_UNCOND_OFF_SIZE = 21;
 static const unsigned BR_COND_OFF_SIZE = 28;
 
-// getting the bits in [start..start+size)
-#define bit_slice(bits, start, size) ((bits >> start) & (((uint32_t)1 << size) - 1))
-// whether or not the nth bit of bits is set
-#define nth_bit_set(bits, n) (bits & ((uint32_t)1 << (n)))
-// whether the nth bit from op0 is set
-#define op0(n) nth_bit_set(code, OP0_OFFSET + n)
+static uint32_t bit_slice(uint32_t bits, unsigned start, unsigned size) {
+    // getting the bits in [start..start+size)
+    return ((bits >> start) & (((uint32_t)1 << size) - 1));
+}
+
+static bool nth_bit_set(uint32_t bits, unsigned n) {
+    // whether or not the nth bit of bits is set
+    return (bool)(bits & ((uint32_t)1 << (n)));
+}
 
 static void decode_dpi(uint32_t rd, uint32_t operand, uint32_t opi, uint32_t opc, uint32_t sf,
                        Instr *result) {
@@ -236,7 +242,7 @@ void decode(uint32_t code, Instr *result) {
     // we read op0 to determine which category of instruction we have encountered (spec p8)
     // for each big case we slice the arguments out and process it further in corresponding functions with the
     // exception of load literal because it only has one case, hence we processed it inline
-    if (!op0(1) && !op0(2)) {
+    if (!OP0(1) && !OP0(2)) {
         // DP (Immediate)
         result->type = DP_IMMEDIATE_T;
         uint32_t rd = bit_slice(code, RD_START, RD_SIZE);
@@ -245,7 +251,7 @@ void decode(uint32_t code, Instr *result) {
         uint32_t opc = bit_slice(code, OPC_START, OPC_SIZE);
         uint32_t sf = nth_bit_set(code, DP_SF_OFFSET);
         decode_dpi(rd, operand, opi, opc, sf, result);
-    } else if (op0(0) && op0(2)) {
+    } else if (OP0(0) && OP0(2)) {
         // DP (Register)
         result->type = DP_REGISTER_T;
         uint32_t rd = bit_slice(code, RD_START, RD_SIZE);
@@ -257,7 +263,7 @@ void decode(uint32_t code, Instr *result) {
         uint32_t opc = bit_slice(code, OPC_START, OPC_SIZE);
         uint32_t sf = nth_bit_set(code, DP_SF_OFFSET);
         decode_dpr(rd, rn, operand, rm, opr, m, opc, sf, result);
-    } else if (!op0(0) && op0(2) && op0(3) && op0(4)) {
+    } else if (!OP0(0) && OP0(2) && OP0(3) && OP0(4)) {
         // Single Data Transfer
         result->type = SINGLE_DATA_TRANSFER_T;
         uint32_t rt = bit_slice(code, RT_START, RT_SIZE);
@@ -267,13 +273,13 @@ void decode(uint32_t code, Instr *result) {
         uint32_t u = nth_bit_set(code, U_OFFSET);
         uint32_t sf = nth_bit_set(code, LS_SF_OFFSET);
         decode_sdt(rt, xn, offset, l, u, sf, result);
-    } else if (!op0(0) && op0(2) && op0(3)) {
+    } else if (!OP0(0) && OP0(2) && OP0(3)) {
         // Load From Literal
         result->type = LOAD_LITERAL_T;
         result->load_literal.rt = bit_slice(code, RT_START, RT_SIZE);
         result->load_literal.sf = nth_bit_set(code, LS_SF_OFFSET);
         result->load_literal.simm19 = bit_slice(code, LL_SIMM19_START, LL_SIMM19_SIZE);
-    } else if (op0(1) && op0(3)) {
+    } else if (OP0(1) && OP0(3)) {
         // Branch
         result->type = BRANCH_T;
         uint32_t operand = bit_slice(code, BRANCH_OP_START, BRANCH_OP_SIZE);

@@ -6,13 +6,13 @@
 
 // register related macros
 #define R64(n) reg->g_reg[n]
-#define R32(n) ((uint32_t *)reg->g_reg)[(n) * 2]
-#define R32_cls_upper(n) ((uint32_t *)reg->g_reg)[(n) * 2 + 1] = 0
+#define R32(n) ((uint32_t *)reg->g_reg)[(n)*2]
+#define R32_cls_upper(n) ((uint32_t *)reg->g_reg)[(n)*2 + 1] = 0
 // getting sign bit macro
-#define sgn64(n) (bool)((n >> 63) & 1)
-#define sgn32(n) (bool)((n >> 31) & 1)
+#define SGN64(n) (bool)((n >> 63) & 1)
+#define SGN32(n) (bool)((n >> 31) & 1)
 // getting 16 bit long slices of register
-#define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n) * 4 + shift]
+#define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n)*4 + shift]
 #define R32_16(n, shift) R64_16(n, shift)
 // get ram with offset, ram is always BYTE INDEXED
 #define RAM_64(n) *(uint64_t *)(reg->ram + (n))
@@ -50,7 +50,7 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
             // update signed overflow indicator flags
             reg->PSTATE->V = __builtin_add_overflow((int64_t)R64(rn), (int64_t)op2, &i_result);
             R64(rd) = u_result;
-            reg->PSTATE->N = sgn64(i_result);
+            reg->PSTATE->N = SGN64(i_result);
             reg->PSTATE->Z = u_result == 0;
         } else {
             // 32 bit mode
@@ -60,7 +60,7 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
             reg->PSTATE->V = __builtin_add_overflow((int32_t)R32(rn), (int32_t)op2_32, &i_result);
             R32_cls_upper(rd);
             R64(rd) = u_result;
-            reg->PSTATE->N = sgn32(i_result);
+            reg->PSTATE->N = SGN32(i_result);
             reg->PSTATE->Z = u_result == 0;
         }
         break;
@@ -85,7 +85,7 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
             // update signed overflow indicator flags
             reg->PSTATE->V = __builtin_sub_overflow((int64_t)R64(rn), (int64_t)op2, &i_result);
             R64(rd) = u_result;
-            reg->PSTATE->N = sgn64(i_result);
+            reg->PSTATE->N = SGN64(i_result);
             reg->PSTATE->Z = u_result == 0;
         } else {
             // 32 bit mode
@@ -95,7 +95,7 @@ void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t r
             reg->PSTATE->V = __builtin_sub_overflow((int32_t)R32(rn), (int32_t)op2_32, &i_result);
             R32_cls_upper(rd);
             R64(rd) = u_result;
-            reg->PSTATE->N = sgn32(i_result);
+            reg->PSTATE->N = SGN32(i_result);
             reg->PSTATE->Z = u_result == 0;
         }
         break;
@@ -254,7 +254,7 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
                 break;
             case ANDC:
                 R64(instr.rd) = rn & op2;
-                reg->PSTATE->N = sgn64(R64(instr.rd));
+                reg->PSTATE->N = SGN64(R64(instr.rd));
                 reg->PSTATE->Z = R64(instr.rd) == 0;
                 reg->PSTATE->C = 0;
                 reg->PSTATE->V = 0;
@@ -306,7 +306,7 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
                 break;
             case ANDC:
                 R32(instr.rd) = rn & op2;
-                reg->PSTATE->N = sgn32(R32(instr.rd));
+                reg->PSTATE->N = SGN32(R32(instr.rd));
                 reg->PSTATE->Z = R32(instr.rd) == 0;
                 reg->PSTATE->C = 0;
                 reg->PSTATE->V = 0;
