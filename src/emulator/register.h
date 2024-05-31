@@ -5,8 +5,8 @@
 #define _REGISTER_H
 
 // hence the 2Mib memory contains this many 4-bytes words
-#define WORD_COUNT (1 << 14)
-#define BYTE_COUNT (1 << 16)
+#define WORD_COUNT (1 << 19)
+#define BYTE_COUNT (1 << 21)
 // number of registers
 #define REG_COUNT 31
 
@@ -23,7 +23,7 @@ typedef struct {
     uint64_t ZR;               // zero register
     uint64_t PC;               // program counter
     PState *PSTATE;            // program state
-    uint32_t ram[WORD_COUNT];  // virtual memory
+    uint8_t ram[BYTE_COUNT];   // virtual memory
 } Register;
 
 // Initialilze the registers according to the spec
