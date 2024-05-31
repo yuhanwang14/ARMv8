@@ -25,7 +25,7 @@ void log_state(Register *reg, FILE *fd) {
     }
 
     // log PC and PSTATE
-    fprintf(fd, "PC     = %016lx\n", reg->PC * sizeof(uint32_t));
+    fprintf(fd, "PC     = %016lx\n", reg->PC);
     fprintf(fd, "PSTATE : %s%s%s%s\n", show_flag(N), show_flag(Z), show_flag(C), show_flag(V));
 
     // log non-zero memory

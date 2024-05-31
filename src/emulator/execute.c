@@ -15,8 +15,8 @@
 #define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n) * 4 + shift]
 #define R32_16(n, shift) R64_16(n, shift)
 // get ram with offset, ram is always BYTE INDEXED
-#define RAM_64(n) *(uint64_t *)((char *)reg->ram + (n) % BYTE_COUNT)
-#define RAM_32(n) *(uint32_t *)((char *)reg->ram + (n) % BYTE_COUNT)
+#define RAM_64(n) *(uint64_t *)(reg->ram + (n))
+#define RAM_32(n) *(uint32_t *)(reg->ram + (n))
 
 static const uint32_t MULT_ZERO_REG = 0x1F;
 
@@ -161,6 +161,7 @@ static void execute_dpi(Register *reg, DpImmed dpi) {
         exit(EXIT_FAILURE);
     }
 }
+
 static void execute_dpr(Register *reg, DpRegister dpr) {
     switch (dpr.type) {
     case DPR_ARITHMETIC_T: {
@@ -362,6 +363,7 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
         exit(EXIT_FAILURE);
     }
 }
+
 static void execute_sdt(Register *reg, SdTrans sdt) {
     uint64_t addrs;
     switch (sdt.type) {
@@ -494,6 +496,7 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
         exit(EXIT_FAILURE);
     }
 }
+
 static void execute_ldl(Register *reg, LoadLiteral ldl) {
     int64_t signed_simm19;
     if (ldl.simm19 & SIGN_IDENT_SIMM19) {                   // Check if the sign bit (18th bit) is set
@@ -505,18 +508,14 @@ static void execute_ldl(Register *reg, LoadLiteral ldl) {
     printf("PC: %lu, signed simm19: %ld, simm19: %d\n", reg->PC, signed_simm19, ldl.simm19);
     if (ldl.sf) {
         // 64 bits
-        R64(ldl.rt) = *(uint64_t *)(reg->ram + addrs);
+        R64(ldl.rt) = RAM_64(addrs);
     } else {
         // 32 bits
-        // printf("addrs: %lu\n", addrs);
-        if (addrs >= WORD_COUNT) {
-            fprintf(stderr, "Address out of bounds: %lu out of %d\n", addrs, WORD_COUNT);
-            exit(EXIT_FAILURE);
-        }
-        R32(ldl.rt) = *(reg->ram + addrs);
+        R32(ldl.rt) = RAM_32(addrs);
         R32_cls_upper(ldl.rt);
     }
 }
+
 static void execute_branch(Register *reg, Branch branch) {
     switch (branch.type) {
     case UNCONDITIONAL_T: {
@@ -533,7 +532,7 @@ static void execute_branch(Register *reg, Branch branch) {
         Conditional instr = branch.conditional;
         PState ps = *reg->PSTATE;
         // offset is byte indexed instead of word indexed
-        int64_t offset = instr.offset / (int64_t)sizeof(uint32_t);
+        int64_t offset = instr.offset;
         switch (instr.cond) {
         case EQ:
             if (ps.Z) {
@@ -612,6 +611,6 @@ void execute(Register *reg, Instr *instr) {
     }
     // update program counter if it was not changed by branch operation
     if (reg->PC == PC_prev) {
-        reg->PC++;
+        reg->PC += 4;
     }
 }
