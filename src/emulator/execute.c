@@ -21,11 +21,6 @@
 
 static const uint32_t MULT_ZERO_REG = 0x1F;
 
-// static const int32_t SIGN_IDENT_SIMM19 = 0x40000;
-// static const int64_t SIGN_EXTENDED_SIMM19 = 0x7FFFF;
-// static const int32_t SIGN_IDENT_SIMM9 = 0x100;
-// static const int64_t SIGN_EXTENDED_SIMM9 = 0x1FF;
-
 void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t rd, uint32_t rn,
                         uint64_t op2) {
     uint32_t op2_32 = (uint32_t)op2;
@@ -183,7 +178,8 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
                 break;
             default:
                 fprintf(stderr,
-                        "Unknown shift type: 0x%x for data processing (Register) arithmetic instruction\n",
+                        "Unknown shift type: 0x%x for data processing (Register) arithmetic "
+                        "instruction\n",
                         dpr.type);
                 exit(EXIT_FAILURE);
             }
@@ -204,7 +200,8 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
                 break;
             default:
                 fprintf(stderr,
-                        "Unknown shift type: 0x%x for data processing (Register) arithmetic instruction\n",
+                        "Unknown shift type: 0x%x for data processing (Register) arithmetic "
+                        "instruction\n",
                         dpr.type);
                 exit(EXIT_FAILURE);
             }
@@ -236,7 +233,8 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
                 break;
             default:
                 fprintf(stderr,
-                        "Unknown shift type: 0x%x for data processing (Register) bit logic instruction\n",
+                        "Unknown shift type: 0x%x for data processing (Register) bit logic "
+                        "instruction\n",
                         instr.stype);
                 exit(EXIT_FAILURE);
             }
@@ -262,7 +260,8 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
                 break;
             default:
                 fprintf(stderr,
-                        "Unknown bit logic type: 0x%x for data processing (Register) bit logic instruction\n",
+                        "Unknown bit logic type: 0x%x for data processing (Register) bit logic "
+                        "instruction\n",
                         instr.btype);
                 exit(EXIT_FAILURE);
             }
@@ -288,7 +287,8 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
                 break;
             default:
                 fprintf(stderr,
-                        "Unknown shift type: 0x%x for data processing (Register) bit logic instruction\n",
+                        "Unknown shift type: 0x%x for data processing (Register) bit logic "
+                        "instruction\n",
                         instr.stype);
                 exit(EXIT_FAILURE);
             }
@@ -314,7 +314,8 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
                 break;
             default:
                 fprintf(stderr,
-                        "Unknown bit logic type: 0x%x for data processing (Register) bit logic instruction\n",
+                        "Unknown bit logic type: 0x%x for data processing (Register) bit logic "
+                        "instruction\n",
                         instr.btype);
                 exit(EXIT_FAILURE);
             }
@@ -396,11 +397,6 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
     case PRE_POST_INDEX_T: {
         PrePostIndex instr = sdt.pre_post_index;
         int64_t signed_simm9 = sign_extend(instr.simm9, 9);
-        // if (instr.simm9 & SIGN_IDENT_SIMM9) {                  // Check if the sign bit (18th bit) is set
-        //     signed_simm9 = instr.simm9 | ~SIGN_EXTENDED_SIMM9; // Sign extend to 64 bits if negative
-        // } else {
-        //     signed_simm9 = instr.simm9; // Use the value as is if positive
-        // }
         switch (instr.itype) {
         case PRE_INDEX: {
             addrs = R64(instr.xn) + (uint64_t)(signed_simm9);
@@ -497,11 +493,6 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
 
 static void execute_ldl(Register *reg, LoadLiteral ldl) {
     int64_t signed_simm19 = sign_extend(ldl.simm19, 19);
-    // if (ldl.simm19 & SIGN_IDENT_SIMM19) {                   // Check if the sign bit (18th bit) is set
-    //     signed_simm19 = ldl.simm19 | ~SIGN_EXTENDED_SIMM19; // Sign extend to 64 bits if negative
-    // } else {
-    //     signed_simm19 = ldl.simm19; // Use the value as is if positive
-    // }
     uint64_t addrs = reg->PC + (uint64_t)(signed_simm19) * sizeof(uint32_t);
     if (ldl.sf) {
         // 64 bits

@@ -9,6 +9,9 @@
 // whether the nth bit from op0 is set
 #define OP0(n) nth_bit_set(code, OP0_OFFSET + n)
 
+// [yw8123] & [ky723]:
+// These constants are the positions of every opprand in the bit code.
+
 static const uint32_t OP0_OFFSET = 25;
 
 // consts for DP (Immediate)
@@ -128,8 +131,8 @@ static void decode_dpi(uint32_t rd, uint32_t operand, uint32_t opi, uint32_t opc
 }
 
 // Decodes a DP (Register) instruction
-static void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm, uint32_t opr, uint32_t m,
-                       uint32_t opc, uint32_t sf, Instr *result) {
+static void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm, uint32_t opr,
+                       uint32_t m, uint32_t opc, uint32_t sf, Instr *result) {
     if (m && opr == OPR_MULTIPLY) {
         // multiply type
         result->dp_reg.type = MULTIPLY_T;
@@ -171,8 +174,8 @@ static void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm, 
 }
 
 // Decodes a single data transfer instruction
-static void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, uint32_t u, uint32_t sf,
-                       Instr *result) {
+static void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, uint32_t u,
+                       uint32_t sf, Instr *result) {
     if (u) {
         // unsigned type
         result->sing_data_transfer.type = UNSIGN_T;
@@ -189,7 +192,8 @@ static void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, ui
         result->sing_data_transfer.pre_post_index.L = (bool)l;
         result->sing_data_transfer.pre_post_index.rt = rt;
         result->sing_data_transfer.pre_post_index.sf = (bool)sf;
-        result->sing_data_transfer.pre_post_index.simm9 = bit_slice(offset, SIMM9_START, SIMM9_SIZE);
+        result->sing_data_transfer.pre_post_index.simm9 =
+            bit_slice(offset, SIMM9_START, SIMM9_SIZE);
         result->sing_data_transfer.pre_post_index.xn = xn;
     } else if (!nth_bit_set(offset, FLAG_OFFSET)) {
         // register type
@@ -223,10 +227,13 @@ static void decode_branch(uint32_t operand, uint32_t type, Instr *result) {
         // conditional type
         result->branch.type = CONDITIONAL_T;
         result->branch.conditional.cond = bit_slice(operand, COND_START, COND_SIZE);
-        int64_t offset_nonextended = (int64_t)(bit_slice(operand, BR_SIMM19_START, BR_SIMM19_SIZE) << 2);
+        int64_t offset_nonextended =
+            (int64_t)(bit_slice(operand, BR_SIMM19_START, BR_SIMM19_SIZE) << 2);
         result->branch.conditional.offset = sign_extend(offset_nonextended, BR_UNCOND_OFF_SIZE);
     } else {
-        fprintf(stderr, "Failed to decode a branch instruction: Unknown combination of type = 0x%x\n", type);
+        fprintf(stderr,
+                "Failed to decode a branch instruction: Unknown combination of type = 0x%x\n",
+                type);
         free(result);
         exit(EXIT_FAILURE);
     }
@@ -234,8 +241,9 @@ static void decode_branch(uint32_t operand, uint32_t type, Instr *result) {
 
 void decode(uint32_t code, Instr *result) {
     // we read op0 to determine which category of instruction we have encountered (spec p8)
-    // for each big case we slice the arguments out and process it further in corresponding functions with the
-    // exception of load literal because it only has one case, hence we processed it inline
+    // for each big case we slice the arguments out and process it further in corresponding
+    // functions with the exception of load literal because it only has one case, hence we processed
+    // it inline
     if (!OP0(1) && !OP0(2)) {
         // DP (Immediate)
         result->type = DP_IMMEDIATE_T;
