@@ -1,7 +1,7 @@
 #include "dt_parser.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 static const int8_t SDT_LITERAL_24_29 = 24;
 static const int8_t SDT_NOT_LITERAL_25_29 = 28;
@@ -14,10 +14,8 @@ static int32_t parse_simm19(char *absoluteAddress, uint32_t currentLoc) {
 }
 
 static uint32_t parse_dt_literal(char *rt, char *immediate, uint32_t currentLoc) {
-    uint32_t result = 0; // pos 31
-    if (rt[0] == 'x') {
-        bit_append(&result, 1, 1); // sf, pos 30
-    }
+    uint32_t result = 0;                                          // pos 31
+    bit_append(&result, GET_SF(rt), 1);                           // sf, pos 30
     bit_append(&result, SDT_LITERAL_24_29, 6);                    // pos 24-29
     bit_append(&result, parse_simm19(immediate, currentLoc), 19); // simm 19, pos 5-23
     bit_append(&result, parse_register(rt), REGISTER_ADR_SIZE);   // rt, pos 0-4
@@ -87,13 +85,16 @@ uint32_t parse_sdt(char *opcode, char *argument, uint32_t currentLoc) {
     printf("dt_parser control pos 1\n");
     char *rt = strtok(argument, " ,");
     char *rest = strtok(NULL, "");
-    if (*rest == ' ') rest ++;
+    if (*rest == ' ')
+        rest++;
     if (*rest == '#')
         return parse_dt_literal(rt, rest, currentLoc);
     while (*rest == ' ')
-        rest++;      // removes all spaces at the front(if any)
-    rest = rest + 1; // if we reach here, it implies the original str starts with '[', remove the bracket
-    bool postIndex = rest[3] == ']' || rest[2] == ']'; // this is used to distingush Unsigned offset and post-index
+        rest++; // removes all spaces at the front(if any)
+    rest = rest +
+           1; // if we reach here, it implies the original str starts with '[', remove the bracket
+    bool postIndex = rest[3] == ']' ||
+                     rest[2] == ']'; // this is used to distingush Unsigned offset and post-index
     char *nextArg = strtok(rest, ",] ");
     char *addressArg[3];
     int8_t numArg = 0;
@@ -104,12 +105,8 @@ uint32_t parse_sdt(char *opcode, char *argument, uint32_t currentLoc) {
         nextArg = strtok(NULL, ",] ");
     }
     printf("dt_parser control pos 3\n");
-    uint32_t result = 1; // pos 31
-    if (*rt == 'x') {
-        bit_append(&result, 1, 1); // sf, pos 30
-    }else{
-        bit_append(&result, 0, 1);
-    }
+    uint32_t result = 1;                           // pos 31
+    bit_append(&result, GET_SF(rt), 1);            // sf, pos 30
     bit_append(&result, SDT_NOT_LITERAL_25_29, 5); // pos 25-29
     switch (numArg) {
     case 1:

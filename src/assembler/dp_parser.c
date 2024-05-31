@@ -69,16 +69,15 @@ uint32_t parse_2op_with_dest(char *opcode, char **arguments) {
         fprintf(stderr, "failed to parse opcode for\n '%s'\nas 2 operand with des\n", opcode);
         exit(EXIT_FAILURE);
     }
-    if (arguments[0][0] == 'x') {
-        bit_append(&result, 1, 1); // sf, pos 31
-    }
-    bit_append(&result, opc, 2); // opc,pos 29 - 30
+    bit_append(&result, GET_SF(arguments[0]), 1); // sf, pos 31
+    bit_append(&result, opc, 2);                  // opc,pos 29 - 30
     if (is_literal(arguments[2])) {
         // <operand> is a literial value
         printf("pos2\n%s\n", arguments[2]);
-        bit_append(&result, DPI_IMM_26_28, 3);                                // pos 26 - 28
-        bit_append(&result, DPI_ARITH_OPI, 3);                                // opi, pos 23 - 25
-        bit_append(&result, parse_imm12(arguments[2], arguments[3],arguments[4]), 13);     // sh & imm12, pos 10 - 22
+        bit_append(&result, DPI_IMM_26_28, 3); // pos 26 - 28
+        bit_append(&result, DPI_ARITH_OPI, 3); // opi, pos 23 - 25
+        bit_append(&result, parse_imm12(arguments[2], arguments[3], arguments[4]),
+                   13); // sh & imm12, pos 10 - 22
         bit_append(&result, parse_register(arguments[1]), REGISTER_ADR_SIZE); // rn, pos 5 - 9
         bit_append(&result, parse_register(arguments[0]), REGISTER_ADR_SIZE); // rd, pos 0 - 4
     } else {
@@ -102,10 +101,8 @@ uint32_t parse_2op_with_dest(char *opcode, char **arguments) {
 
 uint32_t parse_multiply(char *opcode, char **arguments) {
     uint32_t result = 0;
-    if (arguments[0][0] == 'x') {
-        bit_append(&result, 1, 1); // sf, pos 31
-    }
-    bit_append(&result, DPI_MUL_21_30, 10); // pos 21 - 30
+    bit_append(&result, GET_SF(arguments[0]), 1);                         // sf, pos 31
+    bit_append(&result, DPI_MUL_21_30, 10);                               // pos 21 - 30
     bit_append(&result, parse_register(arguments[2]), REGISTER_ADR_SIZE); // rm, pos 16 - 20
     if (strcmp(opcode, "madd") == 0) {
         bit_append(&result, 0, 1); // x, holds whether a negation is needed, pos 15
@@ -136,10 +133,11 @@ uint32_t parse_wide_move(char *opcode, char **arguments) {
         fprintf(stderr, "failed to parse opcode for\n'%s'\nas wide move\n", opcode);
         exit(EXIT_FAILURE);
     }
-    bit_append(&result, DPI_IMM_26_28, 3); // (immediate dp) pos 26 - 28
+    bit_append(&result, DPI_IMM_26_28, 3);     // (immediate dp) pos 26 - 28
     bit_append(&result, DPI_WIDE_MOVE_OPI, 3); // opi, pos 23 - 25
     printf("imm16 :%i\n", parse_imm16(arguments[1], arguments[2], arguments[3]));
-    bit_append(&result, parse_imm16(arguments[1], arguments[2], arguments[3]), 18); // operand as hw and imm 16, pos 5 - 22
+    bit_append(&result, parse_imm16(arguments[1], arguments[2], arguments[3]),
+               18); // operand as hw and imm 16, pos 5 - 22
     bit_append(&result, parse_register(arguments[0]), REGISTER_ADR_SIZE); // rd, pos 0 - 4
     return result;
 }
