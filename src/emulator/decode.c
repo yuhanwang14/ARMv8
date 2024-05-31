@@ -101,6 +101,7 @@ static bool nth_bit_set(uint32_t bits, unsigned n) {
     return (bool)(bits & ((uint32_t)1 << (n)));
 }
 
+// Decodes a DP (Immediate) instruction
 static void decode_dpi(uint32_t rd, uint32_t operand, uint32_t opi, uint32_t opc, uint32_t sf,
                        Instr *result) {
     if (opi == ARITHMETIC_OPI) {
