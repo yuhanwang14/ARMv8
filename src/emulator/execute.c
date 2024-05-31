@@ -426,6 +426,9 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
         }
 
         case POST_INDEX: {
+#if __GNUC__ == 14
+            printf("xn: %064lb\n", R64(instr.xn));
+#endif
             addrs = R64(instr.xn);
             R64(instr.xn) = R64(instr.xn) + (uint64_t)(signed_simm9);
             if (instr.L) {
