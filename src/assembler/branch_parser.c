@@ -32,19 +32,19 @@ static uint32_t parse_cond(char *opcode, char **arguments, int32_t currentLoc) {
     uint32_t result = PARSE_COND_START;                       // pos 24-31
     bit_append(&result, parse_imm_general(arguments[0]), 19); // simm19, pos 5 - 23
     bit_append(&result, 0, 1);                                // pos 4
-    if (strcmp(opcode, "beq") == 0) {                         // cond, pos 0 - 4
+    if (strcmp(opcode, "b.eq") == 0) {                         // cond, pos 0 - 4
         bit_append(&result, COND_CODE_EQ, 4);
-    } else if (strcmp(opcode, "bne") == 0) {
+    } else if (strcmp(opcode, "b.ne") == 0) {
         bit_append(&result, COND_CODE_NE, 4);
-    } else if (strcmp(opcode, "bge") == 0) {
+    } else if (strcmp(opcode, "b.ge") == 0) {
         bit_append(&result, COND_CODE_GE, 4);
-    } else if (strcmp(opcode, "blt") == 0) {
+    } else if (strcmp(opcode, "b.lt") == 0) {
         bit_append(&result, COND_CODE_LT, 4);
-    } else if (strcmp(opcode, "bgt") == 0) {
+    } else if (strcmp(opcode, "b.gt") == 0) {
         bit_append(&result, COND_CODE_GT, 4);
-    } else if (strcmp(opcode, "ble") == 0) {
+    } else if (strcmp(opcode, "b.le") == 0) {
         bit_append(&result, COND_CODE_LE, 4);
-    } else if (strcmp(opcode, "bal") == 0) {
+    } else if (strcmp(opcode, "b.al") == 0) {
         bit_append(&result, COND_CODE_AL, 4);
     } else {
         fprintf(stderr, "failed to parse the condition of '%s'\n", opcode);
@@ -63,7 +63,7 @@ uint32_t parse_branch(char *opcode, char **arguments, int32_t currentLoc) {
         return parse_uncond(opcode, arguments, currentLoc);
     case 2:
         return parse_with_reg(opcode, arguments, currentLoc);
-    case 3:
+    case 4:
         return parse_cond(opcode, arguments, currentLoc);
     default:
         fprintf(stderr, "failed to parse '%s' as branching instruction\n", opcode);

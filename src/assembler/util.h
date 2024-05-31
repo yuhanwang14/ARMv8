@@ -25,6 +25,7 @@ uint8_t parse_imm6(char *immediateValue);
 // Parse a shift argument,
 // returns an Array of size 2, first elem is the code of shift(2-bit), second elem is the shift value,
 // returns {0,0} if passed in NULL
+// Note: the returned array is created from malloc, should be freed after usage
 uint8_t *parse_shift(char *shiftArg, char *shiftVal);
 
 // takes in a pointer to an int, appends the second parameter behind it.
@@ -36,6 +37,6 @@ bool is_shift(char *argument);
 // takes an array of char with at least one free space, inserts the element at the required index
 void insert_str(char **targetArray, int32_t arraySize, char *element, int8_t index);
 
-// identifies between decimal and hex, then perform the correct atoi operation
+// parses general immediate values to integers
 int32_t parse_imm_general(char *strImm);
 #endif
