@@ -14,7 +14,7 @@ typedef struct {
     int size;
 } Index;
 
-Index *index_new(void);
+Index *index_new(int INITIAL_SIZE);
 
 void index_add(Index *index, const char *key, int value);
 

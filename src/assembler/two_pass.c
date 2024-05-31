@@ -1,16 +1,16 @@
 #include "two_pass.h"
 #include <assert.h>
 
-const size_t INITIAL_SIZE = 4;
+const int INITIAL_SIZE = 8;
 const int INITIAL_LINE_SIZE = 32;
 
 // creating a table for mapping labels
 
-Index *index_new(void) {
+Index *index_new(int initial_size) {
     Index *result = malloc(sizeof(Index));
-    result->pairs = malloc(sizeof(Pair) * INITIAL_SIZE);
+    result->pairs = malloc(sizeof(Pair) * initial_size);
     result->used = 0;
-    result->size = INITIAL_SIZE;
+    result->size = initial_size;
 
     return result;
 } // debugged
@@ -19,19 +19,16 @@ void index_add(Index *index, const char *k, int v) {
     Pair *pair = malloc(sizeof(Pair));
     pair->key = k;
     pair->value = v;
-    printf("before realloc:\n");
-    for (int i = 0; i < index->used; i++) {
-        printf("%s\n", index->pairs[i].key);
-    }
     // resize if no. of element exceed the size of array
     if (index->used >= index->size) { 
         index->pairs = realloc(index->pairs, index->size*2);
-        index->size *= 2;
-        printf("after realloc:\n");
 
-        for (int i = 0; i < index->used; i++) {
-            printf("%s\n", index->pairs[i].key);
-        }
+        index->size *= 2;
+//        printf("after realloc:\n");
+//
+//        for (int i = 0; i < index->used; i++) {
+//            printf("%s\n", index->pairs[i].key);
+//        }
     }
 
     index->pairs[index->used] = *pair;
@@ -39,14 +36,14 @@ void index_add(Index *index, const char *k, int v) {
 } // debugged
 
 int index_find(Index *index, const char *key) {
-    printf("looking for %s\n", key);
-    for (int i = 0; i < index->used; i++) {
-        printf("%s, %d\n", index->pairs[i].key, index->pairs[i].value);
-    }
-    printf("iteration end");
+//    printf("looking for %s\n", key);
+//    for (int i = 0; i < index->used; i++) {
+//        printf("%s, %d\n", index->pairs[i].key, index->pairs[i].value);
+//    }
+//    printf("iteration end");
 
     for (int i = 0; i < index->used; i++) {
-        printf("%d %s\n", i, index->pairs[i].key);
+//        printf("%d %s\n", i, index->pairs[i].key);
         if (strcmp(key, index->pairs[i].key) == 0) {
             return index->pairs[i].value;
         }
@@ -70,7 +67,8 @@ int index_find(Index *index, const char *key) {
 //    }
 //}
 
-char *sub_str(char *str, int start, int end) { // returns the substr of str from start index to end
+// returns the substr of str from start index to end
+char *sub_str(char *str, int start, int end) {
     char *sub = malloc((end - start + 2) * sizeof(char));
     memcpy(sub, &str[start], end - start + 1);
     sub[end - start + 1] = '\0';
@@ -127,14 +125,14 @@ int count_non_empty_lines(char *file_name) {
 
 FirstPass *split_lines(char *file_name) {
     int i = 0;
-    int line = 0;
-    int total_lines = count_non_empty_lines(file_name);
+    int line = 0; // 14
+    int total_lines = count_non_empty_lines(file_name); // 11
     char **lines = malloc(total_lines * sizeof(char *));
 
     FILE *fptr = fopen(file_name, "r");
     int c = fgetc(fptr);
 
-    Index *table = index_new();
+    Index *table = index_new(INITIAL_SIZE);
 
     while (c != EOF) {
         if (c == '\n') { // ignore empty line
@@ -158,8 +156,6 @@ FirstPass *split_lines(char *file_name) {
             c = fgetc(fptr);
         }
 
-//        lines[line][i] = '\0'; // end of the current line
-
         if (c == ':') { // add label
             size_t len = strlen(lines[line]) - 1;
             char *label = malloc(len * sizeof(char));
@@ -167,6 +163,10 @@ FirstPass *split_lines(char *file_name) {
 
             index_add(table, label, line);
             line--;
+            c = fgetc(fptr);
+            while (c == ' ') {
+                c = fgetc(fptr);
+            }
         }
 
         line++;
@@ -232,34 +232,36 @@ FileLines *two_pass(char *file_name) {
     return two_passed;
 }
 
+int return_index(char *line) {
+    int res = -1;
+    int ind = strlen(line);
+
+    for (int i = ind - 1; i >= 0; i--) {
+        if (line[i] == ' ' || line[i] == ',') {
+            res = i + 1;
+            break;
+        }
+    }
+
+    return res;
+}
+
 int find_label(char *line) { // returns the position of the (potential) label
     int res = -1;
 //    if (strncmp("br ", line, 3) == 0) {
 //        res = 3;
 //    } else if
     if (strncmp("b.", line, 2) == 0) {
-        res = 2;
+        res = return_index(line);
     } else if (strncmp("b ", line, 2) == 0) {
         res = 2;
     } else if (strncmp("ldr ", line, 4) == 0) {
-        int ind = strlen(line);
-
-        for (int i = ind - 1; i >= 0; i--) {
-            if (line[i] == ' ' || line[i] == ',') {
-                res = i + 1;
-                break;
-            }
-        }
+        res = return_index(line);
 
         if (line[res] == '#') {
             res = -1;
         }
-
     }
     
     return res; // returns the starting index of the label
 } // debugged
-
-
-
-
