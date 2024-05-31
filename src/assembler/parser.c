@@ -45,7 +45,7 @@ static int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char
         insert_str(arguments, numArg, buffer, 3);
         return numArg + 1;
     } else if (strcmp(*opcode, "mneg") == 0) {
-        *opcode = "mneg";
+        *opcode = "msub";
         insert_str(arguments, numArg, buffer, 3);
         return numArg + 1;
     }
