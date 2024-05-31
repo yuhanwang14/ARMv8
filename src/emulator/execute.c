@@ -528,40 +528,42 @@ static void execute_branch(Register *reg, Branch branch) {
     case CONDITIONAL_T: {
         Conditional instr = branch.conditional;
         PState ps = *reg->PSTATE;
+        // offset is byte indexed instead of word indexed
+        int64_t offset = instr.offset / (int64_t)sizeof(uint32_t);
         switch (instr.cond) {
         case EQ:
             if (ps.Z) {
-                reg->PC += instr.simm19;
+                reg->PC += offset;
             }
             break;
         case NE:
             if (!ps.Z) {
-                reg->PC += instr.simm19;
+                reg->PC += offset;
             }
             break;
         case GE:
             if (ps.N == ps.V) {
-                reg->PC += instr.simm19;
+                reg->PC += offset;
             }
             break;
         case LT:
             if (ps.N != ps.V) {
-                reg->PC += instr.simm19;
+                reg->PC += offset;
             }
             break;
         case GT:
             if (!ps.Z && ps.N == ps.V) {
-                reg->PC += instr.simm19;
+                reg->PC += offset;
             }
             break;
         case LE:
             if (!(!ps.Z && ps.N == ps.V)) {
-                reg->PC += instr.simm19;
+                reg->PC += offset;
             }
             break;
         case AL:
             if (true) {
-                reg->PC += instr.simm19;
+                reg->PC += offset;
             }
             break;
         default:

@@ -173,8 +173,8 @@ typedef struct {
 } BranchReg;
 
 typedef struct {
-    uint32_t simm19; // 1/4 of the offset to be applied to PC
-    CondType cond;   // conditions that PSTATE must meet to apply the jump
+    int64_t offset; // the offset to be applied to PC
+    CondType cond;  // conditions that PSTATE must meet to apply the jump
 } Conditional;
 
 // Branch

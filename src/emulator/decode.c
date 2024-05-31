@@ -89,83 +89,6 @@ static const uint32_t BR_SIMM19_SIZE = 19;
 // whether the nth bit from op0 is set
 #define op0(n) nth_bit_set(code, OP0_OFFSET + n)
 
-// Decodes a DP (Immediate) instruction
-// extern void decode_dpi(uint32_t rd, uint32_t operand, uint32_t opi, uint32_t opc, uint32_t sf, Instr *result);
-
-// // Decodes a DP (Register) instruction
-// extern void decode_dpr(uint32_t rd, uint32_t rn, uint32_t operand, uint32_t rm, uint32_t opr, uint32_t m,
-//                        uint32_t opc, uint32_t sf, Instr *result);
-
-// // Decodes a single data transfer instruction
-// extern void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, uint32_t u, uint32_t sf,
-//                        Instr *result);
-
-// // Decodes a branch instruction
-// extern void decode_branch(uint32_t operand, uint32_t type, Instr *result);
-
-// Instr *decode(uint32_t code) {
-//     Instr *result = malloc(sizeof(Instr));
-//     if (!nth_bit_set(code, OP0_OFFSET + 1) && !nth_bit_set(code, OP0_OFFSET + 2)) {
-//         // DP (Immediate)
-//         printf("Type: Data Processing (Immediate)\n");
-//         result->type = DP_IMMEDIATE_T;
-//         uint32_t rd = bit_slice(code, RD_START, RD_SIZE);
-//         uint32_t operand = bit_slice(code, DPI_OPERAND_START, DPI_OPERAND_SIZE);
-//         uint32_t opi = bit_slice(code, OPI_START, OPI_SIZE);
-//         uint32_t opc = bit_slice(code, OPC_START, OPC_SIZE);
-//         uint32_t sf = nth_bit_set(code, DP_SF_OFFSET);
-//         decode_dpi(rd, operand, opi, opc, sf, result);
-//     } else if (nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 2)) {
-//         // DP (Register)
-//         printf("Type: Data Processing (Register)\n");
-//         result->type = DP_REGISTER_T;
-//         uint32_t rd = bit_slice(code, RD_START, RD_SIZE);
-//         uint32_t rn = bit_slice(code, DPR_RN_START, DPR_RN_SIZE);
-//         uint32_t operand = bit_slice(code, DPR_OPERAND_START, DPR_OPERAND_SIZE);
-//         uint32_t rm = bit_slice(code, RM_START, RM_SIZE);
-//         uint32_t opr = bit_slice(code, OPR_START, OPR_SIZE);
-//         uint32_t m = nth_bit_set(code, M_OFFSET);
-//         uint32_t opc = bit_slice(code, OPC_START, OPC_SIZE);
-//         uint32_t sf = nth_bit_set(code, DP_SF_OFFSET);
-//         decode_dpr(rd, rn, operand, rm, opr, m, opc, sf, result);
-//     } else if (!nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 2) &&
-//                nth_bit_set(code, OP0_OFFSET + 3) && nth_bit_set(code, OP0_OFFSET + 4)) {
-//         // Single Data Transfer
-//         printf("Type: Single Data Transfer\n");
-//         result->type = SINGLE_DATA_TRANSFER_T;
-//         uint32_t rt = bit_slice(code, RT_START, RT_SIZE);
-//         uint64_t xn = bit_slice(code, SDT_XN_START, SDT_XN_SIZE);
-//         uint32_t offset = bit_slice(code, OFFSET_START, OFFSET_SIZE);
-//         uint32_t l = nth_bit_set(code, L_OFFSET);
-//         uint32_t u = nth_bit_set(code, U_OFFSET);
-//         uint32_t sf = nth_bit_set(code, LS_SF_OFFSET);
-//         decode_sdt(rt, xn, offset, l, u, sf, result);
-//     } else if (!nth_bit_set(code, OP0_OFFSET) && nth_bit_set(code, OP0_OFFSET + 2) &&
-//                nth_bit_set(code, OP0_OFFSET + 3)) {
-//         // Load From Literal
-//         printf("Type: Load From Literal\n");
-//         result->type = LOAD_LITERAL_T;
-//         result->load_literal.rt = bit_slice(code, RT_START, RT_SIZE);
-//         result->load_literal.sf = nth_bit_set(code, LS_SF_OFFSET);
-//         result->load_literal.simm19 = bit_slice(code, LL_SIMM19_START, LL_SIMM19_SIZE);
-//     } else if (nth_bit_set(code, OP0_OFFSET + 1) && nth_bit_set(code, OP0_OFFSET + 3)) {
-//         // Branch
-//         printf("Type: Branch\n");
-//         result->type = BRANCH_T;
-//         uint32_t operand = bit_slice(code, BRANCH_OP_START, BRANCH_OP_SIZE);
-//         uint32_t type = bit_slice(code, BRANCH_TYPE_START, BRANCH_TYPE_SIZE);
-//         decode_branch(operand, type, result);
-//     } else {
-//         fprintf(stderr, "Failed to recognize 0x%x as any instruction", code);
-//         free(result);
-//         exit(EXIT_FAILURE);
-//     }
-//     return result;
-// }
-
-// void decode_dpi(uint32_t rd, uint32_t operand, uint32_t opi, uint32_t opc, uint32_t sf, Instr *result) {
-// =======
-
 static void decode_dpi(uint32_t rd, uint32_t operand, uint32_t opi, uint32_t opc, uint32_t sf,
                        Instr *result) {
     if (opi == ARITHMETIC_OPI) {
@@ -296,7 +219,13 @@ static void decode_branch(uint32_t operand, uint32_t type, Instr *result) {
         // conditional type
         result->branch.type = CONDITIONAL_T;
         result->branch.conditional.cond = bit_slice(operand, COND_START, COND_SIZE);
-        result->branch.conditional.simm19 = bit_slice(operand, BR_SIMM19_START, BR_SIMM19_SIZE);
+        int64_t simm19_nonextended = (int64_t)(bit_slice(operand, BR_SIMM19_START, BR_SIMM19_SIZE) << 2);
+        // sign extend from 21 bit to 64 bit
+        // https://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend
+        struct {
+            int64_t temp : 21;
+        } s;
+        result->branch.conditional.offset = s.temp = simm19_nonextended;
     } else {
         fprintf(stderr, "Failed to decode a branch instruction: Unknown combination of type = 0x%x\n", type);
         free(result);
