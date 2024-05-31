@@ -107,6 +107,8 @@ uint32_t parse_sdt(char *opcode, char *argument, uint32_t currentLoc) {
     uint32_t result = 1; // pos 31
     if (*rt == 'x') {
         bit_append(&result, 1, 1); // sf, pos 30
+    }else{
+        bit_append(&result, 0, 1);
     }
     bit_append(&result, SDT_NOT_LITERAL_25_29, 5); // pos 25-29
     switch (numArg) {
