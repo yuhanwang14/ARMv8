@@ -43,8 +43,8 @@ uint32_t parse_imm16(char *literal, char *shiftCom, char *shiftVal) {
     if (shiftCom == NULL)
         return strtol(literal + 1, NULL, 0);
     uint8_t *parsedShift = parse_shift(shiftCom, shiftVal);
-    uint32_t result = parsedShift[1] / 4;
-    bit_append(&result, strtol(literal + 1, NULL, 16), 16);
+    uint32_t result = parsedShift[1] / 16;
+    bit_append(&result, strtol(literal + 1, NULL, 0), 16);
     free(parsedShift);
     return result;
 }
