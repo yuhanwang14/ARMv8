@@ -429,9 +429,6 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
         }
 
         case POST_INDEX: {
-#if __GNUC__ == 14
-            printf("xn: %064lb\n", R64(instr.xn));
-#endif
             addrs = R64(instr.xn);
             R64(instr.xn) = R64(instr.xn) + (uint64_t)(signed_simm9);
             if (instr.L) {
@@ -469,11 +466,11 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
             // load operation
             if (instr.sf) {
                 // 64 bits
-                addrs = R64(instr.xn) + ((uint64_t)(instr.imm12) * 8);
+                addrs = R64(instr.xn) + (uint64_t)(instr.imm12) * 8;
                 R64(instr.rt) = RAM_64(addrs);
             } else {
                 // 32 bits
-                addrs = R64(instr.xn) + (uint64_t)(instr.imm12 << 2);
+                addrs = R64(instr.xn) + (uint64_t)(instr.imm12 * 4);
                 R32(instr.rt) = RAM_32(addrs);
                 R32_cls_upper(instr.rt);
             }
@@ -481,11 +478,11 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
             // store operation
             if (instr.sf) {
                 // 64 bits
-                addrs = R64(instr.xn) + (uint64_t)(instr.imm12 << 3);
+                addrs = R64(instr.xn) + (uint64_t)(instr.imm12 * 8);
                 RAM_64(addrs) = R64(instr.rt);
             } else {
                 // 32 bits
-                addrs = R64(instr.xn) + (uint64_t)(instr.imm12 << 2);
+                addrs = R64(instr.xn) + (uint64_t)(instr.imm12 * 4);
                 RAM_32(addrs) = R32(instr.rt);
             }
         }
@@ -504,8 +501,7 @@ static void execute_ldl(Register *reg, LoadLiteral ldl) {
     } else {
         signed_simm19 = ldl.simm19; // Use the value as is if positive
     }
-    uint64_t addrs = reg->PC + (uint64_t)(signed_simm19);
-    printf("PC: %lu, signed simm19: %ld, simm19: %d\n", reg->PC, signed_simm19, ldl.simm19);
+    uint64_t addrs = reg->PC + (uint64_t)(signed_simm19) * sizeof(uint32_t);
     if (ldl.sf) {
         // 64 bits
         R64(ldl.rt) = RAM_64(addrs);
