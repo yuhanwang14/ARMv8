@@ -338,11 +338,6 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
                 // don't negate result, aka madd
                 R64(instr.rd) = ra + (R64(instr.rn) * R64(instr.rm));
             }
-#if __GNUC__ == 14
-            printf("r%d: %lu\n", instr.rn, R64(instr.rn));
-            printf("r%d: %lu\n", instr.rm, R64(instr.rm));
-            printf("r%d: %lu\n", instr.rd, R64(instr.rd));
-#endif
         } else {
             // 32 bit mode
             uint32_t ra;

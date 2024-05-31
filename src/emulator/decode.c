@@ -179,11 +179,6 @@ static void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, ui
         result->sing_data_transfer.type = PRE_POST_INDEX_T;
         result->sing_data_transfer.pre_post_index.itype =
             (nth_bit_set(offset, I_OFFSET)) ? PRE_INDEX : POST_INDEX;
-        if ((nth_bit_set(offset, I_OFFSET))) {
-            printf("Type: sdt - pre-indexed type\n");
-        } else {
-            printf("Type: sdt - post-indexed type\n");
-        }
         result->sing_data_transfer.pre_post_index.L = (bool)l;
         result->sing_data_transfer.pre_post_index.rt = rt;
         result->sing_data_transfer.pre_post_index.sf = (bool)sf;
@@ -264,7 +259,6 @@ void decode(uint32_t code, Instr *result) {
         decode_dpr(rd, rn, operand, rm, opr, m, opc, sf, result);
     } else if (!op0(0) && op0(2) && op0(3) && op0(4)) {
         // Single Data Transfer
-        printf("Type: Single Data Transfer\n");
         result->type = SINGLE_DATA_TRANSFER_T;
         uint32_t rt = bit_slice(code, RT_START, RT_SIZE);
         uint64_t xn = bit_slice(code, SDT_XN_START, SDT_XN_SIZE);
@@ -275,7 +269,6 @@ void decode(uint32_t code, Instr *result) {
         decode_sdt(rt, xn, offset, l, u, sf, result);
     } else if (!op0(0) && op0(2) && op0(3)) {
         // Load From Literal
-        printf("Type: Load From Literal\n");
         result->type = LOAD_LITERAL_T;
         result->load_literal.rt = bit_slice(code, RT_START, RT_SIZE);
         result->load_literal.sf = nth_bit_set(code, LS_SF_OFFSET);
