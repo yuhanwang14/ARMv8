@@ -9,6 +9,9 @@
 // whether the nth bit from op0 is set
 #define OP0(n) nth_bit_set(code, OP0_OFFSET + n)
 
+// [yw8123] & [ky723]:
+// These constants are the positions of every opprand in the bit code.
+
 static const unsigned OP0_OFFSET = 25;
 
 // consts for DP (Immediate)
