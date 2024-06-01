@@ -23,6 +23,12 @@
 
 static const uint32_t MULT_ZERO_REG = 0x1F;
 
+// prints debug message and quit
+static void fail(const char *message, unsigned opt) {
+    fprintf(stderr, "Unknown arithmetic type: 0x%x\n", opt);
+    exit(EXIT_FAILURE);
+}
+
 // generalisation of arithmetic operations
 static void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uint32_t rd,
                                uint32_t rn, uint64_t op2) {
@@ -103,8 +109,7 @@ static void execute_arit_instr(Register *reg, ArithmeticType atype, bool sf, uin
         }
         break;
     default:
-        fprintf(stderr, "Unknown arithmetic type: 0x%x\n", atype);
-        exit(EXIT_FAILURE);
+        fail("Unknown arithmetic type: 0x%x\n", (unsigned)atype);
     }
 }
 
@@ -160,14 +165,12 @@ static void execute_dpi(Register *reg, DpImmed dpi) {
             break;
         }
         default:
-            fprintf(stderr, "Unknown wide move type: 0x%x\n", instr.mtype);
-            exit(EXIT_FAILURE);
+            fail("Unknown wide move type: 0x%x\n", (unsigned)instr.mtype);
         }
         break;
     }
     default:
-        fprintf(stderr, "Unknown data processing (Immediate) type: 0x%x\n", dpi.type);
-        exit(EXIT_FAILURE);
+        fail("Unknown data processing (Immediate) type: 0x%x\n", (unsigned)dpi.type);
     }
 }
 
@@ -195,11 +198,9 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
                 op2 = (int64_t)R64(instr.rm) >> instr.shift;
                 break;
             default:
-                fprintf(stderr,
-                        "Unknown shift type: 0x%x for data processing (Register) arithmetic "
-                        "instruction\n",
-                        dpr.type);
-                exit(EXIT_FAILURE);
+                fail("Unknown shift type: 0x%x for data processing (Register) arithmetic "
+                     "instruction\n",
+                     (unsigned)dpr.type);
             }
             execute_arit_instr(reg, instr.atype, instr.sf, instr.rd, instr.rn, op2);
         } else {
@@ -220,11 +221,9 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
                 op2 = (int32_t)R32(instr.rm) >> instr.shift;
                 break;
             default:
-                fprintf(stderr,
-                        "Unknown shift type: 0x%x for data processing (Register) arithmetic "
-                        "instruction\n",
-                        dpr.type);
-                exit(EXIT_FAILURE);
+                fail("Unknown shift type: 0x%x for data processing (Register) arithmetic "
+                     "instruction\n",
+                     (unsigned)dpr.type);
             }
             execute_arit_instr(reg, instr.atype, instr.sf, instr.rd, instr.rn, (uint64_t)op2);
         }
@@ -257,11 +256,9 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
                 op2 = (rm >> instr.shift) | (rm << (64 - instr.shift));
                 break;
             default:
-                fprintf(stderr,
-                        "Unknown shift type: 0x%x for data processing (Register) bit logic "
-                        "instruction\n",
-                        instr.stype);
-                exit(EXIT_FAILURE);
+                fail("Unknown shift type: 0x%x for data processing (Register) bit logic "
+                     "instruction\n",
+                     (unsigned)instr.stype);
             }
             if (instr.N) {
                 op2 = ~op2;
@@ -284,11 +281,9 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
                 reg->PSTATE->V = 0;
                 break;
             default:
-                fprintf(stderr,
-                        "Unknown bit logic type: 0x%x for data processing (Register) bit logic "
-                        "instruction\n",
-                        instr.btype);
-                exit(EXIT_FAILURE);
+                fail("Unknown bit logic type: 0x%x for data processing (Register) bit logic "
+                     "instruction\n",
+                     (unsigned)instr.btype);
             }
         } else {
             // 32 bit mode
@@ -315,11 +310,9 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
                 op2 = (rm >> instr.shift) | (rm << (32 - instr.shift));
                 break;
             default:
-                fprintf(stderr,
-                        "Unknown shift type: 0x%x for data processing (Register) bit logic "
-                        "instruction\n",
-                        instr.stype);
-                exit(EXIT_FAILURE);
+                fail("Unknown shift type: 0x%x for data processing (Register) bit logic "
+                     "instruction\n",
+                     (unsigned)instr.stype);
             }
             if (instr.N) {
                 op2 = ~op2;
@@ -342,11 +335,9 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
                 reg->PSTATE->V = 0;
                 break;
             default:
-                fprintf(stderr,
-                        "Unknown bit logic type: 0x%x for data processing (Register) bit logic "
-                        "instruction\n",
-                        instr.btype);
-                exit(EXIT_FAILURE);
+                fail("Unknown bit logic type: 0x%x for data processing (Register) bit logic "
+                     "instruction\n",
+                     (unsigned)instr.btype);
             }
             R32_cls_upper(instr.rd);
         }
@@ -392,8 +383,7 @@ static void execute_dpr(Register *reg, DpRegister dpr) {
         break;
     }
     default:
-        fprintf(stderr, "Unknown data processing (Register) type: 0x%x\n", dpr.type);
-        exit(EXIT_FAILURE);
+        fail("Unknown data processing (Register) type: 0x%x\n", (unsigned)dpr.type);
     }
 }
 
@@ -484,8 +474,7 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
         }
 
         default:
-            fprintf(stderr, "Unknown Index type: 0x%x\n", instr.itype);
-            exit(EXIT_FAILURE);
+            fail("Unknown Index type: 0x%x\n", (unsigned)instr.itype);
         }
         break;
     }
@@ -518,8 +507,7 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
         break;
     }
     default:
-        fprintf(stderr, "Unknown Single Data Transfer type: 0x%x\n", sdt.type);
-        exit(EXIT_FAILURE);
+        fail("Unknown Single Data Transfer type: 0x%x\n", (unsigned)sdt.type);
     }
 }
 
@@ -578,15 +566,12 @@ static void execute_branch(Register *reg, Branch branch) {
             JUMP_IF(true);
             break;
         default:
-            fprintf(stderr, "Unknown branch conditional type: 0x%x\n", instr.cond);
-            exit(EXIT_FAILURE);
+            fail("Unknown branch conditional type: 0x%x\n", (unsigned)instr.cond);
         }
         break;
     }
     default:
-        fprintf(stderr, "Unknown branch type: 0x%x\n", branch.type);
-        exit(EXIT_FAILURE);
-        break;
+        fail("Unknown branch type: 0x%x\n", (unsigned)branch.type);
     }
 }
 
@@ -614,8 +599,7 @@ void execute(Register *reg, Instr *instr) {
         execute_branch(reg, instr->branch);
         break;
     default:
-        fprintf(stderr, "Unknown instruction type: 0x%x\n", instr->type);
-        exit(EXIT_FAILURE);
+        fail("Unknown instruction type: 0x%x\n", (unsigned)instr->type);
     }
     // update program counter if it was not changed by branch operation
     if (reg->PC == PC_prev) {
