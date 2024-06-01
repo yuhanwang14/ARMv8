@@ -1,11 +1,10 @@
 #include "two_pass.h"
 #include <assert.h>
 
-const int INITIAL_SIZE = 8;
+const int INITIAL_SIZE = 4;
 const int INITIAL_LINE_SIZE = 32;
 
 // creating a table for mapping labels
-
 Index *index_new(int initial_size) {
     Index *result = malloc(sizeof(Index));
     result->pairs = malloc(sizeof(Pair) * initial_size);
@@ -13,59 +12,32 @@ Index *index_new(int initial_size) {
     result->size = initial_size;
 
     return result;
-} // debugged
+}
 
 void index_add(Index *index, const char *k, int v) {
     Pair *pair = malloc(sizeof(Pair));
     pair->key = k;
     pair->value = v;
     // resize if no. of element exceed the size of array
-    if (index->used >= index->size) { 
-        index->pairs = realloc(index->pairs, index->size*2);
+    if (index->used >= index->size) {
+        index->pairs = realloc(index->pairs, index->size * 2 * sizeof(Pair));
 
         index->size *= 2;
-//        printf("after realloc:\n");
-//
-//        for (int i = 0; i < index->used; i++) {
-//            printf("%s\n", index->pairs[i].key);
-//        }
     }
 
     index->pairs[index->used] = *pair;
     index->used++;
-} // debugged
+}
 
 int index_find(Index *index, const char *key) {
-//    printf("looking for %s\n", key);
-//    for (int i = 0; i < index->used; i++) {
-//        printf("%s, %d\n", index->pairs[i].key, index->pairs[i].value);
-//    }
-//    printf("iteration end");
-
     for (int i = 0; i < index->used; i++) {
-//        printf("%d %s\n", i, index->pairs[i].key);
         if (strcmp(key, index->pairs[i].key) == 0) {
             return index->pairs[i].value;
         }
     }
 
-    // return -1 if not found
     return -1;
-} // debugged
-
-// implement two-pass
-
-// need to set to static
-//void line_check_label(Index *index, char *line, int address) {
-//    if (strchr(line, ':')) {
-//        size_t len = strlen(line);
-//        char *label = malloc(len * sizeof(char));
-//        strncpy(label, line, len - 1);
-//        label[len - 1] = '\0';
-//
-//        index_add(index, label, address + 1);
-//    }
-//}
+}
 
 // returns the substr of str from start index to end
 char *sub_str(char *str, int start, int end) {
@@ -74,7 +46,7 @@ char *sub_str(char *str, int start, int end) {
     sub[end - start + 1] = '\0';
 
     return sub;
-} // debugged
+}
 
 int count_lines(char *file_name) {
     int lines = 1;
@@ -90,7 +62,7 @@ int count_lines(char *file_name) {
     fclose(fptr);
 
     return lines;
-} // debugged
+}
 
 // don't count label line
 int count_non_empty_lines(char *file_name) {
@@ -119,13 +91,12 @@ int count_non_empty_lines(char *file_name) {
     fclose(fptr);
 
     return lines;
-} // debugged
+}
 
 // delete label line (label:)
-
 FirstPass *split_lines(char *file_name) {
     int i = 0;
-    int line = 0; // 14
+    int line = 0;                                       // 14
     int total_lines = count_non_empty_lines(file_name); // 11
     char **lines = malloc(total_lines * sizeof(char *));
 
@@ -145,7 +116,7 @@ FirstPass *split_lines(char *file_name) {
         // if not new line or end of file, keep adding content to the current line
         while (c != '\n' && c != EOF) {
             if (i > 0 || c != ' ') { // remove tab
-                lines[line][i] = (char) c;
+                lines[line][i] = (char)c;
                 i++;
             }
 
@@ -172,7 +143,7 @@ FirstPass *split_lines(char *file_name) {
         line++;
         i = 0;
         c = fgetc(fptr);
-//        free(lines[line]); // free the memory
+        //        free(lines[line]); // free the memory
     }
 
     fclose(fptr);
@@ -184,7 +155,7 @@ FirstPass *split_lines(char *file_name) {
     first_pass->length = total_lines;
 
     return first_pass;
-} // debugged
+}
 
 FileLines *two_pass(char *file_name) {
     // first pass
@@ -212,7 +183,7 @@ FileLines *two_pass(char *file_name) {
 
         assert(offset != NULL); // check malloc is working
 
-        sprintf(offset,  "%d", ind);
+        sprintf(offset, "%d", ind);
 
         char *new_str;
         new_str = sub_str(line, 0, start - 1);
@@ -221,7 +192,7 @@ FileLines *two_pass(char *file_name) {
 
         first_pass->lines[i] = new_str;
 
-//        free(offset);
+        //        free(offset);
     }
 
     FileLines *two_passed = malloc(sizeof(FileLines));
@@ -248,9 +219,6 @@ int return_index(char *line) {
 
 int find_label(char *line) { // returns the position of the (potential) label
     int res = -1;
-//    if (strncmp("br ", line, 3) == 0) {
-//        res = 3;
-//    } else if
     if (strncmp("b.", line, 2) == 0) {
         res = return_index(line);
     } else if (strncmp("b ", line, 2) == 0) {
@@ -262,6 +230,6 @@ int find_label(char *line) { // returns the position of the (potential) label
             res = -1;
         }
     }
-    
+
     return res; // returns the starting index of the label
-} // debugged
+}
