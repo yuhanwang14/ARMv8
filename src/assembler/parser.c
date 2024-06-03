@@ -1,8 +1,8 @@
 #include "parser.h"
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 static int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char *buffer) {
     // this checks if any alias occur and change the opcode and arguments if so
@@ -60,21 +60,24 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
     char *nextArg = strtok(NULL, " ,");
     char *arguments[5] = {NULL, NULL, NULL, NULL, NULL};
     int numArg = 0;
+
     while (nextArg != NULL && numArg < 5) {
         // appends all arguments from the instruction
         arguments[numArg] = nextArg;
         numArg++;
         nextArg = strtok(NULL, " ,");
     }
-    char *buffer = NULL;
+
     // buffer holds the pointer that must be freed after use(from resolve_alias)
+    char *buffer = NULL;
     numArg = resolve_alias(&opcode, arguments, numArg, buffer);
     printf("instruction treated as '%s %s, %s, %s,%s, %s'\n", opcode, arguments[0], arguments[1],
            arguments[2], arguments[3], arguments[4]);
     uint32_t result;
+
     switch (numArg) {
     case 5:
-        // this is the 2 op with destination and a shift in operand
+        // 2 op with destination and a shift in operand
         // e.g. add x0, x0, #0, lsl #0
         result = parse_2op_with_dest(opcode, arguments);
         break;
@@ -111,10 +114,9 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
         }
         break;
     default:
-        // No. of argument matched none of the operation types, fails to parse
-        fprintf(stderr, "instruction fails to parse\n'%s'\ndoes not have correct number of arguments",
+        fprintf(stderr, "failed to parse\n'%s'\ndoes not have correct number of arguments",
                 instruction);
-            free(buffer);
+        free(buffer);
         exit(EXIT_FAILURE);
     }
     free(buffer);
