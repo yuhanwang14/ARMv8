@@ -4,8 +4,9 @@
 #include <stdlib.h>
 
 static FILE *out, *source;
+static const unsigned INSTR_SIZE = 4;
 
-FILE *safe_open(char *path, const char *mode) {
+static FILE *safe_open(char *path, const char *mode) {
     FILE *f = fopen(path, mode);
     if (f == NULL) {
         fprintf(stderr, "Failed to open %s with mode %s", path, mode);
@@ -27,13 +28,17 @@ int main(int argc, char **argv) {
     }
     FileLines *file_lines = two_pass(argv[1]);
 
+    // opens assembly source file
     source = safe_open(argv[1], "r");
 
     for (int i = 0; i < file_lines->length; i++) {
+        // parse each line
         uint32_t result = parse_instruction(file_lines->lines[i], i);
-        fwrite(&result, 4, 1, out);
+        // immediatly write to output
+        fwrite(&result, INSTR_SIZE, 1, out);
     }
 
+    // clean up
     fclose(out);
     fclose(source);
 

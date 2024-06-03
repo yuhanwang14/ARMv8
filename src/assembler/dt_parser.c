@@ -3,23 +3,25 @@
 #include <stdlib.h>
 #include <string.h>
 
-static const int8_t SDT_LITERAL_24_29 = 24;
+static const int8_t SDT_LITERAL = 24;
 static const int8_t SDT_NOT_LITERAL_25_29 = 28;
+
+static const unsigned SF_SIZE = 1;
+static const unsigned SDT_LITERAL_SIZE = 6;
+static const unsigned SIMM19_SIZE = 19;
 
 static int32_t parse_simm19(char *absoluteAddress, uint32_t currentLoc) {
     int32_t offset = strtol(absoluteAddress + 1, NULL, 0) - currentLoc;
-    if (offset > 0)
-        return offset;
-    return offset + (1 << 19);
     // performs sign-extension for negative offsets
+    return offset > 0 ? offset : offset + (1 << 19);
 }
 
 static uint32_t parse_dt_literal(char *rt, char *immediate, uint32_t currentLoc) {
-    uint32_t result = 0;                                          // pos 31
-    bit_append(&result, GET_SF(rt), 1);                           // sf, pos 30
-    bit_append(&result, SDT_LITERAL_24_29, 6);                    // pos 24-29
-    bit_append(&result, parse_simm19(immediate, currentLoc), 19); // simm 19, pos 5-23
-    bit_append(&result, parse_register(rt), REGISTER_ADR_SIZE);   // rt, pos 0-4
+    uint32_t result = 0;                                                   // pos 31
+    bit_append(&result, GET_SF(rt), SF_SIZE);                              // sf, pos 30
+    bit_append(&result, SDT_LITERAL, SDT_LITERAL_SIZE);                    // pos 24-29
+    bit_append(&result, parse_simm19(immediate, currentLoc), SIMM19_SIZE); // simm 19, pos 5-23
+    bit_append(&result, parse_register(rt), REGISTER_ADR_SIZE);            // rt, pos 0-4
     return result;
 }
 

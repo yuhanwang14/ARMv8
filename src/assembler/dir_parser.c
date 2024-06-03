@@ -1,7 +1,7 @@
 #include "dir_parser.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 uint32_t parse_dir(char *opcode, char **arguments) {
     if (strcmp(opcode, ".int") == 0) {
