@@ -1,5 +1,4 @@
 #include "branch_parser.h"
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -67,7 +66,7 @@ uint32_t parse_branch(char *opcode, char **arguments, uint32_t currentLoc) {
         // opcode is 'br'
         return parse_with_reg(opcode, arguments, currentLoc);
     case 4:
-        // opcode is "b.cond"
+        // opcode is "b.cond", where cond is string size 2
         return parse_cond(opcode, arguments, currentLoc);
     default:
         // unidentified opcode
