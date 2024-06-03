@@ -68,12 +68,16 @@ uint16_t parse_imm12(char *literal, char *shiftCom, char *shiftVal) {
     }
     uint8_t *parsedShift = parse_shift(shiftCom, shiftVal);
     if (parsedShift[0] != 0){
+        // the shift code must be lsl
         fprintf(stderr, "failed to parse imm12 with shift %s", shiftCom);
         exit(EXIT_FAILURE);
     }
     if (parsedShift[1] == 0){
+        // if shift value is zero, the highest bit is 0
         return strtol(literal + 1, NULL, 0);
     }
+    assert(parsedShift[1] == 12);
+    // if shift value is 12, the highest bit is set to 1
     return (strtol(literal + 1, NULL, 0) + (1 << 12));
 }
 
