@@ -80,8 +80,11 @@ Since we have fixed all the bugs and problems in the emulator parts, we mainly
 talk about two biggest bugs in our program. 
 
 \subsection{Sign extension}
-We will decode the bitcode to extract the signed integer, we forgot to perform 
-sign extension to the 
+We will decode the bitcode to extract the signed integers, we forgot to perform 
+sign extension to the these signed integers. Then we got a wrng answer when we need these integer to 
+be our offset in either branch instructions or pre/post index type and load from literal instructions. 
+Therefore, we choose to abstract sign extension feature to \texttt{utils.c} and perform it 
+to all the signed integers. 
 
 \subsection{Refactor word-indexed base to byte-indexed base}
 When debugging the general test cases for load and store operations, 
