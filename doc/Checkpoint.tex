@@ -38,19 +38,9 @@ After completing the report, we plan to move on to the extension part.
 \subsection{The program main loop - emulate.c}
 This is the entry point of the program, we strived to keep it clean and simple. 
 We start by processing the arguments and opening the input and output files for
-reading. Then we have our main loop:
-\begin{minted}{C}
-while (true) {
-    uint32_t code = fetch(reg);
-    if (code == HALT) {
-        break;
-    }
-    decode(code, instr);
-    execute(reg, instr);
-}
-\end{minted}
-And finally we clean everything up, i.e: \texttt{fclose} and \texttt{free}
-everything.
+reading. Then we have our main \texttt{fetch}, \texttt{decode}, 
+\texttt{execute} loop. Finally we clean everything up, i.e: \texttt{fclose} and
+\texttt{free} everything.
 
 \subsection{Fetching the next instruction}
 
