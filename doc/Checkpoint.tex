@@ -67,6 +67,14 @@ To work with the binary instructions, we defined two helper methods,
 \texttt{bit\_slice} and \texttt{nth\_bit\_set}. Then we simply slice the
 operands out of the instruction and put them into corresponding structs.
 
+\subsection{Executing the instructions}
+Because we separated the cases nicely, \texttt{emulate.c} is entirely
+distangled from the further decoding, allowing for cleaner code and
+easier debugging. Two nice abstractions we made for this module are 
+\texttt{R64}/\texttt{R32} and \texttt{RAM\_64}/\texttt{RAM\_64}, which 
+abstracts the register and main memory so we don't have enigmatic dereferencing
+and casting everywhere.
+
 \section{Notable difficulties}
 Since we have fixed all the bugs and problems in the emulator parts, we wanted 
 to talk about two biggest bugs in our program. 
