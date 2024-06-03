@@ -1,29 +1,40 @@
 #include "util.h"
+#include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
+// consts for parse_shift
+static const uint8_t LSL_SHIFT_CODE = 0;
+static const uint8_t LSR_SHIFT_CODE = 1;
+static const uint8_t ASR_SHIFT_CODE = 2;
+static const uint8_t ROR_SHIFT_CODE = 3;
+
+// consts for parse_register
 static const uint8_t ADR_ZR = 31;
 
+// consts for parse_imm16
+static const uint32_t HW = 16;
+
 uint8_t *parse_shift(char *shiftArg, char *shiftVal) {
+    // code for the shift and the shifted value
     uint8_t *result = malloc(2 * sizeof(uint8_t));
-    result[0] = 0; // this is the code for the shift
-    result[1] = 0; // this is the shifted value
     if (shiftArg == NULL)
         // no shift was passed in at all
         return result;
     if (strcmp(shiftArg, "lsl") == 0) {
         // result[0](shift code) for lsl is 0
+        result[0] = LSL_SHIFT_CODE;
     } else if (strcmp(shiftArg, "lsr") == 0) {
         // shift code for lsr is 0b01
-        result[0] = 1;
+        result[0] = LSR_SHIFT_CODE;
     } else if (strcmp(shiftArg, "asr") == 0) {
         // shift code for asr is 0b10
-        result[0] = 2;
+        result[0] = ASR_SHIFT_CODE;
     } else if (strcmp(shiftArg, "ror") == 0) {
         // shift code for asr is 0b11
-        result[0] = 3;
+        result[0] = ROR_SHIFT_CODE;
     } else {
         fprintf(stderr, "failed to parse shift for '%s'\n", shiftArg);
         exit(EXIT_FAILURE);
@@ -51,13 +62,15 @@ uint32_t parse_imm16(char *literal, char *shiftCom, char *shiftVal) {
         // if no shift is provided, return the value of literal
         return strtol(literal + 1, NULL, 0);
     uint8_t *parsedShift = parse_shift(shiftCom, shiftVal);
-    assert(parsedShift[0] == 0);
-    // the shift code can only be lsl, fail otherwise
-    assert(parsedShift[1] <= 48);
+
+    // the shift code can only be lsl
+    assert(parsedShift[0] == LSL_SHIFT_CODE);
     // the shift value must not exceed 48 bits(represented by Ob11)
-    uint32_t result = parsedShift[1] / 16;
+    assert(parsedShift[1] <= 48);
+
+    uint32_t result = parsedShift[1] / HW;
     // appends hw value
-    bit_append(&result, strtol(literal + 1, NULL, 0), 16);
+    bit_append(&result, strtol(literal + 1, NULL, 0), HW);
     free(parsedShift);
     return result;
 }
@@ -67,24 +80,24 @@ uint16_t parse_imm12(char *literal, char *shiftCom, char *shiftVal) {
         return strtol(literal + 1, NULL, 0);
     }
     uint8_t *parsedShift = parse_shift(shiftCom, shiftVal);
-    if (parsedShift[0] != 0){
+    if (parsedShift[0] != LSL_SHIFT_CODE) {
         // the shift code must be lsl
         fprintf(stderr, "failed to parse imm12 with shift %s", shiftCom);
         exit(EXIT_FAILURE);
     }
-    if (parsedShift[1] == 0){
+    if (parsedShift[1] == 0) {
         // if shift value is zero, the highest bit is 0
         return strtol(literal + 1, NULL, 0);
     }
-    assert(parsedShift[1] == 12);
     // if shift value is 12, the highest bit is set to 1
+    assert(parsedShift[1] == 12);
     return (strtol(literal + 1, NULL, 0) + (1 << 12));
 }
 
 uint8_t parse_imm6(char *literal) { return strtol(literal + 1, NULL, 0); }
 
 void bit_append(uint32_t *target, int32_t appended, uint32_t length) {
-    if (appended < 0){
+    if (appended < 0) {
         // sign extension for negative append values
         *target = ((*target) << length) + appended + (1 << length);
         return;
@@ -96,8 +109,8 @@ void bit_append(uint32_t *target, int32_t appended, uint32_t length) {
 bool is_shift(char *argument) {
     if (argument == NULL)
         return false;
-    return (strcmp(argument, "lsl") == 0 || strcmp(argument, "lsr") == 0 || strcmp(argument, "asr") == 0 ||
-            strcmp(argument, "ror") == 0);
+    return (strcmp(argument, "lsl") == 0 || strcmp(argument, "lsr") == 0 ||
+            strcmp(argument, "asr") == 0 || strcmp(argument, "ror") == 0);
 }
 
 void insert_str(char **targetArray, int32_t arraySize, char *element, int8_t index) {
