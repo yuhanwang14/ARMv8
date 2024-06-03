@@ -154,7 +154,6 @@ void split_lines(char *file_name) {
     LENGTH = total_lines;
 }
 
-
 // helper function for finding the position of the literal
 int return_index(char *line) {
     int res = -1;
