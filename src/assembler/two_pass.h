@@ -9,36 +9,16 @@ typedef struct {
 } Pair;
 
 typedef struct {
-    Pair *pairs;
-    int used;
-    int size;
-} Index;
-
-Index *index_new(int INITIAL_SIZE);
-
-void index_add(Index *index, const char *key, int value);
-
-int index_find(Index *index, const char *key);
+    Pair *pairs; // list of "key & value pairs"
+    int used; // current no. of pairs
+    int size; // capacity of the list
+} Map;
 
 typedef struct {
     char **lines;
     int length;
 } FileLines;
 
-typedef struct {
-    char **lines;
-    Index *table;
-    int length;
-} FirstPass;
-
 FileLines *two_pass(char *file_name);
 
-FirstPass *split_lines(char *file_name);
-
-int find_label(char *line);
-
-char *sub_str(char *str, int start, int end);
-
-int count_non_empty_lines(char *file_name);
-
-Index *first_pass(char **lines, int number_of_lines);
+void free_file_lines(FileLines *file_lines);

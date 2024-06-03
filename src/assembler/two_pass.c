@@ -1,12 +1,26 @@
 #include "two_pass.h"
 #include <assert.h>
 
-const int INITIAL_SIZE = 4;
-const int INITIAL_LINE_SIZE = 32;
+static const int INITIAL_SIZE = 8;
+static const int INITIAL_LINE_SIZE = 32;
+
+// final output
+static char **LINES;
+static Map *TABLE;
+static int LENGTH;
 
 // creating a table for mapping labels
-Index *index_new(int initial_size) {
-    Index *result = malloc(sizeof(Index));
+
+// check whether table is null
+static void check_null(Map *table) {
+    if (table == NULL) {
+        printf("Table is NULL\n");
+        assert(table != NULL);
+    }
+}
+
+static Map *map_new(int initial_size) {
+    Map *result = malloc(sizeof(Map));
     result->pairs = malloc(sizeof(Pair) * initial_size);
     result->used = 0;
     result->size = initial_size;
@@ -14,25 +28,29 @@ Index *index_new(int initial_size) {
     return result;
 }
 
-void index_add(Index *index, const char *k, int v) {
+void map_add(Map *table, const char *k, int v) {
+    check_null(table);
+
     Pair *pair = malloc(sizeof(Pair));
     pair->key = k;
     pair->value = v;
     // resize if no. of element exceed the size of array
-    if (index->used >= index->size) {
-        index->pairs = realloc(index->pairs, index->size * 2 * sizeof(Pair));
+    if (table->used >= table->size) {
+        table->pairs = realloc(table->pairs, table->size * 2 * sizeof(Pair));
 
-        index->size *= 2;
+        table->size *= 2;
     }
 
-    index->pairs[index->used] = *pair;
-    index->used++;
+    table->pairs[table->used] = *pair;
+    table->used++;
 }
 
-int index_find(Index *index, const char *key) {
-    for (int i = 0; i < index->used; i++) {
-        if (strcmp(key, index->pairs[i].key) == 0) {
-            return index->pairs[i].value;
+int map_find(Map *table, const char *key) {
+    check_null(table);
+
+    for (int i = 0; i < table->used; i++) {
+        if (strcmp(key, table->pairs[i].key) == 0) {
+            return table->pairs[i].value;
         }
     }
 
@@ -48,22 +66,6 @@ char *sub_str(char *str, int start, int end) {
     return sub;
 }
 
-int count_lines(char *file_name) {
-    int lines = 1;
-
-    FILE *fptr = fopen(file_name, "r");
-    int c = fgetc(fptr);
-    while (c != EOF) {
-        if (c == '\n') {
-            lines++;
-        }
-        c = fgetc(fptr);
-    }
-    fclose(fptr);
-
-    return lines;
-}
-
 // don't count label line
 int count_non_empty_lines(char *file_name) {
     int lines = 0;
@@ -74,9 +76,9 @@ int count_non_empty_lines(char *file_name) {
     while (c != EOF) {
         if (c == ':') {
             lines--;
-        }
+        } // label line does not count
 
-        if (c == '\n' && count > 0) {
+        if (c == '\n' && count > 0) { // nonempty line, count increment by one
             lines++;
             count = 0;
         } else if (c == '\n' && count == 0) {
@@ -93,17 +95,17 @@ int count_non_empty_lines(char *file_name) {
     return lines;
 }
 
-// delete label line (label:)
-FirstPass *split_lines(char *file_name) {
+// first pass
+void split_lines(char *file_name) {
     int i = 0;
-    int line = 0;                                       // 14
-    int total_lines = count_non_empty_lines(file_name); // 11
+    int line = 0;
+    int total_lines = count_non_empty_lines(file_name);
     char **lines = malloc(total_lines * sizeof(char *));
 
     FILE *fptr = fopen(file_name, "r");
     int c = fgetc(fptr);
 
-    Index *table = index_new(INITIAL_SIZE);
+    Map *table = map_new(INITIAL_SIZE);
 
     while (c != EOF) {
         if (c == '\n') { // ignore empty line
@@ -120,7 +122,7 @@ FirstPass *split_lines(char *file_name) {
                 i++;
             }
 
-            if (c == ':') {
+            if (c == ':') { // find label
                 break;
             }
 
@@ -132,10 +134,10 @@ FirstPass *split_lines(char *file_name) {
             char *label = malloc(len * sizeof(char));
             strncpy(label, lines[line], len);
 
-            index_add(table, label, line);
-            line--;
+            map_add(table, label, line);
+            line--; // doesn't count the label line
             c = fgetc(fptr);
-            while (c == ' ') {
+            while (c == ' ') { // remove all spaces after ':'
                 c = fgetc(fptr);
             }
         }
@@ -143,28 +145,58 @@ FirstPass *split_lines(char *file_name) {
         line++;
         i = 0;
         c = fgetc(fptr);
-        //        free(lines[line]); // free the memory
     }
 
     fclose(fptr);
 
-    FirstPass *first_pass = malloc(sizeof(FirstPass));
-    first_pass->table = table;
-    first_pass->lines = malloc(total_lines * sizeof(char *));
-    first_pass->lines = lines;
-    first_pass->length = total_lines;
-
-    return first_pass;
+    TABLE = table;
+    LINES = lines;
+    LENGTH = total_lines;
 }
 
+
+// helper function for finding the position of the literal
+int return_index(char *line) {
+    int res = -1;
+    int ind = strlen(line);
+
+    for (int i = ind - 1; i >= 0; i--) {
+        if (line[i] == ' ' || line[i] == ',') {
+            res = i + 1;
+            break;
+        }
+    }
+
+    return res;
+}
+
+// returns the position of the (potential) label
+int find_literal(char *line) {
+    int res = -1;
+    if (strncmp("b.", line, 2) == 0) {
+        res = return_index(line);
+    } else if (strncmp("b ", line, 2) == 0) {
+        res = 2;
+    } else if (strncmp("ldr ", line, 4) == 0) {
+        res = return_index(line);
+
+        if (line[res] == '#') {
+            res = -1;
+        }
+    }
+
+    return res; // returns the starting index of the label
+}
+
+// two pass
 FileLines *two_pass(char *file_name) {
     // first pass
-    FirstPass *first_pass = split_lines(file_name);
+    split_lines(file_name);
 
     // second pass
-    for (int i = 0; i < first_pass->length; i++) { // i + 1 = line number
-        char *line = first_pass->lines[i];
-        int start = find_label(line);
+    for (int i = 0; i < LENGTH; i++) { // i + 1 = line number
+        char *line = LINES[i];
+        int start = find_literal(line);
 
         if (start == -1) { // if label empty, check next item
             continue;
@@ -173,7 +205,7 @@ FileLines *two_pass(char *file_name) {
         int last = strlen(line) - 1;
         char *label = sub_str(line, start, last);
 
-        int ind = index_find(first_pass->table, label);
+        int ind = map_find(TABLE, label);
 
         if (ind == -1) { // if not label, check next item
             continue;
@@ -190,46 +222,20 @@ FileLines *two_pass(char *file_name) {
         strcat(new_str, "#");
         strcat(new_str, offset);
 
-        first_pass->lines[i] = new_str;
+        LINES[i] = new_str;
 
-        //        free(offset);
+        free(offset);
     }
 
     FileLines *two_passed = malloc(sizeof(FileLines));
-    two_passed->lines = malloc(first_pass->length * sizeof(char *));
-    two_passed->lines = first_pass->lines;
-    two_passed->length = first_pass->length;
+    two_passed->lines = malloc(LENGTH * sizeof(char *));
+    two_passed->lines = LINES;
+    two_passed->length = LENGTH;
 
     return two_passed;
 }
 
-int return_index(char *line) {
-    int res = -1;
-    int ind = strlen(line);
-
-    for (int i = ind - 1; i >= 0; i--) {
-        if (line[i] == ' ' || line[i] == ',') {
-            res = i + 1;
-            break;
-        }
-    }
-
-    return res;
-}
-
-int find_label(char *line) { // returns the position of the (potential) label
-    int res = -1;
-    if (strncmp("b.", line, 2) == 0) {
-        res = return_index(line);
-    } else if (strncmp("b ", line, 2) == 0) {
-        res = 2;
-    } else if (strncmp("ldr ", line, 4) == 0) {
-        res = return_index(line);
-
-        if (line[res] == '#') {
-            res = -1;
-        }
-    }
-
-    return res; // returns the starting index of the label
+void free_file_lines(FileLines *file_lines) {
+    free(file_lines->lines);
+    free(file_lines);
 }
