@@ -54,7 +54,6 @@ static int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char
 }
 
 uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
-    printf("parse pos 1\n%s\n", instruction);
     char *opcode = strtok(instruction, " ,");
     if (strcmp(opcode, "ldr") == 0 || strcmp(opcode, "str") == 0)
         return parse_sdt(opcode, strtok(NULL, ""), currentLoc); // special handler for DTIs
@@ -63,7 +62,6 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
     int numArg = 0;
     while (nextArg != NULL && numArg < 5) {
         // appends all arguments from the instruction
-        printf("%s\n", nextArg);
         arguments[numArg] = nextArg;
         numArg++;
         nextArg = strtok(NULL, " ,");
@@ -88,7 +86,6 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
         } else {
             // multiply operations(no shift applicable)
             // e.g. madd x0, x1, x2, x3
-            printf("parse mult control point -1 %s\n", arguments[3]);
             result = parse_multiply(opcode, arguments);
         }
         break;

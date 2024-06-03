@@ -60,7 +60,7 @@ static uint32_t parse_indexed_or_reg(char *opcode, char **addressArg, int8_t num
 static uint32_t parse_unsigned(char *opcode, char **addressArg, int8_t numArg, bool is64) {
     uint32_t result = 2; // the highest digit is '1' since it is an unsigned offset
     if (strcmp(opcode, "str") == 0) {
-        bit_append(&result, 0, 1); // 'L'bit, pos 22
+        bit_append(&result, 0, 1); // 'L' bit, pos 22
     } else if (strcmp(opcode, "ldr") == 0) {
         bit_append(&result, 1, 1);
     } else {
@@ -78,7 +78,6 @@ static uint32_t parse_unsigned(char *opcode, char **addressArg, int8_t numArg, b
         }
     }
     bit_append(&result, parse_register(addressArg[0]), REGISTER_ADR_SIZE); // xn, pos 5-9
-    printf("%i\n", result);
     return result;
 }
 
@@ -104,7 +103,6 @@ uint32_t parse_sdt(char *opcode, char *argument, uint32_t currentLoc) {
         numArg++;
         nextArg = strtok(NULL, ",] ");
     }
-    printf("dt_parser control pos 3\n");
     uint32_t result = 1;                           // pos 31
     bit_append(&result, GET_SF(rt), 1);            // sf, pos 30
     bit_append(&result, SDT_NOT_LITERAL_25_29, 5); // pos 25-29
