@@ -7,13 +7,13 @@
 
 // register related macros
 #define R64(n) reg->g_reg[n]
-#define R32(n) ((uint32_t *)reg->g_reg)[(n) * 2]
-#define R32_cls_upper(n) ((uint32_t *)reg->g_reg)[(n) * 2 + 1] = 0
+#define R32(n) ((uint32_t *)reg->g_reg)[(n)*2]
+#define R32_cls_upper(n) ((uint32_t *)reg->g_reg)[(n)*2 + 1] = 0
 // getting sign bit macro
 #define SGN64(n) (bool)((n >> 63) & 1)
 #define SGN32(n) (bool)((n >> 31) & 1)
 // getting 16 bit long slices of register
-#define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n) * 4 + shift]
+#define R64_16(n, shift) ((uint16_t *)reg->g_reg)[(n)*4 + shift]
 #define R32_16(n, shift) R64_16(n, shift)
 // get ram with offset, ram is always BYTE INDEXED
 #define RAM_64(n) *(uint64_t *)(reg->ram + (n))
@@ -27,6 +27,29 @@ static const uint32_t MULT_ZERO_REG = 0x1F;
 static void fail(const char *message, unsigned opt) {
     fprintf(stderr, "Unknown arithmetic type: 0x%x\n", opt);
     exit(EXIT_FAILURE);
+}
+
+static void load(Register *reg, bool sf, uint64_t rt, uint64_t addrs) {
+    // load operation
+    if (sf) {
+        // 64 bits
+        R64(rt) = RAM_64(addrs);
+    } else {
+        // 32 bits
+        R32(rt) = RAM_32(addrs);
+        R32_cls_upper(rt);
+    }
+}
+
+static void store(Register *reg, bool sf, uint64_t rt, uint64_t addrs) {
+    // store operation
+    if (sf) {
+        // 64 bits
+        RAM_64(addrs) = R64(rt);
+    } else {
+        // 32 bits
+        RAM_32(addrs) = R32(rt);
+    }
 }
 
 // generalisation of arithmetic operations
@@ -396,23 +419,10 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
         addrs = R64(instr.xn) + R64(instr.xm);
         if (instr.L) {
             // load operation
-            if (instr.sf) {
-                // 64 bits
-                R64(instr.rt) = RAM_64(addrs);
-            } else {
-                // 32 bits
-                R32(instr.rt) = RAM_32(addrs);
-                R32_cls_upper(instr.rt);
-            }
+            load(reg, instr.sf, instr.rt, addrs);
         } else {
             // store operation
-            if (instr.sf) {
-                // 64 bits
-                RAM_64(addrs) = R64(instr.rt);
-            } else {
-                // 32 bits
-                RAM_32(addrs) = R32(instr.rt);
-            }
+            store(reg, instr.sf, instr.rt, addrs);
         }
         break;
     }
@@ -426,23 +436,10 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
             // transfer address
             if (instr.L) {
                 // load operation
-                if (instr.sf) {
-                    // 64 bits
-                    R64(instr.rt) = RAM_64(addrs);
-                } else {
-                    // 32 bits
-                    R32(instr.rt) = RAM_32(addrs);
-                    R32_cls_upper(instr.rt);
-                }
+                load(reg, instr.sf, instr.rt, addrs);
             } else {
                 // store operation
-                if (instr.sf) {
-                    // 64 bits
-                    RAM_64(addrs) = R64(instr.rt);
-                } else {
-                    // 32 bits
-                    RAM_32(addrs) = R32(instr.rt);
-                }
+                store(reg, instr.sf, instr.rt, addrs);
             }
             break;
         }
@@ -452,23 +449,10 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
             R64(instr.xn) = R64(instr.xn) + (uint64_t)(signed_simm9);
             if (instr.L) {
                 // load operation
-                if (instr.sf) {
-                    // 64 bits
-                    R64(instr.rt) = RAM_64(addrs);
-                } else {
-                    // 32 bits
-                    R32(instr.rt) = RAM_32(addrs);
-                    R32_cls_upper(instr.rt);
-                }
+                load(reg, instr.sf, instr.rt, addrs);
             } else {
                 // store operation
-                if (instr.sf) {
-                    // 64 bits
-                    RAM_64(addrs) = R64(instr.rt);
-                } else {
-                    // 32 bits
-                    RAM_32(addrs) = R32(instr.rt);
-                }
+                store(reg, instr.sf, instr.rt, addrs);
             }
             break;
         }
@@ -480,29 +464,14 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
     }
     case UNSIGN_T: {
         Unsigned instr = sdt.usigned;
+        addrs = instr.sf ? R64(instr.xn) + (uint64_t)(instr.imm12 * 8)
+                         : R64(instr.xn) + (uint64_t)(instr.imm12 * 4);
         if (instr.L) {
             // load operation
-            if (instr.sf) {
-                // 64 bits
-                addrs = R64(instr.xn) + (uint64_t)(instr.imm12) * 8;
-                R64(instr.rt) = RAM_64(addrs);
-            } else {
-                // 32 bits
-                addrs = R64(instr.xn) + (uint64_t)(instr.imm12 * 4);
-                R32(instr.rt) = RAM_32(addrs);
-                R32_cls_upper(instr.rt);
-            }
+            load(reg, instr.sf, instr.rt, addrs);
         } else {
             // store operation
-            if (instr.sf) {
-                // 64 bits
-                addrs = R64(instr.xn) + (uint64_t)(instr.imm12 * 8);
-                RAM_64(addrs) = R64(instr.rt);
-            } else {
-                // 32 bits
-                addrs = R64(instr.xn) + (uint64_t)(instr.imm12 * 4);
-                RAM_32(addrs) = R32(instr.rt);
-            }
+            store(reg, instr.sf, instr.rt, addrs);
         }
         break;
     }
@@ -515,14 +484,7 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
 static void execute_ldl(Register *reg, LoadLiteral ldl) {
     int64_t signed_simm19 = sign_extend(ldl.simm19, 19);
     uint64_t addrs = reg->PC + (uint64_t)(signed_simm19) * sizeof(uint32_t);
-    if (ldl.sf) {
-        // 64 bits
-        R64(ldl.rt) = RAM_64(addrs);
-    } else {
-        // 32 bits
-        R32(ldl.rt) = RAM_32(addrs);
-        R32_cls_upper(ldl.rt);
-    }
+    load(reg, ldl.sf, ldl.rt, addrs);
 }
 
 // execute a branch instruction
