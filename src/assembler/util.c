@@ -7,22 +7,26 @@
 
 uint8_t *parse_shift(char *shiftArg, char *shiftVal) {
     uint8_t *result = malloc(2 * sizeof(uint8_t));
-    result[0] = 0;
-    result[1] = 0;
+    result[0] = 0; // this is the code for the shift
+    result[1] = 0; // this is the shifted value
     if (shiftArg == NULL)
+        // no shift was passed in at all
         return result;
     if (strcmp(shiftArg, "lsl") == 0) {
+        // result[0](shift code) for lsl is 0
     } else if (strcmp(shiftArg, "lsr") == 0) {
+        // shift code for lsr is 0B01
         result[0] = 1;
     } else if (strcmp(shiftArg, "asr") == 0) {
+        // shift code for asr is 0B10
         result[0] = 2;
     } else if (strcmp(shiftArg, "ror") == 0) {
+        // shift code for asr is 0B11
         result[0] = 3;
     } else {
         fprintf(stderr, "failed to parse shift for '%s'\n", shiftArg);
         exit(EXIT_FAILURE);
     }
-    printf("parse pos 1\n%s\n", shiftArg);
     result[1] = parse_imm6(shiftVal);
     return result;
 }
