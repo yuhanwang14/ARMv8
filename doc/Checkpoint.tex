@@ -19,16 +19,18 @@
 
 \section{Group Organisation}
 
-The work has been divided into two main parts. Yuhan Wang (yw8123) and Lei Ye (ky723) focused on the first part,
-which involves the emulator.
+The work has been divided into two main parts. Yuhan Wang (yw8123) and Lei Ye 
+(ky723) focused on the first part, which involves the emulator.
 Henry Wu (hw2823) and Bingshi Xu (bx223) concentrated on the second part,
 which pertains to the assembler.
 
-For the emulator part, Yuhan Wang primarily handled the implementation of single data transfer and load from literal instructions;
+For the emulator part, Yuhan Wang primarily handled the implementation of
+single data transfer and load from literal instructions;
 Lei Ye primarily dealt with data processing and branch instructions.
 
 \section{Group progress}
-We have successfully completed the first two parts, the emulator and assembler, and passed all the tests in the test suite. 
+We have successfully completed the first two parts, the emulator and assembler,
+and passed all the tests in the test suite. 
 Currently, we are focusing on the third part, which involves the Raspberry Pi, 
 as well as the code abstraction and commentation of the previous parts. 
 After completing the report, we plan to move on to the extension part.
@@ -42,12 +44,36 @@ reading. Then we have our main \texttt{fetch}, \texttt{decode},
 \texttt{execute} loop. Finally we clean everything up, i.e: \texttt{fclose} and
 \texttt{free} everything.
 
-\subsection{Fetching the next instruction}
+\subsection{Representation of the state machine and fetching instructions}
 
-To represent the register machine, we defined a \texttt{Register} structure in
-\texttt{register.h}, which consists of 31 generic registers \texttt{g\_reg},
-the zero register, \texttt{PSTATE} as a separate struct, the \texttt{PC}, and
-finally the main memory \texttt{ram}.
+In our program, the arm cpu is modeled as a register machine, we defined a
+\texttt{Register} structure in \texttt{register.h}, which consists of 31
+generic registers \texttt{g\_reg}, the zero register, \texttt{PSTATE} as a
+separate struct, the \texttt{PC}, and finally the main memory \texttt{ram}.
+
+In each cycle, we simply read 32 bits from \texttt{PC} offset from the start of
+the ram.
+
+\subsection{Decoding instructions into internal representation}
+
+We represent all instructions with a single type \texttt{Instr}. This is 
+possible throught defining Haskell-like GADTs consisting a \texttt{XType} enum
+representing the subtype, and a union of different cases. We divide
+\texttt{Instr} via its operand layout, and further divide those by similar 
+means. This resulted in clean separation between each case and very fine typing
+to work with, especially in the emulate module.
+
+To work with the binary instructions, we defined two helper methods,
+\texttt{bit\_slice} and \texttt{nth\_bit\_set}. Then we simply slice the
+operands out of the instruction and put them into corresponding structs.
+
+\subsection{Executing the instructions}
+Because we separated the cases nicely, \texttt{emulate.c} is entirely
+distangled from the further decoding, allowing for cleaner code and
+easier debugging. Two nice abstractions we made for this module are 
+\texttt{R64}/\texttt{R32} and \texttt{RAM\_64}/\texttt{RAM\_64}, which 
+abstracts the register and main memory so we don't have enigmatic dereferencing
+and casting everywhere.
 
 \section{Notable difficulties}
 Since we have fixed all the bugs and problems in the emulator parts, we mainly
