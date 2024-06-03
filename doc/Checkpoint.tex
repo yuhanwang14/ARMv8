@@ -67,12 +67,17 @@ To work with the binary instructions, we defined two helper methods,
 \texttt{bit\_slice} and \texttt{nth\_bit\_set}. Then we simply slice the
 operands out of the instruction and put them into corresponding structs.
 
-\section{Potential difficulties}
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-culpa qui officia deserunt mollit anim id est laborum.
+\section{Notable difficulties}
+Since we have fixed all the bugs and problems in the emulator parts, we wanted 
+to talk about two biggest bugs in our program. 
+
+\subsection{Sign extension}
+
+\subsection{Refactor word-indexed base to byte-indexed base}
+When we were debugging the general text cases of load and store operations, 
+we found the bitwise shift of all the target register \texttt{rt}.
+That is because \texttt{ram} and \texttt{PC} is indexed by words, 
+which is 4 bytes, not indexed by the single byte. This led to a  
+refactor from word-indexed base to byte-indexed base. 
 
 \end{document}
