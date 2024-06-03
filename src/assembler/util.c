@@ -1,9 +1,9 @@
 #include "util.h"
-#include <assert.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+static const uint8_t ADR_ZR = 31;
 
 uint8_t *parse_shift(char *shiftArg, char *shiftVal) {
     uint8_t *result = malloc(2 * sizeof(uint8_t));
@@ -33,11 +33,13 @@ uint8_t *parse_shift(char *shiftArg, char *shiftVal) {
 
 uint8_t parse_register(char *registerName) {
     if (registerName[0] != 'w' && registerName[0] != 'x') {
+        // all register names start with 'w' or 'x'
         fprintf(stderr, "failed to parse register name '%s'\n", registerName);
         exit(EXIT_FAILURE);
     }
     if (strcmp(registerName + 1, "zr") == 0)
-        return 31;
+        // handles zero registers, xzr/wzr
+        return ADR_ZR;
     return strtol(registerName + 1, NULL, 0);
 }
 
