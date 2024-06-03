@@ -7,6 +7,7 @@
 static int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char *buffer) {
     // this checks if any alias occur and change the opcode and arguments if so
     buffer = malloc(4 * sizeof(char));
+    // must be freed after use(out of the scope of this func)
     if (arguments[0][0] == 'x') {
         strcpy(buffer, "xzr");
     } else {
@@ -113,7 +114,7 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
         }
         break;
     default:
-        // no matched operation type, fails to parse
+        // No. of argument matched none of the operation types, fails to parse
         fprintf(stderr, "instruction fails to parse\n'%s'\ndoes not have correct number of arguments",
                 instruction);
             free(buffer);

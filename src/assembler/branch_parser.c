@@ -18,6 +18,7 @@ static const uint8_t COND_CODE_AL = 14;
 static uint32_t parse_uncond(char *opcode, char **arguments, int32_t currentLoc) {
     uint32_t result = PARSE_UNCOND_START;                                  // pos 26-31
     bit_append(&result, parse_imm_general(arguments[0]) - currentLoc, 26); // simm 26, pos 0 - 25
+    // offset calculated here
     return result;
 }
 
@@ -60,12 +61,16 @@ uint32_t parse_branch(char *opcode, char **arguments, uint32_t currentLoc) {
     }
     switch (strlen(opcode)) {
     case 1:
+        // opcode is 'b'
         return parse_uncond(opcode, arguments, currentLoc);
     case 2:
+        // opcode is 'br'
         return parse_with_reg(opcode, arguments, currentLoc);
     case 4:
+        // opcode is "b.cond"
         return parse_cond(opcode, arguments, currentLoc);
     default:
+        // unidentified opcode
         fprintf(stderr, "failed to parse '%s' as branching instruction\n", opcode);
         exit(EXIT_FAILURE);
     }
