@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 static const uint8_t ADR_ZR = 31;
 
@@ -15,13 +16,13 @@ uint8_t *parse_shift(char *shiftArg, char *shiftVal) {
     if (strcmp(shiftArg, "lsl") == 0) {
         // result[0](shift code) for lsl is 0
     } else if (strcmp(shiftArg, "lsr") == 0) {
-        // shift code for lsr is 0B01
+        // shift code for lsr is 0b01
         result[0] = 1;
     } else if (strcmp(shiftArg, "asr") == 0) {
-        // shift code for asr is 0B10
+        // shift code for asr is 0b10
         result[0] = 2;
     } else if (strcmp(shiftArg, "ror") == 0) {
-        // shift code for asr is 0B11
+        // shift code for asr is 0b11
         result[0] = 3;
     } else {
         fprintf(stderr, "failed to parse shift for '%s'\n", shiftArg);
@@ -47,9 +48,15 @@ bool is_literal(char *target) { return (*target == '#'); }
 
 uint32_t parse_imm16(char *literal, char *shiftCom, char *shiftVal) {
     if (shiftCom == NULL)
+        // if no shift is provided, return the value of literal
         return strtol(literal + 1, NULL, 0);
     uint8_t *parsedShift = parse_shift(shiftCom, shiftVal);
+    assert(parsedShift[0] == 0);
+    // the shift code can only be lsl, fail otherwise
+    assert(parsedShift[1] <= 48);
+    // the shift value must not exceed 48 bits(represented by Ob11)
     uint32_t result = parsedShift[1] / 16;
+    // appends hw value
     bit_append(&result, strtol(literal + 1, NULL, 0), 16);
     free(parsedShift);
     return result;
