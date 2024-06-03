@@ -50,16 +50,17 @@ the zero register, \texttt{PSTATE} as a separate struct, the \texttt{PC}, and
 finally the main memory \texttt{ram}.
 
 \section{Notable difficulties}
-Since we have fixed all the bugs and problems in the emulator parts, we wanted 
-to talk about two biggest bugs in our program. 
+Since we have fixed all the bugs and problems in the emulator parts, we mainly
+talk about two biggest bugs in our program. 
 
 \subsection{Sign extension}
 
+
 \subsection{Refactor word-indexed base to byte-indexed base}
-When we were debugging the general text cases of load and store operations, 
-we found the bitwise shift of all the target register \texttt{rt}.
-That is because \texttt{ram} and \texttt{PC} is indexed by words, 
-which is 4 bytes, not indexed by the single byte. This led to a  
-refactor from word-indexed base to byte-indexed base. 
+When debugging the general test cases for load and store operations, 
+we discovered an issue with the bitwise shift of all the target registers (\texttt{rt}). 
+This issue arose because \texttt{ram} and the program counter (\texttt{PC}) are indexed by words (4 bytes), 
+rather than by single bytes. 
+Consequently, we had to refactor the code from a word-indexed base to a byte-indexed base.
 
 \end{document}
