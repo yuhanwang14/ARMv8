@@ -1,6 +1,8 @@
 \documentclass[11pt]{article}
 
 \usepackage{fullpage}
+\usepackage[outputdir=out]{minted}
+\usemintedstyle{friendly}
 
 \begin{document}
 
@@ -9,18 +11,11 @@
 
 \maketitle
 
-% On or before Friday 7 June 2024 at 19:00, you should submit on Scientia under COMP40009 a PDF not
-% more than one sheet of paper, i.e. 2x A4 pages maximum, containing a summary that outlines your group
-% working and implementation of the Emulator (Part I) only. This report must be in L A TEX (this is assessed)
-% and include:
-% • A statement on how you have split the work between group members and how you are coordinating
-% your work.
-% • A discussion on how well you think the group is working and how you imagine it might need to
-% change for the later tasks.
-% • How you have structured your emulator, and what bits you think you will be able to reuse for the
-% assembler.
-% • A discussion on implementation tasks that you think you will find difficult / challenging later on,
-% and how you are working to mitigate these.
+% On or before Friday 7 June 2024 at 19:00, you should submit on Scientia under COMP40009 a PDF not more than one sheet of paper, i.e. 2x A4 pages maximum, containing a summary that outlines your group working and implementation of the Emulator (Part I) only. This report must be in L A TEX (this is assessed) and include:
+% • A statement on how you have split the work between group members and how you are coordinating your work.
+% • A discussion on how well you think the group is working and how you imagine it might need to change for the later tasks.
+% • How you have structured your emulator, and what bits you think you will be able to reuse for the assembler.
+% • A discussion on implementation tasks that you think you will find difficult / challenging later on, and how you are working to mitigate these.
 
 \section{Group Organisation}
 
@@ -41,12 +36,29 @@ culpa qui officia deserunt mollit anim id est laborum.
 
 \section{Implementation Strategies}
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-culpa qui officia deserunt mollit anim id est laborum.
+\subsection{The program main loop - emulate.c}
+This is the entry point of the program, we strived to keep it clean and simple. 
+We start by processing the arguments and opening the input and output files for
+reading. Then we have our main loop:
+\begin{minted}{C}
+while (true) {
+    uint32_t code = fetch(reg);
+    if (code == HALT) {
+        break;
+    }
+    decode(code, instr);
+    execute(reg, instr);
+}
+\end{minted}
+And finally we clean everything up, i.e: \texttt{fclose} and \texttt{free}
+everything.
+
+\subsection{Fetching the next instruction}
+
+To represent the register machine, we defined a \texttt{Register} structure in
+\texttt{register.h}, which consists of 31 generic registers \texttt{g\_reg},
+the zero register, \texttt{PSTATE} as a separate struct, the \texttt{PC}, and
+finally the main memory \texttt{ram}.
 
 \section{Potential difficulties}
 Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
