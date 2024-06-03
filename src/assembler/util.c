@@ -85,9 +85,10 @@ uint8_t parse_imm6(char *literal) { return strtol(literal + 1, NULL, 0); }
 
 void bit_append(uint32_t *target, int32_t appended, uint32_t length) {
     if (appended < 0){
+        // sign extension for negative append values
         *target = ((*target) << length) + appended + (1 << length);
         return;
-    };
+    }
     *target = ((*target) << length) + appended;
     return;
 }

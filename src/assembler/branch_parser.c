@@ -53,7 +53,7 @@ static uint32_t parse_cond(char *opcode, char **arguments, int32_t currentLoc) {
     return result;
 }
 
-uint32_t parse_branch(char *opcode, char **arguments, int32_t currentLoc) {
+uint32_t parse_branch(char *opcode, char **arguments, uint32_t currentLoc) {
     if (*opcode != 'b') {
         fprintf(stderr, "failed to parse '%s' as branching instruction\n", opcode);
         exit(EXIT_FAILURE);
