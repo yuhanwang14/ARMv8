@@ -11,6 +11,7 @@ static int32_t parse_simm19(char *absoluteAddress, uint32_t currentLoc) {
     if (offset > 0)
         return offset;
     return offset + (1 << 19);
+    // performs sign-extension for negative offsets
 }
 
 static uint32_t parse_dt_literal(char *rt, char *immediate, uint32_t currentLoc) {
@@ -82,23 +83,22 @@ static uint32_t parse_unsigned(char *opcode, char **addressArg, int8_t numArg, b
 }
 
 uint32_t parse_sdt(char *opcode, char *argument, uint32_t currentLoc) {
-    printf("dt_parser control pos 1\n");
     char *rt = strtok(argument, " ,");
     char *rest = strtok(NULL, "");
     if (*rest == ' ')
         rest++;
     if (*rest == '#')
+        // the second argument is an immediate value, instruction parsed as dt_literal
         return parse_dt_literal(rt, rest, currentLoc);
     while (*rest == ' ')
         rest++; // removes all spaces at the front(if any)
     rest = rest +
            1; // if we reach here, it implies the original str starts with '[', remove the bracket
     bool postIndex = rest[3] == ']' ||
-                     rest[2] == ']'; // this is used to distingush Unsigned offset and post-index
+                     rest[2] == ']'; // this is used to distinguish Unsigned offset and post-index
     char *nextArg = strtok(rest, ",] ");
     char *addressArg[3];
     int8_t numArg = 0;
-    printf("dt_parser control pos 2\n");
     while (nextArg != NULL && numArg < 3) {
         addressArg[numArg] = nextArg;
         numArg++;
@@ -110,16 +110,19 @@ uint32_t parse_sdt(char *opcode, char *argument, uint32_t currentLoc) {
     bit_append(&result, SDT_NOT_LITERAL_25_29, 5); // pos 25-29
     switch (numArg) {
     case 1:
-        // Unsigned offset without a immediate offset
+        // Unsigned offset without an immediate offset
+        // only one register name in brackets
         printf("dt_instruction parsed as unsigned offset\n");
         bit_append(&result, parse_unsigned(opcode, addressArg, numArg, *rt == 'x'), 20); // pos 5-24
         break;
     case 2:
         if ((!postIndex) && is_literal(addressArg[1])) {
-            // Unsigned offset with a immediate offset
+            // Unsigned offset with an immediate offset
+            // the second argument in brackets is a literal, and is confirmed not a post-index
             printf("dt_instruction parsed as unsigned offset\n");
             bit_append(&result, parse_unsigned(opcode, addressArg, numArg, *rt == 'x'), 20);
         } else {
+            // other cases, can be addressed register or post indexed
             printf("dt_instruction parsed as index or register\n");
             bit_append(&result, parse_indexed_or_reg(opcode, addressArg, numArg), 20);
         }
