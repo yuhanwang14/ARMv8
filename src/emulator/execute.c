@@ -428,11 +428,10 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
     }
     case PRE_POST_INDEX_T: {
         PrePostIndex instr = sdt.pre_post_index;
-        int64_t signed_simm9 = sign_extend(instr.simm9, 9);
         switch (instr.itype) {
         case PRE_INDEX: {
-            addrs = R64(instr.xn) + (uint64_t)(signed_simm9);
-            R64(instr.xn) = R64(instr.xn) + (uint64_t)(signed_simm9);
+            addrs = R64(instr.xn) + (uint64_t)(instr.simm9);
+            R64(instr.xn) = R64(instr.xn) + (uint64_t)(instr.simm9);
             // transfer address
             if (instr.L) {
                 // load operation
@@ -446,7 +445,7 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
 
         case POST_INDEX: {
             addrs = R64(instr.xn);
-            R64(instr.xn) = R64(instr.xn) + (uint64_t)(signed_simm9);
+            R64(instr.xn) = R64(instr.xn) + (uint64_t)(instr.simm9);
             if (instr.L) {
                 // load operation
                 load(reg, instr.sf, instr.rt, addrs);
@@ -482,8 +481,7 @@ static void execute_sdt(Register *reg, SdTrans sdt) {
 
 // Execute a load literal instruction
 static void execute_ldl(Register *reg, LoadLiteral ldl) {
-    int64_t signed_simm19 = sign_extend(ldl.simm19, 19);
-    uint64_t addrs = reg->PC + (uint64_t)(signed_simm19) * sizeof(uint32_t);
+    uint64_t addrs = reg->PC + (uint64_t)(ldl.simm19) * sizeof(uint32_t);
     load(reg, ldl.sf, ldl.rt, addrs);
 }
 

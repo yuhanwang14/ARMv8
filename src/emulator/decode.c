@@ -194,7 +194,7 @@ static void decode_sdt(uint32_t rt, uint64_t xn, uint32_t offset, uint32_t l, ui
         result->sing_data_transfer.pre_post_index.rt = rt;
         result->sing_data_transfer.pre_post_index.sf = (bool)sf;
         result->sing_data_transfer.pre_post_index.simm9 =
-            bit_slice(offset, SIMM9_START, SIMM9_SIZE);
+            sign_extend(bit_slice(offset, SIMM9_START, SIMM9_SIZE), SIMM9_SIZE);
         result->sing_data_transfer.pre_post_index.xn = xn;
     } else if (!nth_bit_set(offset, FLAG_OFFSET)) {
         // register type
@@ -281,7 +281,8 @@ void decode(uint32_t code, Instr *result) {
         result->type = LOAD_LITERAL_T;
         result->load_literal.rt = bit_slice(code, RT_START, RT_SIZE);
         result->load_literal.sf = nth_bit_set(code, LS_SF_OFFSET);
-        result->load_literal.simm19 = bit_slice(code, LL_SIMM19_START, LL_SIMM19_SIZE);
+        result->load_literal.simm19 =
+            sign_extend(bit_slice(code, LL_SIMM19_START, LL_SIMM19_SIZE), LL_SIMM19_SIZE);
     } else if (OP0(1) && OP0(3)) {
         // Branch
         result->type = BRANCH_T;
