@@ -5,6 +5,8 @@
 #ifndef _UTIL_H
 #define _UTIL_H
 #define REGISTER_ADR_SIZE 5
+// str is the register name
+#define GET_SF(rn) (*rn == 'x' ? 1 : 0)
 
 // takes a name of register, returns its address
 uint8_t parse_register(char *registerName);
