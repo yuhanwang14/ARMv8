@@ -25,16 +25,16 @@ uint8_t *parse_shift(char *shiftArg, char *shiftVal) {
     if (shiftArg == NULL)
         // no shift was passed in at all
         return result;
-    if (strcmp(shiftArg, "lsl") == 0) {
+    if (STR_EQ(shiftArg, "lsl")) {
         // result[0](shift code) for lsl is 0
         result[0] = LSL_SHIFT_CODE;
-    } else if (strcmp(shiftArg, "lsr") == 0) {
+    } else if (STR_EQ(shiftArg, "lsr")) {
         // shift code for lsr is 0b01
         result[0] = LSR_SHIFT_CODE;
-    } else if (strcmp(shiftArg, "asr") == 0) {
+    } else if (STR_EQ(shiftArg, "asr")) {
         // shift code for asr is 0b10
         result[0] = ASR_SHIFT_CODE;
-    } else if (strcmp(shiftArg, "ror") == 0) {
+    } else if (STR_EQ(shiftArg, "ror")) {
         // shift code for asr is 0b11
         result[0] = ROR_SHIFT_CODE;
     } else {
@@ -51,7 +51,7 @@ uint8_t parse_register(char *registerName) {
         fprintf(stderr, "failed to parse register name '%s'\n", registerName);
         exit(EXIT_FAILURE);
     }
-    if (strcmp(registerName + 1, "zr") == 0)
+    if (STR_EQ(registerName + 1, "zr"))
         // handles zero registers, xzr/wzr
         return ADR_ZR;
     return strtol(registerName + 1, NULL, 0);
@@ -111,8 +111,8 @@ void bit_append(uint32_t *target, int32_t appended, uint32_t length) {
 bool is_shift(char *argument) {
     if (argument == NULL)
         return false;
-    return (strcmp(argument, "lsl") == 0 || strcmp(argument, "lsr") == 0 ||
-            strcmp(argument, "asr") == 0 || strcmp(argument, "ror") == 0);
+    return (STR_EQ(argument, "lsl") || STR_EQ(argument, "lsr") || STR_EQ(argument, "asr") ||
+            STR_EQ(argument, "ror"));
 }
 
 void insert_str(char **targetArray, int32_t arraySize, char *element, int8_t index) {

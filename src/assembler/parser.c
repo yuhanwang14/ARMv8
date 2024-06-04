@@ -13,39 +13,39 @@ static int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char
     } else {
         strcpy(buffer, "wzr");
     }
-    if (strcmp(*opcode, "cmp") == 0) {
+    if (STR_EQ(*opcode, "cmp") ) {
         *opcode = "subs";
         insert_str(arguments, numArg, buffer, 0);
         return numArg + 1;
-    } else if (strcmp(*opcode, "cmn") == 0) {
+    } else if (STR_EQ(*opcode, "cmn") ) {
         *opcode = "adds";
         insert_str(arguments, numArg, buffer, 0);
         return numArg + 1;
-    } else if (strcmp(*opcode, "neg") == 0) {
+    } else if (STR_EQ(*opcode, "neg") ) {
         *opcode = "sub";
         insert_str(arguments, numArg, buffer, 1);
         return numArg + 1;
-    } else if (strcmp(*opcode, "negs") == 0) {
+    } else if (STR_EQ(*opcode, "negs") ) {
         *opcode = "subs";
         insert_str(arguments, numArg, buffer, 1);
         return numArg + 1;
-    } else if (strcmp(*opcode, "tst") == 0) {
+    } else if (STR_EQ(*opcode, "tst") ) {
         *opcode = "ands";
         insert_str(arguments, numArg, buffer, 0);
         return numArg + 1;
-    } else if (strcmp(*opcode, "mvn") == 0) {
+    } else if (STR_EQ(*opcode, "mvn") ) {
         *opcode = "orn";
         insert_str(arguments, numArg, buffer, 1);
         return numArg + 1;
-    } else if (strcmp(*opcode, "mov") == 0) {
+    } else if (STR_EQ(*opcode, "mov") ) {
         *opcode = "orr";
         insert_str(arguments, numArg, buffer, 1);
         return numArg + 1;
-    } else if (strcmp(*opcode, "mul") == 0) {
+    } else if (STR_EQ(*opcode, "mul") ) {
         *opcode = "madd";
         insert_str(arguments, numArg, buffer, 3);
         return numArg + 1;
-    } else if (strcmp(*opcode, "mneg") == 0) {
+    } else if (STR_EQ(*opcode, "mneg") ) {
         *opcode = "msub";
         insert_str(arguments, numArg, buffer, 3);
         return numArg + 1;
@@ -55,7 +55,7 @@ static int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char
 
 uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
     char *opcode = strtok(instruction, " ,");
-    if (strcmp(opcode, "ldr") == 0 || strcmp(opcode, "str") == 0)
+    if (STR_EQ(opcode, "ldr")  || STR_EQ(opcode, "str") )
         return parse_sdt(opcode, strtok(NULL, ""), currentLoc); // special handler for DTIs
     char *nextArg = strtok(NULL, " ,");
     char *arguments[5] = {NULL, NULL, NULL, NULL, NULL};

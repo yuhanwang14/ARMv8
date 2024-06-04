@@ -8,6 +8,8 @@
 // determine whether this instruction is 64 mode (register name starts with x)
 #define GET_SF(rn) (*rn == 'x' ? 1 : 0)
 
+#define STR_EQ(str1, str2) (strcmp(str1,str2) == 0)
+
 // takes a name of register, returns its address
 uint8_t parse_register(char *registerName);
 

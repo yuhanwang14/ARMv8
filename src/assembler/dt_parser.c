@@ -27,9 +27,9 @@ static uint32_t parse_dt_literal(char *rt, char *immediate, uint32_t currentLoc)
 
 static uint32_t parse_indexed_or_reg(char *opcode, char **addressArg, int8_t numArg) {
     uint32_t result = 0; // pos 23, 24 are both 0
-    if (strcmp(opcode, "str") == 0) {
+    if (STR_EQ(opcode, "str")) {
         bit_append(&result, 0, 1); // 'L'bit, pos 22
-    } else if (strcmp(opcode, "ldr") == 0) {
+    } else if (STR_EQ(opcode, "ldr")) {
         bit_append(&result, 1, 1);
     } else {
         fprintf(stderr, "failed to parse opcode '%s' as a data transfer", opcode);
@@ -61,9 +61,9 @@ static uint32_t parse_indexed_or_reg(char *opcode, char **addressArg, int8_t num
 
 static uint32_t parse_unsigned(char *opcode, char **addressArg, int8_t numArg, bool is64) {
     uint32_t result = 2; // the highest digit is '1' since it is an unsigned offset
-    if (strcmp(opcode, "str") == 0) {
+    if (STR_EQ(opcode, "str")) {
         bit_append(&result, 0, 1); // 'L' bit, pos 22
-    } else if (strcmp(opcode, "ldr") == 0) {
+    } else if (STR_EQ(opcode, "ldr")) {
         bit_append(&result, 1, 1);
     } else {
         fprintf(stderr, "failed to parse '%s' as a data transfer", opcode);

@@ -29,39 +29,39 @@ uint32_t parse_2op_with_dest(char *opcode, char **arguments) {
     int8_t negate = 0; // holds the value for N
     bool logicOp = false;
     uint32_t result = 0;
-    if (strcmp(opcode, "add") == 0) {
+    if (STR_EQ(opcode, "add")) {
         opc = OPC_ADD;
-    } else if (strcmp(opcode, "adds") == 0) {
+    } else if (STR_EQ(opcode, "adds")) {
         opc = OPC_ADDS;
-    } else if (strcmp(opcode, "sub") == 0) {
+    } else if (STR_EQ(opcode, "sub")) {
         opc = OPC_SUB;
-    } else if (strcmp(opcode, "subs") == 0) {
+    } else if (STR_EQ(opcode, "subs")) {
         opc = OPC_SUBS;
-    } else if (strcmp(opcode, "and") == 0) {
+    } else if (STR_EQ(opcode, "and")) {
         opc = OPC_AND;
         logicOp = true;
-    } else if (strcmp(opcode, "ands") == 0) {
+    } else if (STR_EQ(opcode, "ands")) {
         opc = OPC_ANDS;
         logicOp = true;
-    } else if (strcmp(opcode, "bic") == 0) {
+    } else if (STR_EQ(opcode, "bic")) {
         opc = OPC_BIC;
         logicOp = true;
         negate = 1;
-    } else if (strcmp(opcode, "bics") == 0) {
+    } else if (STR_EQ(opcode, "bics")) {
         opc = OPC_BICS;
         logicOp = true;
         negate = 1;
-    } else if (strcmp(opcode, "eor") == 0) {
+    } else if (STR_EQ(opcode, "eor")) {
         opc = OPC_EOR;
         logicOp = true;
-    } else if (strcmp(opcode, "eon") == 0) {
+    } else if (STR_EQ(opcode, "eon")) {
         opc = OPC_EON;
         logicOp = true;
         negate = 1;
-    } else if (strcmp(opcode, "orr") == 0) {
+    } else if (STR_EQ(opcode, "orr")) {
         opc = OPC_ORR;
         logicOp = true;
-    } else if (strcmp(opcode, "orn") == 0) {
+    } else if (STR_EQ(opcode, "orn")) {
         opc = OPC_ORN;
         logicOp = true;
         negate = 1;
@@ -106,9 +106,9 @@ uint32_t parse_multiply(char *opcode, char **arguments) {
     bit_append(&result, GET_SF(arguments[0]), 1);                         // sf, pos 31
     bit_append(&result, DPI_MUL_21_30, 10);                               // pos 21 - 30
     bit_append(&result, parse_register(arguments[2]), REGISTER_ADR_SIZE); // rm, pos 16 - 20
-    if (strcmp(opcode, "madd") == 0) {
+    if (STR_EQ(opcode, "madd")) {
         bit_append(&result, 0, 1); // x, holds whether a negation is needed, pos 15
-    } else if (strcmp(opcode, "msub") == 0) {
+    } else if (STR_EQ(opcode, "msub")) {
         bit_append(&result, 1, 1); // x, holds whether a negation is needed, pos 15
     } else {
         fprintf(stderr, "failed to parse opcode for\n'%s'\nas multiply\n", opcode);
@@ -123,11 +123,11 @@ uint32_t parse_multiply(char *opcode, char **arguments) {
 uint32_t parse_wide_move(char *opcode, char **arguments) {
     uint32_t result = 0;
     bit_append(&result, GET_SF(arguments[0]), 1);
-    if (strcmp(opcode, "movn") == 0) {
+    if (STR_EQ(opcode, "movn")) {
         bit_append(&result, OPC_MOVN, 2); // opc, pos 29 - 30
-    } else if (strcmp(opcode, "movz") == 0) {
+    } else if (STR_EQ(opcode, "movz")) {
         bit_append(&result, OPC_MOVZ, 2);
-    } else if (strcmp(opcode, "movk") == 0) {
+    } else if (STR_EQ(opcode, "movk")) {
         bit_append(&result, OPC_MOVK, 2);
     } else {
         fprintf(stderr, "failed to parse opcode for\n'%s'\nas wide move\n", opcode);
