@@ -86,14 +86,14 @@ operands out of the instruction and put them into corresponding structs.
 Thanks to clean separation between modules, \texttt{emulate.c} only needs to
 modify the state of the \texttt{Register} and does not need to mangle with
 decoding at all. Two nice abstractions we made for this module are
-\texttt{R64}/\texttt{R32} and \texttt{RAM\_64}/\texttt{RAM\_64}, which
+\texttt{R64}/\texttt{R32} and \texttt{RAM\_64}/\texttt{RAM\_32}, which
 abstracts the register and main memory.
 
 \section{Notable difficulties}
 
 \subsection{Sign extension}
 During the decode of the signed integer operand, we forgot to perform sign
-extension to the these signed integers. Which caused undefined behaviour in
+extension to the these signed integers, which caused undefined behaviour in
 many instructions. It's now fixed and abstracted to \texttt{utils.c}.
 
 \subsection{Refactor word-indexed memory to byte-indexed memory}
