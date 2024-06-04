@@ -1,4 +1,5 @@
 #include "dp_parser.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,6 +19,7 @@ static const uint8_t OPC_SUBS = 3;
 static const uint8_t OPC_MOVN = 0;
 static const uint8_t OPC_MOVZ = 2;
 static const uint8_t OPC_MOVK = 3;
+static const uint8_t OPC_SIZE = 2;
 static const uint8_t DPI_WIDE_MOVE_OPI = 5;
 static const uint8_t DPI_ARITH_OPI = 2;
 static const uint8_t DPI_IMM_26_28 = 4;
@@ -70,7 +72,7 @@ uint32_t parse_2op_with_dest(char *opcode, char **arguments) {
         exit(EXIT_FAILURE);
     }
     bit_append(&result, GET_SF(arguments[0]), 1); // sf, pos 31
-    bit_append(&result, opc, 2);                  // opc,pos 29 - 30
+    bit_append(&result, opc, OPC_SIZE);                  // opc,pos 29 - 30
     if (is_literal(arguments[2])) {
         // <operand> is a literal value
         // parsed as a DPI immediate
@@ -124,11 +126,11 @@ uint32_t parse_wide_move(char *opcode, char **arguments) {
     uint32_t result = 0;
     bit_append(&result, GET_SF(arguments[0]), 1);
     if (STR_EQ(opcode, "movn")) {
-        bit_append(&result, OPC_MOVN, 2); // opc, pos 29 - 30
+        bit_append(&result, OPC_MOVN, OPC_SIZE); // opc, pos 29 - 30
     } else if (STR_EQ(opcode, "movz")) {
-        bit_append(&result, OPC_MOVZ, 2);
+        bit_append(&result, OPC_MOVZ, OPC_SIZE);
     } else if (STR_EQ(opcode, "movk")) {
-        bit_append(&result, OPC_MOVK, 2);
+        bit_append(&result, OPC_MOVK, OPC_SIZE);
     } else {
         fprintf(stderr, "failed to parse opcode for\n'%s'\nas wide move\n", opcode);
         exit(EXIT_FAILURE);
