@@ -6,7 +6,7 @@
 
 static int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char *buffer) {
     // this checks if any alias occur and change the opcode and arguments if so
-    buffer = malloc(4 * sizeof(char));
+    
     // must be freed after use(out of the scope of this func)
     if (arguments[0][0] == 'x') {
         strcpy(buffer, "xzr");
@@ -69,7 +69,7 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
     }
 
     // buffer holds the pointer that must be freed after use(from resolve_alias)
-    char *buffer = NULL;
+    char *buffer = malloc(4 * sizeof(char));;
     numArg = resolve_alias(&opcode, arguments, numArg, buffer);
     printf("instruction treated as '%s %s, %s, %s,%s, %s'\n", opcode, arguments[0], arguments[1],
            arguments[2], arguments[3], arguments[4]);
