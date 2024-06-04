@@ -20,6 +20,8 @@ static const uint32_t HW = 16;
 uint8_t *parse_shift(char *shiftArg, char *shiftVal) {
     // code for the shift and the shifted value
     uint8_t *result = malloc(2 * sizeof(uint8_t));
+    result[0] = 0;
+    result[1] = 0;
     if (shiftArg == NULL)
         // no shift was passed in at all
         return result;
