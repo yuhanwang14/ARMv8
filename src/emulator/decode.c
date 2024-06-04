@@ -1,5 +1,4 @@
 #include "decode.h"
-#include "stddef.h"
 #include "utils.h"
 #include <stdbool.h>
 #include <stdint.h>
