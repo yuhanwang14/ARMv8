@@ -7,46 +7,46 @@
 static int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char **buffer) {
     // this checks if any alias occur and change the opcode and arguments if so
     // buffer points to an allocated memory which must be freed after use
-    char *zeroReg = malloc(4*sizeof(char));
+    char *zeroReg = malloc(4 * sizeof(char));
     *buffer = zeroReg;
     if (arguments[0][0] == 'x') {
         strcpy(zeroReg, "xzr");
     } else {
         strcpy(zeroReg, "wzr");
     }
-    if (STR_EQ(*opcode, "cmp") ) {
+    if (STR_EQ(*opcode, "cmp")) {
         *opcode = "subs";
         insert_str(arguments, numArg, zeroReg, 0);
         return numArg + 1;
-    } else if (STR_EQ(*opcode, "cmn") ) {
+    } else if (STR_EQ(*opcode, "cmn")) {
         *opcode = "adds";
         insert_str(arguments, numArg, zeroReg, 0);
         return numArg + 1;
-    } else if (STR_EQ(*opcode, "neg") ) {
+    } else if (STR_EQ(*opcode, "neg")) {
         *opcode = "sub";
         insert_str(arguments, numArg, zeroReg, 1);
         return numArg + 1;
-    } else if (STR_EQ(*opcode, "negs") ) {
+    } else if (STR_EQ(*opcode, "negs")) {
         *opcode = "subs";
         insert_str(arguments, numArg, zeroReg, 1);
         return numArg + 1;
-    } else if (STR_EQ(*opcode, "tst") ) {
+    } else if (STR_EQ(*opcode, "tst")) {
         *opcode = "ands";
         insert_str(arguments, numArg, zeroReg, 0);
         return numArg + 1;
-    } else if (STR_EQ(*opcode, "mvn") ) {
+    } else if (STR_EQ(*opcode, "mvn")) {
         *opcode = "orn";
         insert_str(arguments, numArg, zeroReg, 1);
         return numArg + 1;
-    } else if (STR_EQ(*opcode, "mov") ) {
+    } else if (STR_EQ(*opcode, "mov")) {
         *opcode = "orr";
         insert_str(arguments, numArg, zeroReg, 1);
         return numArg + 1;
-    } else if (STR_EQ(*opcode, "mul") ) {
+    } else if (STR_EQ(*opcode, "mul")) {
         *opcode = "madd";
         insert_str(arguments, numArg, zeroReg, 3);
         return numArg + 1;
-    } else if (STR_EQ(*opcode, "mneg") ) {
+    } else if (STR_EQ(*opcode, "mneg")) {
         *opcode = "msub";
         insert_str(arguments, numArg, zeroReg, 3);
         return numArg + 1;
@@ -56,7 +56,7 @@ static int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char
 
 uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
     char *opcode = strtok(instruction, " ,");
-    if (STR_EQ(opcode, "ldr")  || STR_EQ(opcode, "str") )
+    if (STR_EQ(opcode, "ldr") || STR_EQ(opcode, "str"))
         return parse_sdt(opcode, strtok(NULL, ""), currentLoc); // special handler for DTIs
     char *nextArg = strtok(NULL, " ,");
     char *arguments[5] = {NULL, NULL, NULL, NULL, NULL};
@@ -70,7 +70,7 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
     }
 
     // buffer holds the pointer that must be freed after use(from resolve_alias)
-    char **buffer = NULL;
+    char **buffer = malloc(sizeof(char **));
     numArg = resolve_alias(&opcode, arguments, numArg, buffer);
     printf("instruction treated as '%s %s, %s, %s,%s, %s'\n", opcode, arguments[0], arguments[1],
            arguments[2], arguments[3], arguments[4]);
@@ -117,9 +117,11 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
     default:
         fprintf(stderr, "failed to parse\n'%s'\ndoes not have correct number of arguments",
                 instruction);
+        free(*buffer);
         free(buffer);
         exit(EXIT_FAILURE);
     }
+    free(*buffer);
     free(buffer);
     return result;
 }
