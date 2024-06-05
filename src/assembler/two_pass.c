@@ -93,8 +93,8 @@ void read_into(char **buf) {
     while (c != EOF) {
         if (c == '\n') {
             if (line_len > 0) {
-                // record line
                 if (!is_label) {
+                    // record line
                     char *line = malloc(sizeof(char) * (line_len + 1 + LABEL_LENGTH));
                     strncpy(line, line_buf, line_len);
                     line[line_len] = '\0';
@@ -102,12 +102,15 @@ void read_into(char **buf) {
                 }
                 current_line++;
             }
-            // reset line_len
+            // reset line state
+            is_label = false;
             line_len = 0;
         } else if (c == ':') {
             // don't record this line
             is_label = true;
-            line_count--;
+            current_line--;
+        } else if (c == ' ' && line_len == 0) {
+            // skip
         } else {
             // record c
             line_buf[line_len++] = c;
@@ -115,6 +118,7 @@ void read_into(char **buf) {
         c = fgetc(f);
     }
 
+    free(line_buf);
     fclose(f);
 }
 
@@ -135,10 +139,12 @@ static int find_label(char *line) {
         index = last_arg(line);
     } else if (strncmp("b ", line, 2) == 0) {
         index = 2;
-    } else if (strncmp("ldr ", line, 4) == 0) {
+    } else if (strncmp("ldr ", line, 4) == 0
+               // not a register
+               && line[strlen(line) - 1] != ']') {
         index = last_arg(line);
-        // is a literal
         if (line[index] == '#') {
+            // not a label
             index = -1;
         }
     }
@@ -151,23 +157,23 @@ void substitute_labels(char **lines) {
         int label_start = find_label(line);
         if (label_start == -1) {
             // does not contain a label
-            printf("'%s' does not contain label, skipping\n", line);
             continue;
         }
-        printf("'%s' contains label\n", line);
-        size_t label_len = strlen(line) - label_start + 1;
-        char *label = malloc(sizeof(char) * label_len);
-        strncpy(label, line + label_start, label_len - 1);
-        label[label_len - 1] = '\0';
+        size_t label_len = strlen(line) - label_start;
+        char *label = malloc(sizeof(char) * (label_len + 1));
+        strncpy(label, line + label_start, label_len);
+        label[label_len] = '\0';
+
         line[label_start] = '#';
-        sprintf(line + label_start + 1, "%d", map_find(labels, label));
-        printf("result: '%s'\n", line);
+        sprintf(line + label_start + 1, "%u", map_find(labels, label));
         free(label);
     }
 
     // free the map
     for (int i = 0; i < labels->used; i++) {
         free(labels->pairs[i]->key);
+        free(labels->pairs[i]);
     }
+    free(labels->pairs);
     free(labels);
 }

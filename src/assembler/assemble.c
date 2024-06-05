@@ -31,7 +31,6 @@ int main(int argc, char **argv) {
     substitute_labels(lines);
 
     for (int i = 0; i < line_count; i++) {
-        puts(lines[i]);
         // parse each line
         uint32_t result = parse_instruction(lines[i], i);
         // immediatly write to output
