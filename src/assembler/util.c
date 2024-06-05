@@ -17,8 +17,18 @@ static const uint8_t ADR_ZR = 31;
 // consts for parse_imm16
 static const uint32_t HW = 16;
 
+FILE *safe_open(char *path, const char *mode) {
+    FILE *f = fopen(path, mode);
+    if (f == NULL) {
+        fprintf(stderr, "Failed to open %s with mode %s", path, mode);
+        exit(EXIT_FAILURE);
+    }
+    return f;
+}
+
 uint8_t *parse_shift(char *shiftArg, char *shiftVal) {
     // code for the shift and the shifted value
+    // returns a malloced array, should be freed after use
     uint8_t *result = malloc(2 * sizeof(uint8_t));
     result[0] = 0;
     result[1] = 0;
@@ -93,6 +103,7 @@ uint16_t parse_imm12(char *literal, char *shiftCom, char *shiftVal) {
     }
     // if shift value is 12, the highest bit is set to 1
     assert(parsedShift[1] == 12);
+    free(parsedShift);
     return (strtol(literal + 1, NULL, 0) + (1 << 12));
 }
 

@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #ifndef _UTIL_H
 #define _UTIL_H
@@ -9,6 +10,9 @@
 #define GET_SF(rn) (*rn == 'x' ? 1 : 0)
 
 #define STR_EQ(str1, str2) (strcmp(str1,str2) == 0)
+
+FILE *safe_open(char *path, const char *mode);
+
 
 // takes a name of register, returns its address
 uint8_t parse_register(char *registerName);

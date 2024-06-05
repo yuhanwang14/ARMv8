@@ -6,8 +6,10 @@
 
 static int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char **buffer) {
     // this checks if any alias occur and change the opcode and arguments if so
-    // buffer points to an allocated memory which must be freed after use
-    char *zeroReg = malloc(4 * sizeof(char));
+    // buffer points to an allocated memory after running which must be freed after use
+    // buffer must be initiallized with a value, i.e. not NULL
+    // the type of buffer is a pointer to a string and is intended to be so, DO NOT CHANGE
+    char *zeroReg = malloc(4*sizeof(char));
     *buffer = zeroReg;
     if (arguments[0][0] == 'x') {
         strcpy(zeroReg, "xzr");
