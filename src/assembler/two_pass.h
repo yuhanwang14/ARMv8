@@ -1,24 +1,18 @@
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 typedef struct {
-    const char *key; // label
-    int value;       // corresponding offset
+    char *key; // label
+    int value; // corresponding offset
 } Pair;
 
 typedef struct {
-    Pair *pairs; // list of "key & value pairs"
-    int used;    // current no. of pairs
-    int size;    // capacity of the list
+    Pair **pairs;
+    int used;
+    int size;
 } Map;
 
-typedef struct {
-    char **lines;
-    int length;
-} FileLines;
+void set_input(char *path);
 
-FileLines *two_pass(char *file_name);
+unsigned first_pass();
 
-void free_file_lines(FileLines *file_lines);
+void read_into(char **buf);
+
+void substitute_labels(char **lines);

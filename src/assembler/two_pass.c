@@ -1,23 +1,18 @@
 #include "two_pass.h"
-#include <assert.h>
+#include "util.h"
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-static const int INITIAL_SIZE = 8;
-static const int INITIAL_LINE_SIZE = 32;
+static char *input_path;
+static unsigned line_count = 0;
+static Map *labels;
 
-// final output
-static char **LINES;
-static Map *TABLE;
-static int LENGTH;
-
-// creating a table for mapping labels
-
-// check whether table is null
-static void check_null(Map *table) {
-    if (table == NULL) {
-        printf("Table is NULL\n");
-        assert(table != NULL);
-    }
-}
+// in practice it should be much bigger
+static const size_t MAP_INITIAL_SIZE = 2;
+static const size_t LINE_BUF_SIZE = 128;
+static const size_t LABEL_LENGTH = 16;
 
 static Map *map_new(int initial_size) {
     Map *result = malloc(sizeof(Map));
@@ -28,213 +23,151 @@ static Map *map_new(int initial_size) {
     return result;
 }
 
-void map_add(Map *table, const char *k, int v) {
-    check_null(table);
-
+static void map_add(Map *table, char *k, int v) {
     Pair *pair = malloc(sizeof(Pair));
     pair->key = k;
     pair->value = v;
-    // resize if no. of element exceed the size of array
     if (table->used >= table->size) {
-        table->pairs = realloc(table->pairs, table->size * 2 * sizeof(Pair));
-
         table->size *= 2;
+        table->pairs = realloc(table->pairs, table->size * sizeof(Pair));
     }
 
-    table->pairs[table->used] = *pair;
+    table->pairs[table->used] = pair;
     table->used++;
 }
 
-int map_find(Map *table, const char *key) {
-    check_null(table);
-
+static int map_find(Map *table, const char *key) {
     for (int i = 0; i < table->used; i++) {
-        if (strcmp(key, table->pairs[i].key) == 0) {
-            return table->pairs[i].value;
+        if (strcmp(key, table->pairs[i]->key) == 0) {
+            return table->pairs[i]->value;
         }
     }
-
     return -1;
 }
 
-// returns the substr of str from start index to end
-char *sub_str(char *str, int start, int end) {
-    char *sub = malloc((end - start + 2) * sizeof(char));
-    memcpy(sub, &str[start], end - start + 1);
-    sub[end - start + 1] = '\0';
+void set_input(char *path) { input_path = path; }
 
-    return sub;
-}
+unsigned first_pass() {
+    FILE *f = safe_open(input_path, "r");
+    int c = fgetc(f);
+    unsigned line_len = 0;
+    char *buf = malloc(sizeof(char) * LINE_BUF_SIZE);
+    labels = map_new(MAP_INITIAL_SIZE);
 
-// don't count label line
-int count_non_empty_lines(char *file_name) {
-    int lines = 0;
-    int count = 0; // counting \n
-
-    FILE *fptr = fopen(file_name, "r");
-    int c = fgetc(fptr);
     while (c != EOF) {
-        if (c == ':') {
-            lines--;
-        } // label line does not count
-
-        if (c == '\n' && count > 0) { // nonempty line, count increment by one
-            lines++;
-            count = 0;
-        } else if (c == '\n' && count == 0) {
-            // do nothing if empty line
+        if (c == '\n') {
+            // omit empty lines
+            if (line_len > 0) {
+                line_count++;
+            }
+            // reset line_len
+            line_len = 0;
+        } else if (c == ':') {
+            // add to map
+            char *label = malloc(sizeof(char) * (line_len + 1));
+            strncpy(label, buf, line_len);
+            label[line_len] = '\0';
+            map_add(labels, label, line_count);
+            // don't count label declarations
+            line_count--;
         } else {
-            count++;
+            // record c
+            buf[line_len++] = c;
         }
-
-        c = fgetc(fptr);
+        c = fgetc(f);
     }
 
-    fclose(fptr);
-
-    return lines;
+    free(buf);
+    fclose(f);
+    return line_count;
 }
 
-// first pass
-void split_lines(char *file_name) {
-    int i = 0;
-    int line = 0;
-    int total_lines = count_non_empty_lines(file_name);
-    char **lines = malloc(total_lines * sizeof(char *));
-
-    FILE *fptr = fopen(file_name, "r");
-    int c = fgetc(fptr);
-
-    Map *table = map_new(INITIAL_SIZE);
+void read_into(char **buf) {
+    FILE *f = safe_open(input_path, "r");
+    int c = fgetc(f);
+    char *line_buf = malloc(sizeof(char) * LINE_BUF_SIZE);
+    unsigned line_len = 0;
+    unsigned current_line = 0;
+    bool is_label = false;
 
     while (c != EOF) {
-        if (c == '\n') { // ignore empty line
-            c = fgetc(fptr);
-            continue;
-        }
-
-        lines[line] = malloc(INITIAL_LINE_SIZE * sizeof(char));
-
-        // if not new line or end of file, keep adding content to the current line
-        while (c != '\n' && c != EOF) {
-            if (i > 0 || c != ' ') { // remove tab
-                lines[line][i] = (char)c;
-                i++;
+        if (c == '\n') {
+            if (line_len > 0) {
+                // record line
+                if (!is_label) {
+                    char *line = malloc(sizeof(char) * (line_len + 1 + LABEL_LENGTH));
+                    strncpy(line, line_buf, line_len);
+                    line[line_len] = '\0';
+                    buf[current_line] = line;
+                }
+                current_line++;
             }
-
-            if (c == ':') { // find label
-                break;
-            }
-
-            c = fgetc(fptr);
+            // reset line_len
+            line_len = 0;
+        } else if (c == ':') {
+            // don't record this line
+            is_label = true;
+            line_count--;
+        } else {
+            // record c
+            line_buf[line_len++] = c;
         }
-
-        if (c == ':') { // add label
-            size_t len = strlen(lines[line]) - 1;
-            char *label = malloc(len * sizeof(char));
-            strncpy(label, lines[line], len);
-
-            map_add(table, label, line);
-            line--; // doesn't count the label line
-            c = fgetc(fptr);
-            while (c == ' ') { // remove all spaces after ':'
-                c = fgetc(fptr);
-            }
-        }
-
-        line++;
-        i = 0;
-        c = fgetc(fptr);
+        c = fgetc(f);
     }
 
-    fclose(fptr);
-
-    TABLE = table;
-    LINES = lines;
-    LENGTH = total_lines;
+    fclose(f);
 }
 
-// helper function for finding the position of the literal
-int return_index(char *line) {
+static int last_arg(char *line) {
     int res = -1;
-    int ind = strlen(line);
-
-    for (int i = ind - 1; i >= 0; i--) {
+    for (int i = strlen(line) - 1; i >= 0; i--) {
         if (line[i] == ' ' || line[i] == ',') {
             res = i + 1;
             break;
         }
     }
-
     return res;
 }
 
-// returns the position of the (potential) label
-int find_literal(char *line) {
-    int res = -1;
+static int find_label(char *line) {
+    int index = -1;
     if (strncmp("b.", line, 2) == 0) {
-        res = return_index(line);
+        index = last_arg(line);
     } else if (strncmp("b ", line, 2) == 0) {
-        res = 2;
+        index = 2;
     } else if (strncmp("ldr ", line, 4) == 0) {
-        res = return_index(line);
-
-        if (line[res] == '#') {
-            res = -1;
+        index = last_arg(line);
+        // is a literal
+        if (line[index] == '#') {
+            index = -1;
         }
     }
-
-    return res; // returns the starting index of the label
+    return index;
 }
 
-// two pass
-FileLines *two_pass(char *file_name) {
-    // first pass
-    split_lines(file_name);
-
-    // second pass
-    for (int i = 0; i < LENGTH; i++) { // i + 1 = line number
-        char *line = LINES[i];
-        int start = find_literal(line);
-
-        if (start == -1) { // if label empty, check next item
+void substitute_labels(char **lines) {
+    for (int i = 0; i < line_count; i++) {
+        char *line = lines[i];
+        int label_start = find_label(line);
+        if (label_start == -1) {
+            // does not contain a label
+            printf("'%s' does not contain label, skipping\n", line);
             continue;
         }
-
-        int last = strlen(line) - 1;
-        char *label = sub_str(line, start, last);
-
-        int ind = map_find(TABLE, label);
-
-        if (ind == -1) { // if not label, check next item
-            continue;
-        }
-
-        char *offset = malloc(sizeof(char *));
-
-        assert(offset != NULL); // check malloc is working
-
-        sprintf(offset, "%d", ind);
-
-        char *new_str;
-        new_str = sub_str(line, 0, start - 1);
-        strcat(new_str, "#");
-        strcat(new_str, offset);
-
-        LINES[i] = new_str;
-
-        free(offset);
+        printf("'%s' contains label\n", line);
+        size_t label_len = strlen(line) - label_start + 1;
+        char *label = malloc(sizeof(char) * label_len);
+        strncpy(label, line + label_start, label_len - 1);
+        label[label_len - 1] = '\0';
+        line[label_start] = '#';
+        sprintf(line + label_start + 1, "%d", map_find(labels, label));
+        printf("result: '%s'\n", line);
+        free(label);
     }
 
-    FileLines *two_passed = malloc(sizeof(FileLines));
-    two_passed->lines = malloc(LENGTH * sizeof(char *));
-    two_passed->lines = LINES;
-    two_passed->length = LENGTH;
-
-    return two_passed;
-}
-
-void free_file_lines(FileLines *file_lines) {
-    free(file_lines->lines);
-    free(file_lines);
+    // free the map
+    for (int i = 0; i < labels->used; i++) {
+        free(labels->pairs[i]->key);
+    }
+    free(labels);
 }
