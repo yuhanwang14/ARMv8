@@ -4,7 +4,7 @@
 #include <string.h>
 
 uint32_t parse_dir(char *opcode, char **arguments) {
-    if (strcmp(opcode, ".int") == 0) {
+    if (STR_EQ(opcode, ".int")) {
         return strtol(arguments[0], NULL, 0); // immediate value written for .int directive
     } else {
         // unidentified directive

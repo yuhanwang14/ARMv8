@@ -28,22 +28,23 @@ FILE *safe_open(char *path, const char *mode) {
 
 uint8_t *parse_shift(char *shiftArg, char *shiftVal) {
     // code for the shift and the shifted value
+    // returns a malloced array, should be freed after use
     uint8_t *result = malloc(2 * sizeof(uint8_t));
     result[0] = 0;
     result[1] = 0;
     if (shiftArg == NULL)
         // no shift was passed in at all
         return result;
-    if (strcmp(shiftArg, "lsl") == 0) {
+    if (STR_EQ(shiftArg, "lsl")) {
         // result[0](shift code) for lsl is 0
         result[0] = LSL_SHIFT_CODE;
-    } else if (strcmp(shiftArg, "lsr") == 0) {
+    } else if (STR_EQ(shiftArg, "lsr")) {
         // shift code for lsr is 0b01
         result[0] = LSR_SHIFT_CODE;
-    } else if (strcmp(shiftArg, "asr") == 0) {
+    } else if (STR_EQ(shiftArg, "asr")) {
         // shift code for asr is 0b10
         result[0] = ASR_SHIFT_CODE;
-    } else if (strcmp(shiftArg, "ror") == 0) {
+    } else if (STR_EQ(shiftArg, "ror")) {
         // shift code for asr is 0b11
         result[0] = ROR_SHIFT_CODE;
     } else {
@@ -60,7 +61,7 @@ uint8_t parse_register(char *registerName) {
         fprintf(stderr, "failed to parse register name '%s'\n", registerName);
         exit(EXIT_FAILURE);
     }
-    if (strcmp(registerName + 1, "zr") == 0)
+    if (STR_EQ(registerName + 1, "zr"))
         // handles zero registers, xzr/wzr
         return ADR_ZR;
     return strtol(registerName + 1, NULL, 0);
@@ -69,9 +70,10 @@ uint8_t parse_register(char *registerName) {
 bool is_literal(char *target) { return (*target == '#'); }
 
 uint32_t parse_imm16(char *literal, char *shiftCom, char *shiftVal) {
-    if (shiftCom == NULL)
+    if (shiftCom == NULL) {
         // if no shift is provided, return the value of literal
         return strtol(literal + 1, NULL, 0);
+    }
     uint8_t *parsedShift = parse_shift(shiftCom, shiftVal);
 
     // the shift code can only be lsl
@@ -102,6 +104,7 @@ uint16_t parse_imm12(char *literal, char *shiftCom, char *shiftVal) {
     }
     // if shift value is 12, the highest bit is set to 1
     assert(parsedShift[1] == 12);
+    free(parsedShift);
     return (strtol(literal + 1, NULL, 0) + (1 << 12));
 }
 
@@ -118,10 +121,11 @@ void bit_append(uint32_t *target, int32_t appended, uint32_t length) {
 }
 
 bool is_shift(char *argument) {
-    if (argument == NULL)
+    if (argument == NULL) {
         return false;
-    return (strcmp(argument, "lsl") == 0 || strcmp(argument, "lsr") == 0 ||
-            strcmp(argument, "asr") == 0 || strcmp(argument, "ror") == 0);
+    }
+    return (STR_EQ(argument, "lsl") || STR_EQ(argument, "lsr") || STR_EQ(argument, "asr") ||
+            STR_EQ(argument, "ror"));
 }
 
 void insert_str(char **targetArray, int32_t arraySize, char *element, int8_t index) {

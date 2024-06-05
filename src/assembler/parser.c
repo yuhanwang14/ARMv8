@@ -4,50 +4,53 @@
 #include <stdlib.h>
 #include <string.h>
 
-static int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char *buffer) {
+static int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char **buffer) {
     // this checks if any alias occur and change the opcode and arguments if so
-    buffer = malloc(4 * sizeof(char));
-    // must be freed after use(out of the scope of this func)
+    // buffer points to an allocated memory after running which must be freed after use
+    // buffer must be initiallized with a value, i.e. not NULL
+    // the type of buffer is a pointer to a string and is intended to be so, DO NOT CHANGE
+    char *zeroReg = malloc(4*sizeof(char));
+    *buffer = zeroReg;
     if (arguments[0][0] == 'x') {
-        strcpy(buffer, "xzr");
+        strcpy(zeroReg, "xzr");
     } else {
-        strcpy(buffer, "wzr");
+        strcpy(zeroReg, "wzr");
     }
-    if (strcmp(*opcode, "cmp") == 0) {
+    if (STR_EQ(*opcode, "cmp")) {
         *opcode = "subs";
-        insert_str(arguments, numArg, buffer, 0);
+        insert_str(arguments, numArg, zeroReg, 0);
         return numArg + 1;
-    } else if (strcmp(*opcode, "cmn") == 0) {
+    } else if (STR_EQ(*opcode, "cmn")) {
         *opcode = "adds";
-        insert_str(arguments, numArg, buffer, 0);
+        insert_str(arguments, numArg, zeroReg, 0);
         return numArg + 1;
-    } else if (strcmp(*opcode, "neg") == 0) {
+    } else if (STR_EQ(*opcode, "neg")) {
         *opcode = "sub";
-        insert_str(arguments, numArg, buffer, 1);
+        insert_str(arguments, numArg, zeroReg, 1);
         return numArg + 1;
-    } else if (strcmp(*opcode, "negs") == 0) {
+    } else if (STR_EQ(*opcode, "negs")) {
         *opcode = "subs";
-        insert_str(arguments, numArg, buffer, 1);
+        insert_str(arguments, numArg, zeroReg, 1);
         return numArg + 1;
-    } else if (strcmp(*opcode, "tst") == 0) {
+    } else if (STR_EQ(*opcode, "tst")) {
         *opcode = "ands";
-        insert_str(arguments, numArg, buffer, 0);
+        insert_str(arguments, numArg, zeroReg, 0);
         return numArg + 1;
-    } else if (strcmp(*opcode, "mvn") == 0) {
+    } else if (STR_EQ(*opcode, "mvn")) {
         *opcode = "orn";
-        insert_str(arguments, numArg, buffer, 1);
+        insert_str(arguments, numArg, zeroReg, 1);
         return numArg + 1;
-    } else if (strcmp(*opcode, "mov") == 0) {
+    } else if (STR_EQ(*opcode, "mov")) {
         *opcode = "orr";
-        insert_str(arguments, numArg, buffer, 1);
+        insert_str(arguments, numArg, zeroReg, 1);
         return numArg + 1;
-    } else if (strcmp(*opcode, "mul") == 0) {
+    } else if (STR_EQ(*opcode, "mul")) {
         *opcode = "madd";
-        insert_str(arguments, numArg, buffer, 3);
+        insert_str(arguments, numArg, zeroReg, 3);
         return numArg + 1;
-    } else if (strcmp(*opcode, "mneg") == 0) {
+    } else if (STR_EQ(*opcode, "mneg")) {
         *opcode = "msub";
-        insert_str(arguments, numArg, buffer, 3);
+        insert_str(arguments, numArg, zeroReg, 3);
         return numArg + 1;
     }
     return numArg;
@@ -55,8 +58,10 @@ static int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char
 
 uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
     char *opcode = strtok(instruction, " ,");
-    if (strcmp(opcode, "ldr") == 0 || strcmp(opcode, "str") == 0)
-        return parse_sdt(opcode, strtok(NULL, ""), currentLoc); // special handler for DTIs
+    if (STR_EQ(opcode, "ldr") || STR_EQ(opcode, "str")){
+        // special handler for DTIs
+        return parse_sdt(opcode, strtok(NULL, ""), currentLoc);
+        } 
     char *nextArg = strtok(NULL, " ,");
     char *arguments[5] = {NULL, NULL, NULL, NULL, NULL};
     int numArg = 0;
@@ -69,7 +74,7 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
     }
 
     // buffer holds the pointer that must be freed after use(from resolve_alias)
-    char *buffer = NULL;
+    char **buffer = malloc(sizeof(char **));
     numArg = resolve_alias(&opcode, arguments, numArg, buffer);
     printf("instruction treated as '%s %s, %s, %s,%s, %s'\n", opcode, arguments[0], arguments[1],
            arguments[2], arguments[3], arguments[4]);
@@ -116,9 +121,11 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
     default:
         fprintf(stderr, "failed to parse\n'%s'\ndoes not have correct number of arguments",
                 instruction);
+        free(*buffer);
         free(buffer);
         exit(EXIT_FAILURE);
     }
+    free(*buffer);
     free(buffer);
     return result;
 }
