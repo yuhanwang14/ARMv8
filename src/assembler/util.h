@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #ifndef _UTIL_H
 #define _UTIL_H
@@ -7,6 +8,8 @@
 #define REGISTER_ADR_SIZE 5
 // determine whether this instruction is 64 mode (register name starts with x)
 #define GET_SF(rn) (*rn == 'x' ? 1 : 0)
+
+FILE *safe_open(char *path, const char *mode);
 
 // takes a name of register, returns its address
 uint8_t parse_register(char *registerName);
