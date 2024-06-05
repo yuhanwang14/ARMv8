@@ -58,8 +58,10 @@ static int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char
 
 uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
     char *opcode = strtok(instruction, " ,");
-    if (STR_EQ(opcode, "ldr") || STR_EQ(opcode, "str"))
-        return parse_sdt(opcode, strtok(NULL, ""), currentLoc); // special handler for DTIs
+    if (STR_EQ(opcode, "ldr") || STR_EQ(opcode, "str")){
+        // special handler for DTIs
+        return parse_sdt(opcode, strtok(NULL, ""), currentLoc);
+        } 
     char *nextArg = strtok(NULL, " ,");
     char *arguments[5] = {NULL, NULL, NULL, NULL, NULL};
     int numArg = 0;

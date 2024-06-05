@@ -70,9 +70,10 @@ uint8_t parse_register(char *registerName) {
 bool is_literal(char *target) { return (*target == '#'); }
 
 uint32_t parse_imm16(char *literal, char *shiftCom, char *shiftVal) {
-    if (shiftCom == NULL)
+    if (shiftCom == NULL) {
         // if no shift is provided, return the value of literal
         return strtol(literal + 1, NULL, 0);
+    }
     uint8_t *parsedShift = parse_shift(shiftCom, shiftVal);
 
     // the shift code can only be lsl
@@ -120,8 +121,9 @@ void bit_append(uint32_t *target, int32_t appended, uint32_t length) {
 }
 
 bool is_shift(char *argument) {
-    if (argument == NULL)
+    if (argument == NULL) {
         return false;
+    }
     return (STR_EQ(argument, "lsl") || STR_EQ(argument, "lsr") || STR_EQ(argument, "asr") ||
             STR_EQ(argument, "ror"));
 }
