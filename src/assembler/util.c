@@ -100,6 +100,7 @@ uint16_t parse_imm12(char *literal, char *shiftCom, char *shiftVal) {
     }
     if (parsedShift[1] == 0) {
         // if shift value is zero, the highest bit is 0
+        free(parsedShift);
         return strtol(literal + 1, NULL, 0);
     }
     // if shift value is 12, the highest bit is set to 1
