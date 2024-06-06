@@ -125,7 +125,7 @@ uint32_t parse_sdt(char *opcode, char *argument, uint32_t currentLoc) {
         // Unsigned offset without an immediate offset
         // only one register name in brackets
         printf("dt_instruction parsed as unsigned offset\n");
-        bit_append(&result, parse_unsigned(opcode, addressArg, numArg, *rt == 'x'), 20); // pos 5-24
+        bit_append(&result, parse_unsigned(opcode, addressArg, numArg, *rt == 'x'), SDT_CASE_SPEC_CODE_SIZE); // pos 5-24
         break;
     case 2:
         if ((!postIndex) && is_literal(addressArg[1])) {

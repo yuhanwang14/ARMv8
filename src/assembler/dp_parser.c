@@ -89,14 +89,10 @@ uint32_t parse_2op_with_dest(char *opcode, char **arguments) {
         // <operand> is not a literal value
         // parsed as DPI register
         bit_append(&result, DPI_REG_ARITH_LOGIC_25_28, 4); // pos 25 - 28
-        if (logicOp) {
-            bit_append(&result, 0, 1); // pos 24 for bit logic
-        } else {
-            bit_append(&result, 1, 1); // pos 24 for arith
-        }
+        bit_append(&result, !logicOp, 1); // pos 24 flag for logic/arith op
         uint8_t *parsedShift = parse_shift(arguments[3], arguments[4]);
         bit_append(&result, parsedShift[0], SHIFT_CODE_SIZE); // shift in opr, pos 22 - 23
-        bit_append(&result, negate, 1);         // the N value, set to zero for arthi ops, pos 21
+        bit_append(&result, negate, 1);         // the N value, set to zero for arith ops, pos 21
         bit_append(&result, parse_register(arguments[2]), REGISTER_ADR_SIZE); // rm, pos 16 - 20
         bit_append(&result, parsedShift[1], SHIFT_VALUE_SIZE); // operand for shift value, pos 10-15
         bit_append(&result, parse_register(arguments[1]), REGISTER_ADR_SIZE); // rn, pos 5 - 9
