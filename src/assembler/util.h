@@ -9,7 +9,7 @@
 // determine whether this instruction is 64 mode (register name starts with x)
 #define GET_SF(rn) (*rn == 'x' ? 1 : 0)
 
-const uint8_t SF_SIZE = 1;
+#define SF_SIZE 1
 
 #define STR_EQ(str1, str2) (strcmp(str1,str2) == 0)
 

@@ -12,7 +12,10 @@ static const uint8_t SIMM9_SIZE = 9;
 static const uint8_t SDT_REG_10_15 = 26;
 static const uint8_t LDR_L_FLAG = 1;
 static const uint8_t STR_L_FLAG = 0;
-static const uint8_t SDT_LITERAL_L_FLAG_SIZE = 1;
+static const uint8_t SDT_REG_L_FLAG_SIZE = 1;
+static const uint8_t SDT_POST_I_FLAG = 0;
+static const uint8_t SDT_PRE_I_FLAG = 1;
+static const uint8_t SDT_INDEXED_I_FLAG_SIZE = 1;
 
 
 static int32_t parse_simm19(char *absoluteAddress, uint32_t currentLoc) {
@@ -33,9 +36,9 @@ static uint32_t parse_dt_literal(char *rt, char *immediate, uint32_t currentLoc)
 static uint32_t parse_indexed_or_reg(char *opcode, char **addressArg, int8_t numArg) {
     uint32_t result = 0; // pos 23, 24 are both 0
     if (STR_EQ(opcode, "str")) {
-        bit_append(&result, STR_L_FLAG, SDT_LITERAL_L_FLAG_SIZE); // 'L'bit, pos 22
+        bit_append(&result, STR_L_FLAG, SDT_REG_L_FLAG_SIZE); // 'L'bit, pos 22
     } else if (STR_EQ(opcode, "ldr")) {
-        bit_append(&result, LDR_L_FLAG, SDT_LITERAL_L_FLAG_SIZE);
+        bit_append(&result, LDR_L_FLAG, SDT_REG_L_FLAG_SIZE);
     } else {
         fprintf(stderr, "failed to parse opcode '%s' as a data transfer", opcode);
         exit(EXIT_FAILURE);
@@ -47,10 +50,10 @@ static uint32_t parse_indexed_or_reg(char *opcode, char **addressArg, int8_t num
         bit_append(&result, parse_imm_general(addressArg[1]), SIMM9_SIZE); // simm 9, pos 12-20
         if (numArg == 3) {
             // pre-indexed
-            bit_append(&result, 1, 1); // 'I', pos 11
+            bit_append(&result, SDT_PRE_I_FLAG, SDT_INDEXED_I_FLAG_SIZE); // 'I', pos 11
         } else {
             // post-indexed
-            bit_append(&result, 0, 1);
+            bit_append(&result, SDT_POST_I_FLAG, SDT_INDEXED_I_FLAG_SIZE);
         }
         bit_append(&result, 1, 1); // pos 10
     } else {
@@ -67,9 +70,9 @@ static uint32_t parse_indexed_or_reg(char *opcode, char **addressArg, int8_t num
 static uint32_t parse_unsigned(char *opcode, char **addressArg, int8_t numArg, bool is64) {
     uint32_t result = 2; // the highest digit is '1' since it is an unsigned offset
     if (STR_EQ(opcode, "str")) {
-        bit_append(&result, 0, 1); // 'L' bit, pos 22
+        bit_append(&result, STR_L_FLAG, SDT_REG_L_FLAG_SIZE); // 'L' bit, pos 22
     } else if (STR_EQ(opcode, "ldr")) {
-        bit_append(&result, 1, 1);
+        bit_append(&result, LDR_L_FLAG, SDT_REG_L_FLAG_SIZE);
     } else {
         fprintf(stderr, "failed to parse '%s' as a data transfer", opcode);
         exit(EXIT_FAILURE);
