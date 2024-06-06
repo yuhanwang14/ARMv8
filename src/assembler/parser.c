@@ -1,5 +1,4 @@
 #include "parser.h"
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -76,8 +75,6 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
     // buffer holds the pointer that must be freed after use(from resolve_alias)
     char **buffer = malloc(sizeof(char **));
     numArg = resolve_alias(&opcode, arguments, numArg, buffer);
-    printf("instruction treated as '%s %s, %s, %s,%s, %s'\n", opcode, arguments[0], arguments[1],
-           arguments[2], arguments[3], arguments[4]);
     uint32_t result;
 
     switch (numArg) {

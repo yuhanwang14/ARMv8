@@ -1,5 +1,4 @@
 #include "branch_parser.h"
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,6 +16,10 @@ static const uint8_t COND_CODE_AL = 14;
 static const uint8_t COND_CODE_SIZE = 4;
 static const uint8_t SIMM19_SIZE = 19;
 static const uint8_t SIMM26_SIZE = 26;
+static const uint8_t REG_PADDING_SIZE = 5;
+static const uint8_t REG_PADDING_BIT = 0;
+static const uint8_t COND_PRE_ALIGN_BIT = 0;
+static const uint8_t COND_PRE_ALIGN_BIT_SIZE = 1;
 
 static uint32_t parse_uncond(char *opcode, char **arguments, int32_t currentLoc) {
     uint32_t result = PARSE_UNCOND_START; // pos 26-31
@@ -29,7 +32,7 @@ static uint32_t parse_uncond(char *opcode, char **arguments, int32_t currentLoc)
 static uint32_t parse_with_reg(char *opcode, char **arguments, int32_t currentLoc) {
     uint32_t result = PARSE_REG_START;                                    // pos 10 - 31
     bit_append(&result, parse_register(arguments[0]), REGISTER_ADR_SIZE); // xn, pos 5 - 9
-    bit_append(&result, 0, 5);                                            // pos 0-4
+    bit_append(&result, REG_PADDING_BIT, REG_PADDING_SIZE);                                            // pos 0-4
     return result;
 }
 
@@ -37,7 +40,7 @@ static uint32_t parse_cond(char *opcode, char **arguments, int32_t currentLoc) {
     uint32_t result = PARSE_COND_START; // pos 24-31
     bit_append(&result, parse_imm_general(arguments[0]) - currentLoc,
                SIMM19_SIZE);      // simm19, pos 5 - 23
-    bit_append(&result, 0, 1);    // pos 4
+    bit_append(&result, COND_PRE_ALIGN_BIT, COND_PRE_ALIGN_BIT_SIZE);    // pos 4
     if (STR_EQ(opcode, "b.eq")) { // cond, pos 0 - 4
         bit_append(&result, COND_CODE_EQ, COND_CODE_SIZE);
     } else if (STR_EQ(opcode, "b.ne")) {
