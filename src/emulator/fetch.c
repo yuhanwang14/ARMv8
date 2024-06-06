@@ -16,5 +16,6 @@ uint32_t fetch(Register *reg) {
 
     // read the corresponding word
     uint32_t instruction = *(uint32_t *)(reg->ram + reg->PC);
+    printf("0x%x\n", instruction);
     return instruction;
 }

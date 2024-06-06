@@ -32,6 +32,7 @@ int main(int argc, char **argv) {
 
     for (int i = 0; i < line_count; i++) {
         // parse each line
+	printf("lines[%d]: %s\n", i, lines[i]);
         uint32_t result = parse_instruction(lines[i], i);
         // immediatly write to output
         fwrite(&result, INSTR_SIZE, 1, out);
