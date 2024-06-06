@@ -46,7 +46,6 @@ static uint32_t parse_indexed_or_reg(char *opcode, char **addressArg, int8_t num
     }
     if (is_literal(addressArg[1])) {
         // pre/post indexed
-        printf("dt_instruction parsed as indexed\n");
         bit_append(&result, 0, 1);                                // pos 21
         bit_append(&result, parse_imm_general(addressArg[1]), SIMM9_SIZE); // simm 9, pos 12-20
         if (numArg == 3) {
@@ -58,13 +57,11 @@ static uint32_t parse_indexed_or_reg(char *opcode, char **addressArg, int8_t num
         }
         bit_append(&result, 1, 1); // pos 10
     } else {
-        printf("dt_instruction parsed as register\n");
         bit_append(&result, 1, 1);                                             // pos 21
         bit_append(&result, parse_register(addressArg[1]), REGISTER_ADR_SIZE); // xm, pos 16-20
         bit_append(&result, SDT_REG_10_15, 6);                                            // pos 10-15
     }
     bit_append(&result, parse_register(addressArg[0]), REGISTER_ADR_SIZE); // xn, pos 5-9
-    printf("%i\n", result);
     return result;
 }
 
@@ -124,24 +121,20 @@ uint32_t parse_sdt(char *opcode, char *argument, uint32_t currentLoc) {
     case 1:
         // Unsigned offset without an immediate offset
         // only one register name in brackets
-        printf("dt_instruction parsed as unsigned offset\n");
         bit_append(&result, parse_unsigned(opcode, addressArg, numArg, *rt == 'x'), SDT_CASE_SPEC_CODE_SIZE); // pos 5-24
         break;
     case 2:
         if ((!postIndex) && is_literal(addressArg[1])) {
             // Unsigned offset with an immediate offset
             // the second argument in brackets is a literal, and is confirmed not a post-index
-            printf("dt_instruction parsed as unsigned offset\n");
             bit_append(&result, parse_unsigned(opcode, addressArg, numArg, *rt == 'x'), SDT_CASE_SPEC_CODE_SIZE);
         } else {
             // other cases, can be addressed register or post indexed
-            printf("dt_instruction parsed as index or register\n");
             bit_append(&result, parse_indexed_or_reg(opcode, addressArg, numArg), SDT_CASE_SPEC_CODE_SIZE);
         }
         break;
     case 3:
         // pre-indexed address, the last argument would be '!'
-        printf("dt_instruction parsed as index or register\n");
         bit_append(&result, parse_indexed_or_reg(opcode, addressArg, numArg), SDT_CASE_SPEC_CODE_SIZE);
     }
     bit_append(&result, parse_register(rt), REGISTER_ADR_SIZE); // rt, pos 0 - 4

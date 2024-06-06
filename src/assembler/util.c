@@ -1,6 +1,4 @@
 #include "util.h"
-#include <assert.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -76,11 +74,6 @@ uint32_t parse_imm16(char *literal, char *shiftCom, char *shiftVal) {
     }
     uint8_t *parsedShift = parse_shift(shiftCom, shiftVal);
 
-    // the shift code can only be lsl
-    assert(parsedShift[0] == LSL_SHIFT_CODE);
-    // the shift value must not exceed 48 bits(represented by Ob11)
-    assert(parsedShift[1] <= 48);
-
     uint32_t result = parsedShift[1] / HW;
     // appends hw value
     bit_append(&result, strtol(literal + 1, NULL, 0), HW);
@@ -104,7 +97,6 @@ uint16_t parse_imm12(char *literal, char *shiftCom, char *shiftVal) {
         return strtol(literal + 1, NULL, 0);
     }
     // if shift value is 12, the highest bit is set to 1
-    assert(parsedShift[1] == 12);
     free(parsedShift);
     return (strtol(literal + 1, NULL, 0) + (1 << 12));
 }
