@@ -77,7 +77,15 @@ unsigned first_pass() {
             map_add(labels, label, line_count);
             // don't count label declarations
             line_count--;
-        } else {
+        } else if (c == ';') {
+            // handle comments
+            while (c != '\n'){
+                c = fgetc(f);
+            }
+            if (line_len > 0) {
+                line_count++;
+            }
+        }else{
             // record c
             if (bufsize <= line_len) {
                 // resize the buffer
@@ -126,6 +134,22 @@ void read_into(char **buf) {
             current_line--;
         } else if (c == ' ' && line_len == 0) {
             // skip spaces
+        } else if (c == ';') {
+            // handle comments
+            while (c != '\n'){
+                c = fgetc(f);
+            }
+            if (line_len > 0) {
+                if (!is_label) {
+                    // record line
+                    char *line = malloc(sizeof(char) * (line_len + 1 + MAX_LABEL_LENGTH));
+                    strncpy(line, line_buf, line_len);
+                    line[line_len] = '\0';
+                    buf[current_line] = line;
+                }
+                // increment line count
+                current_line++;
+            }
         } else {
             // record c
             if (bufsize <= line_len) {
