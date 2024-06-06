@@ -119,7 +119,7 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
         }
         break;
     default:
-        fprintf(stderr, "failed to parse\n'%s'\ndoes not have correct number of arguments",
+        fprintf(stderr, "failed to parse\n'%s'\ndoes not have correct number of arguments\n",
                 instruction);
         free(*buffer);
         free(buffer);

@@ -1,3 +1,4 @@
 assemble
 emulate
 output
+*.bin
