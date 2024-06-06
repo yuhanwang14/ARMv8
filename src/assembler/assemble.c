@@ -7,11 +7,6 @@
 static FILE *out;
 static const unsigned INSTR_SIZE = 4;
 
-#define WITH_FILE(path, code)                                                                      \
-    source = safe_open(argv[1], "r");                                                              \
-    code;                                                                                          \
-    fclose(source)
-
 int main(int argc, char **argv) {
     if (argc == 2) {
         // print to stdout
