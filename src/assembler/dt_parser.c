@@ -16,6 +16,7 @@ static const uint8_t SDT_REG_L_FLAG_SIZE = 1;
 static const uint8_t SDT_POST_I_FLAG = 0;
 static const uint8_t SDT_PRE_I_FLAG = 1;
 static const uint8_t SDT_INDEXED_I_FLAG_SIZE = 1;
+static const uint8_t SDT_CASE_SPEC_CODE_SIZE = 20;
 
 
 static int32_t parse_simm19(char *absoluteAddress, uint32_t currentLoc) {
@@ -131,17 +132,17 @@ uint32_t parse_sdt(char *opcode, char *argument, uint32_t currentLoc) {
             // Unsigned offset with an immediate offset
             // the second argument in brackets is a literal, and is confirmed not a post-index
             printf("dt_instruction parsed as unsigned offset\n");
-            bit_append(&result, parse_unsigned(opcode, addressArg, numArg, *rt == 'x'), 20);
+            bit_append(&result, parse_unsigned(opcode, addressArg, numArg, *rt == 'x'), SDT_CASE_SPEC_CODE_SIZE);
         } else {
             // other cases, can be addressed register or post indexed
             printf("dt_instruction parsed as index or register\n");
-            bit_append(&result, parse_indexed_or_reg(opcode, addressArg, numArg), 20);
+            bit_append(&result, parse_indexed_or_reg(opcode, addressArg, numArg), SDT_CASE_SPEC_CODE_SIZE);
         }
         break;
     case 3:
         // pre-indexed address, the last argument would be '!'
         printf("dt_instruction parsed as index or register\n");
-        bit_append(&result, parse_indexed_or_reg(opcode, addressArg, numArg), 20);
+        bit_append(&result, parse_indexed_or_reg(opcode, addressArg, numArg), SDT_CASE_SPEC_CODE_SIZE);
     }
     bit_append(&result, parse_register(rt), REGISTER_ADR_SIZE); // rt, pos 0 - 4
     return result;
