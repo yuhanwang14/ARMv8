@@ -24,6 +24,10 @@ static const uint8_t DPI_ARITH_OPI = 2;
 static const uint8_t DPI_IMM_26_28 = 4;
 static const uint8_t DPI_REG_ARITH_LOGIC_25_28 = 5;
 static const uint16_t DPI_MUL_21_30 = 216;
+static const uint8_t OPI_SIZE = 3;
+static const uint8_t SHIFT_CODE_SIZE = 2;
+static const uint8_t SHIFT_VALUE_SIZE = 6;
+static const uint8_t IMM16_SIZE = 18;
 
 uint32_t parse_2op_with_dest(char *opcode, char **arguments) {
     int8_t opc;        // holds the opc for this instruction
@@ -76,7 +80,7 @@ uint32_t parse_2op_with_dest(char *opcode, char **arguments) {
         // <operand> is a literal value
         // parsed as a DPI immediate
         bit_append(&result, DPI_IMM_26_28, 3); // pos 26 - 28
-        bit_append(&result, DPI_ARITH_OPI, 3); // opi, pos 23 - 25
+        bit_append(&result, DPI_ARITH_OPI, OPI_SIZE); // opi, pos 23 - 25
         bit_append(&result, parse_imm12(arguments[2], arguments[3], arguments[4]),
                    13); // sh & imm12, pos 10 - 22
         bit_append(&result, parse_register(arguments[1]), REGISTER_ADR_SIZE); // rn, pos 5 - 9
@@ -91,10 +95,10 @@ uint32_t parse_2op_with_dest(char *opcode, char **arguments) {
             bit_append(&result, 1, 1); // pos 24 for arith
         }
         uint8_t *parsedShift = parse_shift(arguments[3], arguments[4]);
-        bit_append(&result, parsedShift[0], 2); // shift in opr, pos 22 - 23
+        bit_append(&result, parsedShift[0], SHIFT_CODE_SIZE); // shift in opr, pos 22 - 23
         bit_append(&result, negate, 1);         // the N value, set to zero for arthi ops, pos 21
         bit_append(&result, parse_register(arguments[2]), REGISTER_ADR_SIZE); // rm, pos 16 - 20
-        bit_append(&result, parsedShift[1], 6); // operand for shift value, pos 10-15
+        bit_append(&result, parsedShift[1], SHIFT_VALUE_SIZE); // operand for shift value, pos 10-15
         bit_append(&result, parse_register(arguments[1]), REGISTER_ADR_SIZE); // rn, pos 5 - 9
         bit_append(&result, parse_register(arguments[0]), REGISTER_ADR_SIZE); // rd, pos 0 - 4
         free(parsedShift);
@@ -135,9 +139,9 @@ uint32_t parse_wide_move(char *opcode, char **arguments) {
         exit(EXIT_FAILURE);
     }
     bit_append(&result, DPI_IMM_26_28, 3);     // (immediate dp) pos 26 - 28
-    bit_append(&result, DPI_WIDE_MOVE_OPI, 3); // opi, pos 23 - 25
+    bit_append(&result, DPI_WIDE_MOVE_OPI, OPI_SIZE); // opi, pos 23 - 25
     bit_append(&result, parse_imm16(arguments[1], arguments[2], arguments[3]),
-               18); // operand as hw and imm 16, pos 5 - 22
+               IMM16_SIZE); // operand as hw and imm 16, pos 5 - 22
     bit_append(&result, parse_register(arguments[0]), REGISTER_ADR_SIZE); // rd, pos 0 - 4
     return result;
 }
