@@ -150,6 +150,9 @@ void read_into(char **buf) {
                 // increment line count
                 current_line++;
             }
+            // reset line state
+            is_label = false;
+            line_len = 0;
         } else {
             // record c
             if (bufsize <= line_len) {
