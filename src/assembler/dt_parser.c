@@ -113,7 +113,7 @@ uint32_t parse_sdt(char *opcode, char *argument, uint32_t currentLoc) {
         nextArg = strtok(NULL, ",] ");
     }
     uint32_t result = 1;                           // pos 31
-    bit_append(&result, GET_SF(rt), 1);            // sf, pos 30
+    bit_append(&result, GET_SF(rt), SF_SIZE);            // sf, pos 30
     bit_append(&result, SDT_NOT_LITERAL_25_29, 5); // pos 25-29
     switch (numArg) {
     case 1:

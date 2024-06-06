@@ -71,7 +71,7 @@ uint32_t parse_2op_with_dest(char *opcode, char **arguments) {
         fprintf(stderr, "failed to parse opcode for\n '%s'\nas 2 operand with des\n", opcode);
         exit(EXIT_FAILURE);
     }
-    bit_append(&result, GET_SF(arguments[0]), 1); // sf, pos 31
+    bit_append(&result, GET_SF(arguments[0]), SF_SIZE); // sf, pos 31
     bit_append(&result, opc, OPC_SIZE);                  // opc,pos 29 - 30
     if (is_literal(arguments[2])) {
         // <operand> is a literal value
@@ -105,7 +105,7 @@ uint32_t parse_2op_with_dest(char *opcode, char **arguments) {
 
 uint32_t parse_multiply(char *opcode, char **arguments) {
     uint32_t result = 0;
-    bit_append(&result, GET_SF(arguments[0]), 1);                         // sf, pos 31
+    bit_append(&result, GET_SF(arguments[0]), SF_SIZE);                         // sf, pos 31
     bit_append(&result, DPI_MUL_21_30, 10);                               // pos 21 - 30
     bit_append(&result, parse_register(arguments[2]), REGISTER_ADR_SIZE); // rm, pos 16 - 20
     if (STR_EQ(opcode, "madd")) {
@@ -124,7 +124,7 @@ uint32_t parse_multiply(char *opcode, char **arguments) {
 
 uint32_t parse_wide_move(char *opcode, char **arguments) {
     uint32_t result = 0;
-    bit_append(&result, GET_SF(arguments[0]), 1);
+    bit_append(&result, GET_SF(arguments[0]), SF_SIZE);
     if (STR_EQ(opcode, "movn")) {
         bit_append(&result, OPC_MOVN, OPC_SIZE); // opc, pos 29 - 30
     } else if (STR_EQ(opcode, "movz")) {
