@@ -7,6 +7,41 @@
 \usepackage{fullpage}
 
 \begin{document}
+% REPORT
+% You should write a short 3-page (i.e. maximum 6x A4 sides) LATEX final report documenting your project
+% (and its Extension, for Computing groups), which must contain:
+% • How you have structured and implemented your Assembler. (Please note that the Emulator has
+% already been described in the Interim Checkpoint document and should not be re-added here).
+% • How you have implemented Part III, i.e. making the green LED blink, on the provided Raspberry Pi.
+% • A description of how you have tested your implementation, and a discussion of how effective you
+% believe this testing to be.
+% • A group reflection on programming in a group. This should include a discussion on how effective
+% you believe your way of communicating and splitting work between the group was, and things you
+% would do differently or keep the same next time.
+% • Individual reflections (at least one paragraph per group member). Using your first Peer Assessment
+% feedback, and other experiences, reflect on how you feel you fitted into the group. For example, what
+% your strengths and weaknesses turned out to be compared to what you thought they might be or
+% things you would do differently or maintain when working with a different group of people.
+
+% PRESENTATION
+% Along with your report, you should also prepare a pre-recorded 15 minute video of your group present-
+% ing your project and extension. Sticking to the 15 minute duration is an assessed aspect of your presenta-
+% tion. The presentation slides that you used for your talk should be submitted to Scientia in PDF format. You
+% should also submit a URL.txt file with the address of your video.
+% You will be uploading your presentation video on Panopto, under the Assignment folder of COMP40009, here: 
+% https://imperial.cloud.panopto.eu/Panopto/Pages/Sessions/List.aspx#folderID=4925854c-5a7f-4266-ad79-b17800ad103c,
+% adding “Group 34" in the title. On Week 9, you will have your final assessed meeting with your Mentor, which will in-
+% volve a brief Q&A session on your submitted presentation and project.
+% Your presentation should discuss
+% your entire project and extension, and all group members must participate and present. The presentation
+% should include:
+% • A demonstration of the provided test-suite running against your emulator and assembler. You may
+% use this as an opportunity to briefly discuss any interesting or failing test cases if appropriate (approx.
+% 12 minutes).
+% • A reflection on the assignment. For example, how well do you think it went, how well did you work
+% as a group. Are there any particular experiences or insights that this exercise has given you into
+% programming with your peers? What would you do differently next time, or seek to maintain for
+% future group programming assignments? (approx. 3 minutes)
 
 \title{ARM Final Report}
 \author{Bingshi Xu, Henry Wu, Lei Ye, Yuhan Wang}
@@ -17,85 +52,114 @@
 
 \subsection{Overview}
 \begin{itemize}
-    \item assemble: Contains the main program loop
-    \item two pass: Implementation of the two-pass method
-    \item parser: resolves alias, Parses single instruction, Calls helper parsers
-    \item branch parser: Parses branching instructions
-    \item dir parser: Parses directives ('.int' only for this implementation)
-    \item dp parser: Parses data processing instructions
-    \item dt parser: Parses data transfer instructions
-    \item util: Misc utilities
+	\item assemble: Contains the main program loop
+	\item two pass: Implementation of the two-pass method
+	\item parser: resolves alias, Parses single instruction, Calls helper parsers
+	\item branch parser: Parses branching instructions
+	\item dir parser: Parses directives ('.int' only for this implementation)
+	\item dp parser: Parses data processing instructions
+	\item dt parser: Parses data transfer instructions
+	\item util: Misc utilities
 \end{itemize}
 
 \subsection{Two-pass}
-The two-pass accepts a file name in string as input and store the path in a local variable. 
-Then first-pass is called, which counts the total number of line(excluding empty and label line) 
-in the file and records all the labels' information into a table, removes line comments. After that, the input file is split
-into separate lines and replaces labels into addresses.
+The two-pass accepts a file name in string as input and store the path in a
+local variable. Then first-pass is called, which counts the total number of
+line(excluding empty and label line) in the file and records all the labels'
+information into a table, removes line comments. After that, the input file is
+split into separate lines and replaces labels into addresses.
 
-\subsection{parser}
-The parser accepts one line of instruction each time, and dispatches the appropriate particular parser for each case.
-Due to the special argument format of the address for Data transfer instructions, a special handler will handle seperation of arguemnts for DTIs and determining the 
-addressing mode for such instructions. For all other types, the main parser seperates the arguments using the strtok function from <String.h>, then check if any alias presents in 
-this line, changing the opcode and the arguments accordingly. The standard parsers for each type of instructions is then called to parse the binary code for the instruction.
+\subsection{Parsers}
+The parser accepts one line of instruction each time, and dispatches the
+appropriate particular parser for each case. Due to the special argument format
+of the address for Data transfer instructions, a special handler will handle
+seperation of arguemnts for DTIs and determining the addressing mode for such
+instructions. For all other types, the main parser seperates the arguments
+using the \texttt{strtok} function from \texttt{<string.h>}, then check if any
+alias presents in this line, changing the opcode and the arguments accordingly.
+The standard parsers for each type of instructions is then called to parse the
+binary code for the instruction.
 
 \section{Testing Our Implementation}
 
-We used the given test cases and passed all test cases.
-We also used valgrind on all test cases to detect memory leaks, no leak is detected in the most recent version.
+We used the given test cases and passed all test cases. We also used valgrind
+on \texttt{all} test cases to detect memory leaks, no leak is detected in the
+most recent version.
+% TODO(bx223): maybe talk about debug prints? This section is a bit too short
 
 \section{Difficulties}
 \subsection{understanding the spec}
-Our group decided to split the team into two, hence the assembler team didn't work on the emulator part, which caused problems due to lack of understanding of how the machine codes work.
-Also, part 2 is poorly documented and we had to continuously refer back to the part one contents which created problems.
+Our group decided to split the team into two, hence the assembler team didn't
+work on the emulator part, which caused problems due to lack of understanding
+of how the machine codes work. Also, part 2 is poorly documented and we had to
+continuously refer back to the part one contents which created problems.
 \subsection{classification of instruction types}
-Many of the instructions have similar arguments, and deciding how to seperate these instructions took quite much time.
+Many of the instructions have similar arguments, and deciding how to seperate
+these instructions took quite much time.
 \subsection{memory leaks}
-Due to lack of experience, our first working version leaked enormous memory, and we had to rewrite many modules as our original prototypes contain too many mallocs and are difficult to free.
+Due to lack of experience, our first working version leaked enormous amount of
+memory, and we had to rewrite some modules as our original prototypes contain
+too many mallocs and are difficult to free.
 
+\section{Part III: Blinking the LED}
+TODO: ky723, bx223
 
 \section{Group Reflection}
 
-Yuhan Wang (yw8123) and Lei Ye (ky723) focused on Part I, which involves the emulator. Henry Wu (hw2823) and Bingshi Xu (bx223) concentrated on Part II, which pertains to the assembler.
-For Part I, Yuhan Wang primarily handled the implementation of single data transfer and load from literal instructions. Lei Ye primarily dealt with data processing and branch instructions.
-For Part II, Henry Wu focused on implementing the two-pass 
+TODO: all\\ Yuhan Wang (yw8123) and Lei Ye (ky723) focused on Part I, which
+involves the emulator. Henry Wu (hw2823) and Bingshi Xu (bx223) concentrated on
+Part II, which pertains to the assembler. For Part I, Yuhan Wang primarily
+handled the implementation of single data transfer and load from literal
+instructions. Lei Ye primarily dealt with data processing and branch
+instructions. For Part II, Henry Wu focused on implementing the two-pass
 
 \section{Individual Reflections}
 
 \subsection{Bingshi Xu}
-Overall, I would consider the collaborating experience demanding but enjoyable. I've been assigned to work on parser for assembler in our first meet up.
-Starting with absolutely no knowledge in C nor assembly language, my first days on this project had been struggling. 
-In particular, I found understanding the spec challenging, as many of the details for encoding had been skipped in the spec for part two, probably because of 
-the information had been covered in part one. 
-Luckily, my teammates who worked on emulators are helpful and provided supports on the aspects that I didn't know without working on the emulator.
-Moreover, I have learned to use Git when working with others, including how to use branchs and version to avoid unexpected problems followed a bug fix.
-I've enjoyed the experience of working in a group and is more confident in doing so after this project.  
+Overall, I would consider the collaborating experience demanding but enjoyable.
+I've been assigned to work on parser for assembler in our first meet up.
+Starting with absolutely no knowledge in C nor assembly language, my first days
+on this project had been struggling. In particular, I found understanding the
+spec challenging, as many of the details for encoding had been skipped in the
+spec for part two, probably because of the information had been covered in part
+one. Luckily, my teammates who worked on emulators are helpful and provided
+supports on the aspects that I didn't know without working on the emulator.
+Moreover, I have learned to use Git when working with others, including how to
+use branches and version to avoid unexpected problems followed a bug fix. I've
+enjoyed the experience of working in a group and is more confident in doing so
+after this project.
 
 \subsection{Henry Wu}
 
-My main task is to implement the two-pass methods and assembler main functions in part II. 
-Initially, my C programming was still developing, and concepts like pointers, memory leaks, 
-and using Git were confusing. However my supportive group mates came in and helped me grasp 
-these concepts quickly, and through active learning, I steadily improved my understanding. 
-This not only allowed me to contribute more effectively to the project but also 
-solidified the value of continuous learning and teamwork in overcoming programming hurdles.
+My main task is to implement the two-pass methods and assembler main functions
+in part II. Initially, my C programming was still developing, and concepts like
+pointers, memory leaks, and using Git were confusing. However my supportive
+group mates came in and helped me grasp these concepts quickly, and through
+active learning, I steadily improved my understanding. This not only allowed me
+to contribute more effectively to the project but also solidified the value of
+continuous learning and teamwork in overcoming programming hurdles.
 
 \subsection{Lei Ye}
 
-Yuhan Wang (yw8123) and Lei Ye (ky723) focused on Part I, which involves the emulator. Henry Wu (hw2823) and Bingshi Xu (bx223) concentrated on Part II, which pertains to the assembler.
-For Part I, Yuhan Wang primarily handled the implementation of single data transfer and load from literal instructions. Lei Ye primarily dealt with data processing and branch instructions.
-For Part II, Henry Wu focused on implementing the two-pass 
+This is the first time I worked on a project with others. I learned many things
+that I couldn't have learned had I code alone: using git properly, coordinating
+progress, assigning issues, reviewing merge requests... I had a lot of fun with
+both the project and collaborating with other group members. Although the
+implementation of this project was not overwhelmingly complex, it still
+deepened my understanding about how executables work, and even did a bit of
+hardware in Part III! It's a great learning project that I wouldn't have done
+without this opportunity. The team was wonderful and I definitely look forward
+to collaborating in later year projects.
 
 \subsection{Yuhan Wang}
-Collaborating with my group members on our project was a highly rewarding 
-experience. I primarily focused on developing the emulator for Part 1 and 
-writing the Checkpoint report. At first, I found it challenging to get 
-comfortable with Git operations and version control, but mastering these 
-skills proved crucial for effective teamwork. I particularly enjoyed solving 
-technical issues, such as sign extension and converting word-indexed memory 
-to byte-indexed memory. Overcoming these challenges gave me a great sense of 
-satisfaction. Overall, programming as part of a team was both valuable and 
+Collaborating with my group members on our project was a highly rewarding
+experience. I primarily focused on developing the emulator for Part 1 and
+writing the Checkpoint report. At first, I found it challenging to get
+comfortable with Git operations and version control, but mastering these skills
+proved crucial for effective teamwork. I particularly enjoyed solving technical
+issues, such as sign extension and converting word-indexed memory to
+byte-indexed memory. Overcoming these challenges gave me a great sense of
+satisfaction. Overall, programming as part of a team was both valuable and
 enriching for my personal and professional growth.
-
 
 \end{document}
