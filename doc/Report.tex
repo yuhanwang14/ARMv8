@@ -63,11 +63,13 @@
 \end{itemize}
 
 \subsection{Two-pass}
-The two-pass accepts a file name in string as input and store the path in a
-local variable. Then first-pass is called, which counts the total number of
-line(excluding empty and label line) in the file and records all the labels'
-information into a table, removes line comments. After that, the input file is
-split into separate lines and replaces labels into addresses.
+Two-pass is effectively the lexing part of the assembler. The module
+substitutes all labels into number literals. To achieve this, we traverse the
+file first, trimming empty lines and spaces, and also records label and their
+corresponding number in an array based map. This is the \texttt{first pass}. In
+the second pass, we take note of instructions that could contain a label and
+substitute them. This is the \texttt{second pass}. After the lexing, the parser
+module receives in memory strings directly, which helps code separation.
 
 \subsection{Parsers}
 The parser accepts one line of instruction each time, and dispatches the
