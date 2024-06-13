@@ -9,40 +9,44 @@
 \begin{document}
 
 \title{ARM Final Report}
-\author{Bingshi Xu, Henry Wu, Lei Ye, Yuhan Wang}
+\author{Bingshi Xu(bx223), Henry Wu(hw2823), Lei Ye(ky723), Yuhan Wang(yw8123)}
 
 \maketitle
 
 \section{Assembler Implementation Strategies}
-
 \subsection{Overview}
 \begin{itemize}
-    \item assemble: Contains the main program loop
-    \item two pass: Implementation of the two-pass method
-    \item parser: resolves alias, Parses single instruction, Calls helper parsers
-    \item branch parser: Parses branching instructions
-    \item dir parser: Parses directives ('.int' only for this implementation)
-    \item dp parser: Parses data processing instructions
-    \item dt parser: Parses data transfer instructions
-    \item util: Misc utilities
+    \item \texttt{assemble}: Contains the main program loop
+    \item \texttt{two-pass}: Implementation of the two-pass method
+    \item \texttt{parser}: Resolves alias, Parses single instruction, Calls helper parsers
+    \item \texttt{branch-parser}: Parses branching instructions
+    \item \texttt{dir-parser}: Parses directives ('.int' only for this implementation)
+    \item \texttt{dp-parser}: Parses data processing instructions
+    \item \texttt{dt-parser}: Parses data transfer instructions
+    \item \texttt{util}: Misc utilities
 \end{itemize}
 
 \subsection{Two-pass}
-The two-pass accepts a file name in string as input and store the path in a local variable. 
-Then first-pass is called, which counts the total number of line(excluding empty and label line) 
-in the file and records all the labels' information into a table, removes line comments. After that, the input file is split
-into separate lines and replaces labels into addresses.
+The \texttt{set-input} function accepts a file name as a string input and stores the path in a local variable. Then, the 
+\texttt{first-pass} function is called, which counts the total number of lines (excluding any empty or label lines) in the 
+file, records all the labels' information as a pair(literal: String, line number: Int) into an array-based map, and removes line comments. 
+Afterwards, the \texttt{read-into} function splits the file contents by line. Finally, the \texttt{substitute-labels} function 
+reads one line at a time and substitutes all the labels with their corresponding values from the previously created table.
 
-\subsection{parser}
+\subsection{Parser}
 The parser accepts one line of instruction each time, and dispatches the appropriate particular parser for each case.
-Due to the special argument format of the address for Data transfer instructions, a special handler will handle seperation of arguemnts for DTIs and determining the 
-addressing mode for such instructions. For all other types, the main parser seperates the arguments using the strtok function from <String.h>, then check if any alias presents in 
-this line, changing the opcode and the arguments accordingly. The standard parsers for each type of instructions is then called to parse the binary code for the instruction.
+Due to the special argument format of the address for Data transfer instructions, a special handler will handle seperation 
+of arguemnts for DTIs and determining the addressing mode for such instructions. For all other types, the main parser seperates 
+the arguments using the strtok function from <String.h>, then check if any alias presents in this line, changing the 
+opcode and the arguments accordingly. The standard parsers for each type of instructions is then called to parse the binary 
+code for the instruction.
 
 \section{Testing Our Implementation}
-
-We used the given test cases and passed all test cases.
+We used the given test cases and passed all of the 592 test cases.
 We also used valgrind on all test cases to detect memory leaks, no leak is detected in the most recent version.
+
+\section{Raspberry Pi: Blinking the LED}
+XXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 \section{Difficulties}
 \subsection{understanding the spec}
@@ -53,12 +57,8 @@ Many of the instructions have similar arguments, and deciding how to seperate th
 \subsection{memory leaks}
 Due to lack of experience, our first working version leaked enormous memory, and we had to rewrite many modules as our original prototypes contain too many mallocs and are difficult to free.
 
-
 \section{Group Reflection}
-
-Yuhan Wang (yw8123) and Lei Ye (ky723) focused on Part I, which involves the emulator. Henry Wu (hw2823) and Bingshi Xu (bx223) concentrated on Part II, which pertains to the assembler.
-For Part I, Yuhan Wang primarily handled the implementation of single data transfer and load from literal instructions. Lei Ye primarily dealt with data processing and branch instructions.
-For Part II, Henry Wu focused on implementing the two-pass 
+XXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 \section{Individual Reflections}
 
@@ -72,19 +72,16 @@ Moreover, I have learned to use Git when working with others, including how to u
 I've enjoyed the experience of working in a group and is more confident in doing so after this project.  
 
 \subsection{Henry Wu}
-
-My main task is to implement the two-pass methods and assembler main functions in part II. 
-Initially, my C programming was still developing, and concepts like pointers, memory leaks, 
-and using Git were confusing. However my supportive group mates came in and helped me grasp 
-these concepts quickly, and through active learning, I steadily improved my understanding. 
-This not only allowed me to contribute more effectively to the project but also 
-solidified the value of continuous learning and teamwork in overcoming programming hurdles.
+The C group project was challenging yet fun. My main task is to implement the two-pass methods and the assembler main functions for part II. 
+Initially, my C programming skills were still developing, and concepts like pointers, memory leaks, 
+and Git commands were confusing. Besides, I had difficulties and confusion of the spec content about assembler, 
+and need to continuously scroll back to previous parts of the spec for more details. However my supportive 
+group mates came in and helped me grasp these concepts quickly, and through active learning, I steadily improved my understanding. 
+This not only allowed me to contribute more effectively to the project but also solidified the value of continuous 
+learning and teamwork in overcoming programming hurdles.
 
 \subsection{Lei Ye}
-
-Yuhan Wang (yw8123) and Lei Ye (ky723) focused on Part I, which involves the emulator. Henry Wu (hw2823) and Bingshi Xu (bx223) concentrated on Part II, which pertains to the assembler.
-For Part I, Yuhan Wang primarily handled the implementation of single data transfer and load from literal instructions. Lei Ye primarily dealt with data processing and branch instructions.
-For Part II, Henry Wu focused on implementing the two-pass 
+XXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 \subsection{Yuhan Wang}
 Collaborating with my group members on our project was a highly rewarding 
