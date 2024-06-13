@@ -19,19 +19,19 @@
 \begin{itemize}
     \item assemble: Contains the main program loop
     \item two pass: Implementation of the two-pass method
-    \item parser: 
-    \item branch parser: 
-    \item dir parser: 
-    \item dp parser:
-    \item dt parser:
+    \item parser: resolves alias, Parses single instruction, Calls helper parsers
+    \item branch parser: Parses branching instructions
+    \item dir parser: Parses directives ('.int' only for this implementation)
+    \item dp parser: Parses data processing instructions
+    \item dt parser: Parses data transfer instructions
     \item util: Misc utilities
 \end{itemize}
 
 \subsection{Two-pass}
 The two-pass accepts a file name in string as input and store the path in a local variable. 
 Then first-pass is called, which counts the total number of line(excluding empty and label line) 
-in the file and records all the labels' information into a table. After that, the input file is split
-into separate lines and finally for each line, the label is replaced.
+in the file and records all the labels' information into a table, removes line comments. After that, the input file is split
+into separate lines and replaces labels into addresses.
 
 \subsection{parser}
 The parser accepts one line of instruction each time, and dispatches the appropriate particular parser for each case.
