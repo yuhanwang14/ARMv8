@@ -73,8 +73,8 @@ split into separate lines and replaces labels into addresses.
 The parser accepts one line of instruction each time, and dispatches the
 appropriate particular parser for each case. Due to the special argument format
 of the address for Data transfer instructions, a special handler will handle
-seperation of arguemnts for DTIs and determining the addressing mode for such
-instructions. For all other types, the main parser seperates the arguments
+separation of arguments for DTIs and determining the addressing mode for such
+instructions. For all other types, the main parser separates the arguments
 using the \texttt{strtok} function from \texttt{<string.h>}, then check if any
 alias presents in this line, changing the opcode and the arguments accordingly.
 The standard parsers for each type of instructions is then called to parse the
