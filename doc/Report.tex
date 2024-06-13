@@ -15,18 +15,29 @@
 
 \section{Assembler Implementation Strategies}
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-culpa qui officia deserunt mollit anim id est laborum.
+\subsection{parser}
+The parser accepts one line of instruction each time, and dispatches the appropriate particular parser for each case.
+Due to the special argument format of the address for Data transfer instructions, a special handler will handle seperation of arguemnts for DTIs and determining the 
+addressing mode for such instructions. For all other types, the main parser seperates the arguments using the strtok function from <String.h>, then check if any alias presents in 
+this line, changing the opcode and the arguments accordingly. The standard parsers for each type of instructions is then called to parse the binary code for the instruction.
+ 
+
+
 
 \section{Testing Our Implementation}
 
-Yuhan Wang (yw8123) and Lei Ye (ky723) focused on Part I, which involves the emulator. Henry Wu (hw2823) and Bingshi Xu (bx223) concentrated on Part II, which pertains to the assembler.
-For Part I, Yuhan Wang primarily handled the implementation of single data transfer and load from literal instructions. Lei Ye primarily dealt with data processing and branch instructions.
-For Part II, Henry Wu focused on implementing the two-pass 
+We used the given test cases and passed all test cases.
+We also used valgrind on all test cases to detect memory leaks, no leak is detected in the most recent version.
+
+\section{Difficulties}
+\subsection{understanding the spec}
+Our group decided to split the team into two, hence the assembler team didn't work on the emulator part, which caused problems due to lack of understanding of how the machine codes work.
+Also, part 2 is poorly documented and we had to continuously refer back to the part one contents which created problems.
+\subsection{classification of instruction types}
+Many of the instructions have similar arguments, and deciding how to seperate these instructions took quite much time.
+\subsection{memory leaks}
+Due to lack of experience, our first working version leaked enormous memory, and we had to rewrite many modules as our original prototypes contain too many mallocs and are difficult to free.
+
 
 \section{Group Reflection}
 
