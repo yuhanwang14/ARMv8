@@ -44,21 +44,20 @@
 % future group programming assignments? (approx. 3 minutes)
 
 \title{ARM Final Report}
-\author{Bingshi Xu, Henry Wu, Lei Ye, Yuhan Wang}
+\author{Bingshi Xu(bx223), Henry Wu(hw2823), Lei Ye(ky723), Yuhan Wang(yw8123)}
 
 \maketitle
 
 \section{Assembler Implementation Strategies}
-
 \subsection{Overview}
 \begin{itemize}
-	\item assemble: Contains the main program loop
-	\item two pass: Implementation of the two-pass method
-	\item parser: resolves alias, Parses single instruction, Calls helper parsers
-	\item branch parser: Parses branching instructions
-	\item dir parser: Parses directives ('.int' only for this implementation)
-	\item dp parser: Parses data processing instructions
-	\item dt parser: Parses data transfer instructions
+	\item \texttt{assemble}: Contains the main program loop
+	\item \texttt{two pass}: Implementation of the two-pass method
+	\item \texttt{parser}: resolves alias, Parses single instruction, Calls helper parsers
+	\item \texttt{branch parser}: Parses branching instructions
+	\item \texttt{dir parser}: Parses directives ('.int' only for this implementation)
+	\item \texttt{dp parser}: Parses data processing instructions
+	\item \texttt{dt parser}: Parses data transfer instructions
 	\item util: Misc utilities
 \end{itemize}
 
@@ -89,31 +88,12 @@ on \texttt{all} test cases to detect memory leaks, no leak is detected in the
 most recent version.
 % TODO(bx223): maybe talk about debug prints? This section is a bit too short
 
-\section{Difficulties}
-\subsection{understanding the spec}
-Our group decided to split the team into two, hence the assembler team didn't
-work on the emulator part, which caused problems due to lack of understanding
-of how the machine codes work. Also, part 2 is poorly documented and we had to
-continuously refer back to the part one contents which created problems.
-\subsection{classification of instruction types}
-Many of the instructions have similar arguments, and deciding how to separate
-these instructions took quite much time.
-\subsection{memory leaks}
-Due to lack of experience, our first working version leaked enormous amount of
-memory, and we had to rewrite some modules as our original prototypes contain
-too many mallocs and are difficult to free.
-
 \section{Part III: Blinking the LED}
 TODO: ky723, bx223
 
 \section{Group Reflection}
 
-TODO: all\\ Yuhan Wang (yw8123) and Lei Ye (ky723) focused on Part I, which
-involves the emulator. Henry Wu (hw2823) and Bingshi Xu (bx223) concentrated on
-Part II, which pertains to the assembler. For Part I, Yuhan Wang primarily
-handled the implementation of single data transfer and load from literal
-instructions. Lei Ye primarily dealt with data processing and branch
-instructions. For Part II, Henry Wu focused on implementing the two-pass
+TODO: all\\
 
 \section{Individual Reflections}
 
@@ -132,10 +112,12 @@ enjoyed the experience of working in a group and is more confident in doing so
 after this project.
 
 \subsection{Henry Wu}
-
-My main task is to implement the two-pass methods and assembler main functions
-in part II. Initially, my C programming was still developing, and concepts like
-pointers, memory leaks, and using Git were confusing. However my supportive
+The C group project was challenging yet fun. My main task is to implement the
+two-pass methods and the assembler main functions for part II. Initially, my C
+programming skills were still developing, and concepts like pointers, memory
+leaks, and Git commands were confusing. Besides, I had difficulties and
+confusion of the spec content about assembler, and need to continuously scroll
+back to previous parts of the spec for more details. However my supportive
 group mates came in and helped me grasp these concepts quickly, and through
 active learning, I steadily improved my understanding. This not only allowed me
 to contribute more effectively to the project but also solidified the value of
