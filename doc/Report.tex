@@ -89,7 +89,23 @@ most recent version.
 % TODO(bx223): maybe talk about debug prints? This section is a bit too short
 
 \section{Part III: Blinking the LED}
-TODO: ky723, bx223
+\paragraph{Controlling the hardware}
+The task was achieved by using pins on the Pi that can be controlled via
+software. In particular, such a pin could be in one of two states: high voltage
+and low voltage. Which would make the LED "on" and "off" respectively. All of
+the pin controls involve setting particular bits in the memory. A particularity
+is that it only works if you do a 32 bit set, not a 64 bit one. This was not
+mentioned in the spec and it took trial and error to find out.
+\paragraph{Setting a time interval} Because we did not implement all of the
+instruction set, we could not \texttt{sleep} like in higher level languages.
+Instead, we just have a loop doing addition:
+
+\begin{minted}{C}
+wait1:
+add x0, x0, #1
+cmp x0, x2
+b.ne wait1
+\end{minted}
 
 \section{Group Reflection}
 
