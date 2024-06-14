@@ -8,7 +8,7 @@ static int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char
     // buffer points to an allocated memory after running which must be freed after use
     // buffer must be initiallized with a value, i.e. not NULL
     // the type of buffer is a pointer to a string and is intended to be so, DO NOT CHANGE
-    char *zeroReg = malloc(4*sizeof(char));
+    char *zeroReg = malloc(4 * sizeof(char));
     *buffer = zeroReg;
     if (arguments[0][0] == 'x') {
         strcpy(zeroReg, "xzr");
@@ -57,10 +57,10 @@ static int8_t resolve_alias(char **opcode, char **arguments, int8_t numArg, char
 
 uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
     char *opcode = strtok(instruction, " ,");
-    if (STR_EQ(opcode, "ldr") || STR_EQ(opcode, "str")){
+    if (STR_EQ(opcode, "ldr") || STR_EQ(opcode, "str")) {
         // special handler for DTIs
         return parse_sdt(opcode, strtok(NULL, ""), currentLoc);
-        } 
+    }
     char *nextArg = strtok(NULL, " ,");
     char *arguments[5] = {NULL, NULL, NULL, NULL, NULL};
     int numArg = 0;
@@ -73,8 +73,8 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
     }
 
     // buffer holds the pointer that must be freed after use(from resolve_alias)
-    char **buffer = malloc(sizeof(char **));
-    numArg = resolve_alias(&opcode, arguments, numArg, buffer);
+    char *buffer = NULL;
+    numArg = resolve_alias(&opcode, arguments, numArg, &buffer);
     uint32_t result;
 
     switch (numArg) {
@@ -118,11 +118,9 @@ uint32_t parse_instruction(char *instruction, uint32_t currentLoc) {
     default:
         fprintf(stderr, "failed to parse\n'%s'\ndoes not have correct number of arguments\n",
                 instruction);
-        free(*buffer);
         free(buffer);
         exit(EXIT_FAILURE);
     }
-    free(*buffer);
     free(buffer);
     return result;
 }
